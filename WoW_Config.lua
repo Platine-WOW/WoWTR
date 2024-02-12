@@ -195,7 +195,7 @@ if (WoWTR_Localization.lang == 'AR') then
    WOWTR_OptionsHeaderText:SetText(AS_UTF8reverse(WoWTR_Localization.optionTitleAR));
 else
    WOWTR_OptionsHeaderText:SetPoint("LEFT", WOWTR_OptionsHeaderIcon, "RIGHT", 0, 0);
-   WOWTR_OptionsHeaderText:SetText(" "..WoWTR_Localization.optionTitle.."   ver. |cff8080ff"..WOWTR_version.."|r  by Platine © 2023, 2024");
+   WOWTR_OptionsHeaderText:SetText(" "..WoWTR_Localization.optionTitle.." |cff8080ffv"..WOWTR_version.."|r                          by Platine © 2024");
 end
 
 local WOWTR_CheckButton00 = CreateFrame("CheckButton", "WOWTR_CheckButton00", WOWTR_Options, "SettingsCheckBoxControlTemplate");
@@ -229,12 +229,12 @@ WOWTR_CheckButton00:SetScript("OnLeave", function(self)
 local WOWTR_Tab1TitleA = CreateFrame("BUTTON", "WOWTR_Tab1TitleA", WOWTR_Options, "GameMenuButtonTemplate");
 WOWTR_Tab1TitleA:SetWidth(100);
 WOWTR_Tab1TitleA:SetHeight(20);
---if (WoWTR_Localization.lang == 'AR') then
+if (WoWTR_Localization.lang == 'AR') then
    local fo = WOWTR_Tab1TitleA:CreateFontString();
    fo:SetFont(WOWTR_Font2, 12);
    fo:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.titleTab1));
    WOWTR_Tab1TitleA:SetFontString(fo);
---end
+end
 WOWTR_Tab1TitleA:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.titleTab1));
 WOWTR_Tab1TitleA:ClearAllPoints();
 WOWTR_Tab1TitleA:SetPoint("TOPLEFT", WOWTR_Options, "TOPLEFT", -10, -60);
@@ -243,12 +243,12 @@ WOWTR_Tab1TitleA:Show();
 local WOWTR_Tab1TitleB = CreateFrame("BUTTON", "WOWTR_Tab1TitleB", WOWTR_Options, "UIPanelButtonGrayTemplate");
 WOWTR_Tab1TitleB:SetWidth(100);
 WOWTR_Tab1TitleB:SetHeight(20);
---if (WoWTR_Localization.lang == 'AR') then
+if (WoWTR_Localization.lang == 'AR') then
    local fo = WOWTR_Tab1TitleB:CreateFontString();
    fo:SetFont(WOWTR_Font2, 12);
    fo:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.titleTab1));
    WOWTR_Tab1TitleB:SetFontString(fo);
---end
+end
 WOWTR_Tab1TitleB:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.titleTab1));
 WOWTR_Tab1TitleB:ClearAllPoints();
 WOWTR_Tab1TitleB:SetPoint("TOPLEFT", WOWTR_Options, "TOPLEFT", -10, -60);
@@ -258,12 +258,12 @@ WOWTR_Tab1TitleB:SetScript("OnClick", WOWTR_ChangePanel1);
 local WOWTR_Tab2TitleA = CreateFrame("BUTTON", "WOWTR_Tab2TitleA", WOWTR_Options, "GameMenuButtonTemplate");
 WOWTR_Tab2TitleA:SetWidth(100);
 WOWTR_Tab2TitleA:SetHeight(20);
---if (WoWTR_Localization.lang == 'AR') then
+if (WoWTR_Localization.lang == 'AR') then
    local fo = WOWTR_Tab2TitleA:CreateFontString();
    fo:SetFont(WOWTR_Font2, 12);
    fo:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.titleTab2));
    WOWTR_Tab2TitleA:SetFontString(fo);
---end
+end
 WOWTR_Tab2TitleA:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.titleTab2));
 WOWTR_Tab2TitleA:ClearAllPoints();
 WOWTR_Tab2TitleA:SetPoint("TOPLEFT", WOWTR_Tab1TitleA, "TOPRIGHT", -4, 0);
@@ -272,12 +272,12 @@ WOWTR_Tab2TitleA:Hide();
 local WOWTR_Tab2TitleB = CreateFrame("BUTTON", "WOWTR_Tab2TitleB", WOWTR_Options, "UIPanelButtonGrayTemplate");
 WOWTR_Tab2TitleB:SetWidth(100);
 WOWTR_Tab2TitleB:SetHeight(20);
---if (WoWTR_Localization.lang == 'AR') then
+if (WoWTR_Localization.lang == 'AR') then
    local fo = WOWTR_Tab2TitleB:CreateFontString();
    fo:SetFont(WOWTR_Font2, 12);
    fo:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.titleTab2));
    WOWTR_Tab2TitleB:SetFontString(fo);
---end
+end
 WOWTR_Tab2TitleB:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.titleTab2));
 WOWTR_Tab2TitleB:ClearAllPoints();
 WOWTR_Tab2TitleB:SetPoint("TOPLEFT", WOWTR_Tab1TitleB, "TOPRIGHT", -4, 0);
@@ -287,12 +287,12 @@ WOWTR_Tab2TitleB:SetScript("OnClick", WOWTR_ChangePanel2);
 local WOWTR_Tab3TitleA = CreateFrame("BUTTON", "WOWTR_Tab3TitleA", WOWTR_Options, "GameMenuButtonTemplate");
 WOWTR_Tab3TitleA:SetWidth(100);
 WOWTR_Tab3TitleA:SetHeight(20);
---if (WoWTR_Localization.lang == 'AR') then
+if (WoWTR_Localization.lang == 'AR') then
    local fo = WOWTR_Tab3TitleA:CreateFontString();
    fo:SetFont(WOWTR_Font2, 12);
    fo:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.titleTab3));
    WOWTR_Tab3TitleA:SetFontString(fo);
---end
+end
 WOWTR_Tab3TitleA:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.titleTab3));
 WOWTR_Tab3TitleA:ClearAllPoints();
 WOWTR_Tab3TitleA:SetPoint("TOPLEFT", WOWTR_Tab2TitleA, "TOPRIGHT", -4, 0);
@@ -301,12 +301,12 @@ WOWTR_Tab3TitleA:Hide();
 local WOWTR_Tab3TitleB = CreateFrame("BUTTON", "WOWTR_Tab3TitleB", WOWTR_Options, "UIPanelButtonGrayTemplate");
 WOWTR_Tab3TitleB:SetWidth(100);
 WOWTR_Tab3TitleB:SetHeight(20);
---if (WoWTR_Localization.lang == 'AR') then
+if (WoWTR_Localization.lang == 'AR') then
    local fo = WOWTR_Tab3TitleB:CreateFontString();
    fo:SetFont(WOWTR_Font2, 12);
    fo:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.titleTab3));
    WOWTR_Tab3TitleB:SetFontString(fo);
---end
+end
 WOWTR_Tab3TitleB:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.titleTab3));
 WOWTR_Tab3TitleB:ClearAllPoints();
 WOWTR_Tab3TitleB:SetPoint("TOPLEFT", WOWTR_Tab2TitleB, "TOPRIGHT", -4, 0);
@@ -316,12 +316,12 @@ WOWTR_Tab3TitleB:SetScript("OnClick", WOWTR_ChangePanel3);
 local WOWTR_Tab4TitleA = CreateFrame("BUTTON", "WOWTR_Tab4TitleA", WOWTR_Options, "GameMenuButtonTemplate");
 WOWTR_Tab4TitleA:SetWidth(100);
 WOWTR_Tab4TitleA:SetHeight(20);
---if (WoWTR_Localization.lang == 'AR') then
+if (WoWTR_Localization.lang == 'AR') then
    local fo = WOWTR_Tab4TitleA:CreateFontString();
    fo:SetFont(WOWTR_Font2, 12);
    fo:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.titleTab4));
    WOWTR_Tab4TitleA:SetFontString(fo);
---end
+end
 WOWTR_Tab4TitleA:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.titleTab4));
 WOWTR_Tab4TitleA:ClearAllPoints();
 WOWTR_Tab4TitleA:SetPoint("TOPLEFT", WOWTR_Tab3TitleA, "TOPRIGHT", -4, 0);
@@ -330,12 +330,12 @@ WOWTR_Tab4TitleA:Hide();
 local WOWTR_Tab4TitleB = CreateFrame("BUTTON", "WOWTR_Tab4TitleB", WOWTR_Options, "UIPanelButtonGrayTemplate");
 WOWTR_Tab4TitleB:SetWidth(100);
 WOWTR_Tab4TitleB:SetHeight(20);
---if (WoWTR_Localization.lang == 'AR') then
+if (WoWTR_Localization.lang == 'AR') then
    local fo = WOWTR_Tab4TitleB:CreateFontString();
    fo:SetFont(WOWTR_Font2, 12);
    fo:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.titleTab4));
    WOWTR_Tab4TitleB:SetFontString(fo);
---end
+end
 WOWTR_Tab4TitleB:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.titleTab4));
 WOWTR_Tab4TitleB:ClearAllPoints();
 WOWTR_Tab4TitleB:SetPoint("TOPLEFT", WOWTR_Tab3TitleB, "TOPRIGHT", -4, 0);
@@ -345,10 +345,12 @@ WOWTR_Tab4TitleB:SetScript("OnClick", WOWTR_ChangePanel4);
 local WOWTR_Tab5TitleA = CreateFrame("BUTTON", "WOWTR_Tab5TitleA", WOWTR_Options, "GameMenuButtonTemplate");
 WOWTR_Tab5TitleA:SetWidth(100);
 WOWTR_Tab5TitleA:SetHeight(20);
-local fo = WOWTR_Tab5TitleA:CreateFontString();
-fo:SetFont(WOWTR_Font2, 12);
-fo:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.titleTab5));
-WOWTR_Tab5TitleA:SetFontString(fo);
+if (WoWTR_Localization.lang == 'AR') then
+   local fo = WOWTR_Tab5TitleA:CreateFontString();
+   fo:SetFont(WOWTR_Font2, 12);
+   fo:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.titleTab5));
+   WOWTR_Tab5TitleA:SetFontString(fo);
+end
 WOWTR_Tab5TitleA:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.titleTab5));
 WOWTR_Tab5TitleA:ClearAllPoints();
 WOWTR_Tab5TitleA:SetPoint("TOPLEFT", WOWTR_Tab4TitleA, "TOPRIGHT", -4, 0);
@@ -357,10 +359,12 @@ WOWTR_Tab5TitleA:Hide();
 local WOWTR_Tab5TitleB = CreateFrame("BUTTON", "WOWTR_Tab5TitleB", WOWTR_Options, "UIPanelButtonGrayTemplate");
 WOWTR_Tab5TitleB:SetWidth(100);
 WOWTR_Tab5TitleB:SetHeight(20);
-local fo = WOWTR_Tab5TitleB:CreateFontString();
-fo:SetFont(WOWTR_Font2, 12);
-fo:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.titleTab5));
-WOWTR_Tab5TitleB:SetFontString(fo);
+if (WoWTR_Localization.lang == 'AR') then
+   local fo = WOWTR_Tab5TitleB:CreateFontString();
+   fo:SetFont(WOWTR_Font2, 12);
+   fo:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.titleTab5));
+   WOWTR_Tab5TitleB:SetFontString(fo);
+end
 WOWTR_Tab5TitleB:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.titleTab5));
 WOWTR_Tab5TitleB:ClearAllPoints();
 WOWTR_Tab5TitleB:SetPoint("TOPLEFT", WOWTR_Tab4TitleB, "TOPRIGHT", -4, 0);
@@ -370,12 +374,12 @@ WOWTR_Tab5TitleB:SetScript("OnClick", WOWTR_ChangePanel5);
 local WOWTR_Tab6TitleA = CreateFrame("BUTTON", "WOWTR_Tab6TitleA", WOWTR_Options, "GameMenuButtonTemplate");
 WOWTR_Tab6TitleA:SetWidth(100);
 WOWTR_Tab6TitleA:SetHeight(20);
---if (WoWTR_Localization.lang == 'AR') then
+if (WoWTR_Localization.lang == 'AR') then
    local fo = WOWTR_Tab6TitleA:CreateFontString();
    fo:SetFont(WOWTR_Font2, 12);
    fo:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.titleTab6));
    WOWTR_Tab6TitleA:SetFontString(fo);
---end
+end
 WOWTR_Tab6TitleA:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.titleTab6));
 WOWTR_Tab6TitleA:ClearAllPoints();
 WOWTR_Tab6TitleA:SetPoint("TOPLEFT", WOWTR_Tab5TitleA, "TOPRIGHT", -4, 0);
@@ -399,12 +403,12 @@ WOWTR_Tab6TitleB:SetScript("OnClick", WOWTR_ChangePanel6);
 local WOWTR_Tab9TitleA = CreateFrame("BUTTON", "WOWTR_Tab9TitleA", WOWTR_Options, "GameMenuButtonTemplate");
 WOWTR_Tab9TitleA:SetWidth(100);
 WOWTR_Tab9TitleA:SetHeight(20);
---if (WoWTR_Localization.lang == 'AR') then
+if (WoWTR_Localization.lang == 'AR') then
    local fo = WOWTR_Tab9TitleA:CreateFontString();
    fo:SetFont(WOWTR_Font2, 12);
    fo:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.titleTab9));
    WOWTR_Tab9TitleA:SetFontString(fo);
---end
+end
 WOWTR_Tab9TitleA:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.titleTab9));
 WOWTR_Tab9TitleA:ClearAllPoints();
 WOWTR_Tab9TitleA:SetPoint("TOPLEFT", WOWTR_Tab6TitleA, "TOPRIGHT", -4, 0);
@@ -413,12 +417,12 @@ WOWTR_Tab9TitleA:Hide();
 local WOWTR_Tab9TitleB = CreateFrame("BUTTON", "WOWTR_Tab9TitleB", WOWTR_Options, "UIPanelButtonGrayTemplate");
 WOWTR_Tab9TitleB:SetWidth(100);
 WOWTR_Tab9TitleB:SetHeight(20);
---if (WoWTR_Localization.lang == 'AR') then
+if (WoWTR_Localization.lang == 'AR') then
    local fo = WOWTR_Tab9TitleB:CreateFontString();
    fo:SetFont(WOWTR_Font2, 12);
    fo:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.titleTab9));
    WOWTR_Tab9TitleB:SetFontString(fo);
---end
+end
 WOWTR_Tab9TitleB:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.titleTab9));
 WOWTR_Tab9TitleB:ClearAllPoints();
 WOWTR_Tab9TitleB:SetPoint("TOPLEFT", WOWTR_Tab6TitleB, "TOPRIGHT", -4, 0);
@@ -2553,10 +2557,12 @@ WOWTR_Panel9Email2:SetFont(WOWTR_Font2, 13);
 WOWTR_ResetButton1 = CreateFrame("BUTTON", nil, WOWTR_OptionPanel9, "UIPanelButtonTemplate");
 WOWTR_ResetButton1:SetWidth(300);
 WOWTR_ResetButton1:SetHeight(32);
-local fo = WOWTR_ResetButton1:CreateFontString();
-fo:SetFont(WOWTR_Font2, 12);
-fo:SetText(QTR_ReverseIfAR(WoWTR_Localization.resetButton1));
-WOWTR_ResetButton1:SetFontString(fo);
+if (WoWTR_Localization.lang == 'AR') then
+   local fo = WOWTR_ResetButton1:CreateFontString();
+   fo:SetFont(WOWTR_Font2, 12);
+   fo:SetText(QTR_ReverseIfAR(WoWTR_Localization.resetButton1));
+   WOWTR_ResetButton1:SetFontString(fo);
+end
 WOWTR_ResetButton1:SetText(QTR_ReverseIfAR(WoWTR_Localization.resetButton1));      -- Wyczyść zapisane nieprzetłumaczone teksty
 WOWTR_ResetButton1:ClearAllPoints();
 if (WoWTR_Localization.lang == 'AR') then
@@ -2888,7 +2894,11 @@ end
 
 if (string.len(WoWTR_Localization.addressBlik) > 1) then
    local WOWTR_linkButtonBLIK = CreateFrame("Button", nil, WOWTR_OptionPanel9)
-   WOWTR_linkButtonBLIK:SetSize(64, 32);
+   if (WoWTR_Localization.lang == 'TR') then
+      WOWTR_linkButtonBLIK:SetSize(32, 32);
+   else
+      WOWTR_linkButtonBLIK:SetSize(64, 32);
+   end
    WOW_interPlace = WOW_interPlace + WOW_interSpace - 10;
    if (WoWTR_Localization.lang == 'AR') then
       WOWTR_linkButtonBLIK:SetPoint("TOPRIGHT", WOWTR_Panel9Header2, "BOTTOMRIGHT", -WOW_interPlace, -35);
@@ -2897,7 +2907,11 @@ if (string.len(WoWTR_Localization.addressBlik) > 1) then
    end
    WOWTR_linkButtonBLIK.icon = WOWTR_linkButtonBLIK:CreateTexture()
    WOWTR_linkButtonBLIK.icon:SetTexture(WoWTR_Localization.mainFolder.."\\Fonts\\images\\icon_blik.png")
-   WOWTR_linkButtonBLIK.icon:SetSize(64, 32);
+   if (WoWTR_Localization.lang == 'TR') then
+      WOWTR_linkButtonBLIK.icon:SetSize(64, 32);
+   else
+      WOWTR_linkButtonBLIK.icon:SetSize(32, 32);
+   end
    WOWTR_linkButtonBLIK.icon:SetPoint("LEFT", 0, 0);
 
    WOWTR_linkButtonBLIK:SetScript("OnEnter", function(self)
