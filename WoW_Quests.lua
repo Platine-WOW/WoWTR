@@ -1,4 +1,4 @@
--- Addon: WoW_Quests (version: 10.A36) 2024.02.12
+-- Addon: WoW_Quests (version: 10.A37) 2024.02.16
 -- Description: The AddOn displays the translated text information in chosen language
 -- Author: Platine
 -- E-mail: platine.wow@gmail.com
@@ -243,6 +243,12 @@ function QTR_Gossip_Show()
          local Hash = StringHash(Czysty_Text);
          QTR_curr_hash = Hash;
          QTR_GS[Hash] = Greeting_Text;                      -- zapis oryginalnego tekstu
+         if ( GS_Gossip[Hash] == nil ) then                 -- może to być nazwa zadania z dopiskiem (low level)
+            Origin_Text = string.gsub(Origin_Text, ' (low level)', '');
+            Czysty_Text = string.gsub(Czysty_Text, ' (low level)', '');
+            Hash = StringHash(Czysty_Text);
+            QTR_curr_hash = Hash;
+         end
          if ( GS_Gossip[Hash] ) then   -- istnieje tłumaczenie tekstu GOSSIP tego NPC
             local Greeting_TR = GS_Gossip[Hash];
             if (string.sub(Nazwa_NPC,1,17) == "Bronze Timekeeper") then       -- wyścigi na smokach - wyjątej z sekundami: $1.$2 oraz $3.$4
@@ -908,8 +914,13 @@ objectiveSpecials = {
 function QTR_ObjectiveTracker_Check()
    if ( QUEST_TRACKER_MODULE.usedBlocks.ObjectiveTrackerBlockTemplate and QTR_PS["active"]=="1" and QTR_PS["tracker"]=="1" ) then   -- tłumaczenia włączone
       ObjectiveTrackerFrame.HeaderMenu.Title:SetText(QTR_ReverseIfAR(WoWTR_Localization.objectives));
-      ObjectiveTrackerFrame.HeaderMenu.Title:SetFont(WOWTR_Font2, 18);
-      ObjectiveTrackerBlocksFrame.QuestHeader.Text:SetFont(WOWTR_Font2, 18);
+      if (WoWTR_Localization.lang == 'AR') then
+         ObjectiveTrackerFrame.HeaderMenu.Title:SetFont(WOWTR_Font2, 16);
+         ObjectiveTrackerBlocksFrame.QuestHeader.Text:SetFont(WOWTR_Font2, 16);
+      else
+         ObjectiveTrackerFrame.HeaderMenu.Title:SetFont(WOWTR_Font2, 18);
+         ObjectiveTrackerBlocksFrame.QuestHeader.Text:SetFont(WOWTR_Font2, 18);
+      end
       if (WoWTR_Localization.lang == 'AR') then
          --Added New Translation Campaign and Scenario for Arabic only
          ObjectiveTrackerBlocksFrame.CampaignQuestHeader.Text:SetFont(WOWTR_Font2, 16);
@@ -926,7 +937,11 @@ function QTR_ObjectiveTracker_Check()
          local str_ID = tostring(questID);
          if (str_ID and QTR_PS["transtitle"]=="1" and QTR_QuestData[str_ID] and block.HeaderText) then  -- tłumaczenie tytułu
             block.HeaderText:SetText(QTR_ReverseIfAR(QTR_ExpandUnitInfo(QTR_QuestData[str_ID]["Title"]),false,block.HeaderText,WOWTR_Font2));
-            block.HeaderText:SetFont(WOWTR_Font2, 11);
+            if (WoWTR_Localization.lang == 'AR') then
+               block.HeaderText:SetFont(WOWTR_Font2, 14);
+            else
+               block.HeaderText:SetFont(WOWTR_Font2, 11);
+            end
             QTR_ResizeBlock(block.HeaderText);
          end
          local objectives = block.lines;
@@ -941,7 +956,11 @@ function QTR_ObjectiveTracker_Check()
                qtr_obj = string.gsub(qtr_obj, qtr_en, qtr_pl);
             end
             block.currentLine.Text:SetText(QTR_ReverseIfAR(qtr_obj));    -- może: QTR_ExtendedUnitInfo ?
-            block.currentLine.Text:SetFont(WOWTR_Font2, 11);
+            if (WoWTR_Localization.lang == 'AR') then
+               block.currentLine.Text:SetFont(WOWTR_Font2, 13);
+            else
+               block.currentLine.Text:SetFont(WOWTR_Font2, 11);
+            end
             QTR_ResizeBlock(block.currentLine.Text);
          end
          for index = 1, #objectives do
@@ -951,7 +970,11 @@ function QTR_ObjectiveTracker_Check()
                   qtr_obj = string.gsub(qtr_obj, qtr_en, qtr_pl);
                end
                objectives[index].Text:SetText(QTR_ReverseIfAR(qtr_obj)); -- może: QTR_ExtendedUnitInfo ?
-               objectives[index].Text:SetFont(WOWTR_Font2, 11);
+               if (WoWTR_Localization.lang == 'AR') then
+                  objectives[index].Text:SetFont(WOWTR_Font2, 13);
+               else
+                  objectives[index].Text:SetFont(WOWTR_Font2, 11);
+               end
                QTR_ResizeBlock(objectives[index].Text);
             end
          end
