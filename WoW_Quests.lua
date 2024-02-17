@@ -1365,7 +1365,7 @@ end
 function QTR_Translate_On(typ)
    QTR_display_constants(1);
    if (QuestNPCModelText:IsVisible() and (QTR_ModelTextHash>0)) then         -- jest wyświetlony tekst QuestNPCModelText
-      QuestNPCModelText:SetText(QTR_ExpandUnitInfo(QTR_ModelText_PL,false,QuestNPCModelText).." ");   -- na końcu dodajemy "twardą" spację
+      QuestNPCModelText:SetText(QTR_ExpandUnitInfo(QTR_ModelText_PL.." ",false,QuestNPCModelText,WOWTR_Font2));   -- na końcu dodajemy "twardą" spację
       QuestNPCModelText:SetFont(WOWTR_Font2, 13);
    end
    
