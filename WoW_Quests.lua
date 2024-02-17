@@ -775,7 +775,7 @@ function isImmersion()
          QTR_ToggleButton4 = CreateFrame("Button",nil, ImmersionFrame.TalkBox, "UIPanelButtonTemplate");
          QTR_ToggleButton4:SetWidth(150);
          QTR_ToggleButton4:SetHeight(20);
-         QTR_ToggleButton4:SetText(QTR_ReverseIfAR(WoWTR_Localization.choiceQuestFirst));  -- może: QTR_ExtendedUnitInfo ?
+         QTR_ToggleButton4:SetText(QTR_ReverseIfAR(WoWTR_Localization.choiceQuestFirst));  -- może: QTR_ExpandUnitInfo ?
          QTR_ToggleButton4:ClearAllPoints();
          QTR_ToggleButton4:SetPoint("TOPLEFT", ImmersionFrame.TalkBox, "TOPRIGHT", -200, -116);
          QTR_ToggleButton4:SetScript("OnClick", QTR_ON_OFF);
@@ -804,7 +804,7 @@ function isStoryline()
          QTR_ToggleButton5 = CreateFrame("Button",nil, Storyline_NPCFrameChat, "UIPanelButtonTemplate");
          QTR_ToggleButton5:SetWidth(150);
          QTR_ToggleButton5:SetHeight(20);
-         QTR_ToggleButton5:SetText(QTR_ReverseIfAR(WoWTR_Localization.choiceQuestFirst));  -- może: QTR_ExtendedUnitInfo ?
+         QTR_ToggleButton5:SetText(QTR_ReverseIfAR(WoWTR_Localization.choiceQuestFirst));  -- może: QTR_ExpandUnitInfo ?
          QTR_ToggleButton5:ClearAllPoints();
          QTR_ToggleButton5:SetPoint("BOTTOMLEFT", Storyline_NPCFrameChat, "BOTTOMLEFT", 244, -16);
          QTR_ToggleButton5:SetScript("OnClick", QTR_ON_OFF);
@@ -858,17 +858,17 @@ end
 
 objectiveSpecials = {
    ClickComplete = function(fontString)
-      fontString:SetText("("..QTR_ReverseIfAR(WoWTR_Localization.clickToComplete)..")");   -- (click to complete),  może: QTR_ExtendedUnitInfo ?
+      fontString:SetText("("..QTR_ReverseIfAR(WoWTR_Localization.clickToComplete)..")");   -- (click to complete),  może: QTR_ExpandUnitInfo ?
       fontString:SetFont(WOWTR_Font2, 13);   
    end,
  
    Failed = function(fontString)
-      fontString:SetText(QTR_ReverseIfAR(WoWTR_Localization.failed));                      -- failed,  może: QTR_ExtendedUnitInfo ?
+      fontString:SetText(QTR_ReverseIfAR(WoWTR_Localization.failed));                      -- failed,  może: QTR_ExpandUnitInfo ?
    end,
  
    QuestComplete = function(fontString, questID)
       if ((fontString:GetText() == QUEST_WATCH_QUEST_READY) or (fontString:GetText() == "Ready for turn-in")) then
-         fontString:SetText(QTR_ReverseIfAR(WoWTR_Localization.readyForTurnIn));           -- Ready for turn-in,  może: QTR_ExtendedUnitInfo ?
+         fontString:SetText(QTR_ReverseIfAR(WoWTR_Localization.readyForTurnIn));           -- Ready for turn-in,  może: QTR_ExpandUnitInfo ?
       else
          if (QTR_quest_EN[questID] and QTR_quest_EN[questID].objectives) then
             local obj = QTR_quest_EN[questID].objectives;
@@ -876,7 +876,7 @@ objectiveSpecials = {
             if (QTR_QuestData[tostring(questID)] and (fontString:GetText() == obj1)) then
                obj = QTR_ExpandUnitInfo(QTR_QuestData[tostring(questID)]["Objectives"],true,fontString,WOWTR_Font2);
                obj1= strsplit("\n\n", obj);
-               fontString:SetText(QTR_ReverseIfAR(obj1));      -- może: QTR_ExtendedUnitInfo ?
+               fontString:SetText(QTR_ReverseIfAR(obj1));      -- może: QTR_ExpandUnitInfo ?
                fontString:SetFont(WOWTR_Font2, 12);
                QTR_ResizeBlock(fontString);
             elseif (string.find(fontString:GetText()," ") == nil) then   -- nie jest to przetłumaczony tekst
@@ -884,7 +884,7 @@ objectiveSpecials = {
                for qtr_en, qtr_pl in pairsByKeys(QTR_Tlumacz_Online) do
                   qtr_obj = string.gsub(qtr_obj, qtr_en, qtr_pl);
                end
-               fontString:SetText(QTR_ReverseIfAR(qtr_obj).." ");         -- może: QTR_ExtendedUnitInfo ?
+               fontString:SetText(QTR_ReverseIfAR(qtr_obj).." ");         -- może: QTR_ExpandUnitInfo ?
                fontString:SetFont(WOWTR_Font2, 12);
                QTR_ResizeBlock(fontString);
             end
@@ -893,7 +893,7 @@ objectiveSpecials = {
             for qtr_en, qtr_pl in pairsByKeys(QTR_Tlumacz_Online) do
                qtr_obj = string.gsub(qtr_obj, qtr_en, qtr_pl);
             end
-            fontString:SetText(QTR_ReverseIfAR(qtr_obj).." ");            -- może: QTR_ExtendedUnitInfo ?
+            fontString:SetText(QTR_ReverseIfAR(qtr_obj).." ");            -- może: QTR_ExpandUnitInfo ?
             fontString:SetFont(WOWTR_Font2, 12);
             QTR_ResizeBlock(fontString);
          end
@@ -927,7 +927,7 @@ function QTR_ObjectiveTracker_Check()
          ObjectiveTrackerBlocksFrame.ScenarioHeader.Text:SetJustifyH("CENTER");
          ObjectiveTrackerBlocksFrame.QuestHeader.Text:SetJustifyH("CENTER");
       end
-      ObjectiveTrackerBlocksFrame.QuestHeader.Text:SetText(QTR_ReverseIfAR(WoWTR_Localization.quests));   -- może: QTR_ExtendedUnitInfo ?
+      ObjectiveTrackerBlocksFrame.QuestHeader.Text:SetText(QTR_ReverseIfAR(WoWTR_Localization.quests));   -- może: QTR_ExpandUnitInfo ?
       for questID, block in pairs(QUEST_TRACKER_MODULE.usedBlocks.ObjectiveTrackerBlockTemplate) do
          local str_ID = tostring(questID);
          if (str_ID and QTR_PS["transtitle"]=="1" and QTR_QuestData[str_ID] and block.HeaderText) then  -- tłumaczenie tytułu
@@ -950,7 +950,7 @@ function QTR_ObjectiveTracker_Check()
             for qtr_en, qtr_pl in pairsByKeys(QTR_Tlumacz_Online) do
                qtr_obj = string.gsub(qtr_obj, qtr_en, qtr_pl);
             end
-            block.currentLine.Text:SetText(QTR_ReverseIfAR(qtr_obj));    -- może: QTR_ExtendedUnitInfo ?
+            block.currentLine.Text:SetText(QTR_ReverseIfAR(qtr_obj));    -- może: QTR_ExpandUnitInfo ?
             if (WoWTR_Localization.lang == 'AR') then
                block.currentLine.Text:SetFont(WOWTR_Font2, 13);
             else
@@ -964,7 +964,7 @@ function QTR_ObjectiveTracker_Check()
                for qtr_en, qtr_pl in pairsByKeys(QTR_Tlumacz_Online) do
                   qtr_obj = string.gsub(qtr_obj, qtr_en, qtr_pl);
                end
-               objectives[index].Text:SetText(QTR_ReverseIfAR(qtr_obj)); -- może: QTR_ExtendedUnitInfo ?
+               objectives[index].Text:SetText(QTR_ReverseIfAR(qtr_obj)); -- może: QTR_ExpandUnitInfo ?
                if (WoWTR_Localization.lang == 'AR') then
                   objectives[index].Text:SetFont(WOWTR_Font2, 13);
                else
@@ -1058,7 +1058,7 @@ function QTR_QuestLogQuests_Update()
                   for qtr_en, qtr_pl in pairsByKeys(QTR_Tlumacz_Online) do
                      qtr_obj = string.gsub(qtr_obj, qtr_en, qtr_pl);
                   end
-                  frame.Text:SetText(QTR_ReverseIfAR(qtr_obj));    -- może: QTR_ExtendedUnitInfo ?
+                  frame.Text:SetText(QTR_ReverseIfAR(qtr_obj));    -- może: QTR_ExpandUnitInfo ?
                   frame.Text:SetFont(WOWTR_Font2, _size1);
                end
             end
@@ -1365,7 +1365,7 @@ end
 function QTR_Translate_On(typ)
    QTR_display_constants(1);
    if (QuestNPCModelText:IsVisible() and (QTR_ModelTextHash>0)) then         -- jest wyświetlony tekst QuestNPCModelText
-      QuestNPCModelText:SetText(QTR_ExtendedUnitInfo(QTR_ModelText_PL,false,QuestNPCModelText).." ");   -- na końcu dodajemy "twardą" spację
+      QuestNPCModelText:SetText(QTR_ExpandUnitInfo(QTR_ModelText_PL,false,QuestNPCModelText).." ");   -- na końcu dodajemy "twardą" spację
       QuestNPCModelText:SetFont(WOWTR_Font2, 13);
    end
    
@@ -1399,50 +1399,10 @@ function QTR_Translate_On(typ)
          QuestInfoObjectivesText:SetFont(WOWTR_Font2, IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtext.size or 13)
          QuestProgressText:SetFont(WOWTR_Font2, IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtext.size or 13)
          QuestInfoRewardText:SetFont(WOWTR_Font2, IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtext.size or 13)
-         if (WoWTR_Localization.lang == 'AR') then
-            if (WorldMapFrame:IsVisible()) then
-               QTR_limit12 = 40;
-            else
-               QTR_limit12 = 35;
-            end
-            QTR_quest_LG[QTR_quest_ID].details = string.gsub(QTR_quest_LG[QTR_quest_ID].details, "NEW_LINE", "#");
-            QTR_quest_LG[QTR_quest_ID].details = string.gsub(QTR_quest_LG[QTR_quest_ID].details, "YOUR_NAME", WOWTR_AnsiReverse(WOWTR_player_name));
-            QTR_quest_LG[QTR_quest_ID].details = string.gsub(QTR_quest_LG[QTR_quest_ID].details, "YOUR_CLASS", WOWTR_AnsiReverse(WOWTR_player_class));
-            QTR_quest_LG[QTR_quest_ID].details = string.gsub(QTR_quest_LG[QTR_quest_ID].details, "YOUR_RACE", WOWTR_AnsiReverse(WOWTR_player_race));
-            QuestInfoDescriptionText:SetText(QTR_LineReverse(QTR_quest_LG[QTR_quest_ID].details, QTR_limit12));
-            QuestInfoDescriptionText:SetJustifyH("RIGHT");
-            QuestInfoDescriptionText:SetSpacing(2);
-            QTR_quest_LG[QTR_quest_ID].objectives = string.gsub(QTR_quest_LG[QTR_quest_ID].objectives, "NEW_LINE", "#");
-            QTR_quest_LG[QTR_quest_ID].objectives = string.gsub(QTR_quest_LG[QTR_quest_ID].objectives, "YOUR_NAME", WOWTR_AnsiReverse(WOWTR_player_name));
-            QTR_quest_LG[QTR_quest_ID].objectives = string.gsub(QTR_quest_LG[QTR_quest_ID].objectives, "YOUR_CLASS", WOWTR_AnsiReverse(WOWTR_player_class));
-            QTR_quest_LG[QTR_quest_ID].objectives = string.gsub(QTR_quest_LG[QTR_quest_ID].objectives, "YOUR_RACE", WOWTR_AnsiReverse(WOWTR_player_race));
-            QuestInfoObjectivesText:SetText(QTR_LineReverse(QTR_quest_LG[QTR_quest_ID].objectives, QTR_limit12));
-            QuestInfoObjectivesText:SetJustifyH("RIGHT");
-            QuestInfoObjectivesText:SetSpacing(2);
-            if (QTR_quest_LG[QTR_quest_ID].progress) then
-               QTR_quest_LG[QTR_quest_ID].progress = string.gsub(QTR_quest_LG[QTR_quest_ID].progress, "NEW_LINE", "#");
-               QTR_quest_LG[QTR_quest_ID].progress = string.gsub(QTR_quest_LG[QTR_quest_ID].progress, "YOUR_NAME", WOWTR_AnsiReverse(WOWTR_player_name));
-               QTR_quest_LG[QTR_quest_ID].progress = string.gsub(QTR_quest_LG[QTR_quest_ID].progress, "YOUR_CLASS", WOWTR_AnsiReverse(WOWTR_player_class));
-               QTR_quest_LG[QTR_quest_ID].progress = string.gsub(QTR_quest_LG[QTR_quest_ID].progress, "YOUR_RACE", WOWTR_AnsiReverse(WOWTR_player_race));
-               QuestProgressText:SetText(QTR_LineReverse(QTR_quest_LG[QTR_quest_ID].progress, QTR_limit12));
-               QuestProgressText:SetJustifyH("RIGHT");
-               QuestProgressText:SetSpacing(2);
-            end
-            if (QTR_quest_LG[QTR_quest_ID].completion) then
-               QTR_quest_LG[QTR_quest_ID].completion = string.gsub(QTR_quest_LG[QTR_quest_ID].completion, "NEW_LINE", "#");
-               QTR_quest_LG[QTR_quest_ID].completion = string.gsub(QTR_quest_LG[QTR_quest_ID].completion, "YOUR_NAME", WOWTR_AnsiReverse(WOWTR_player_name));
-               QTR_quest_LG[QTR_quest_ID].completion = string.gsub(QTR_quest_LG[QTR_quest_ID].completion, "YOUR_CLASS", WOWTR_AnsiReverse(WOWTR_player_class));
-               QTR_quest_LG[QTR_quest_ID].completion = string.gsub(QTR_quest_LG[QTR_quest_ID].completion, "YOUR_RACE", WOWTR_AnsiReverse(WOWTR_player_race));
-               QuestInfoRewardText:SetText(QTR_LineReverse(QTR_quest_LG[QTR_quest_ID].completion, QTR_limit12));
-               QuestInfoRewardText:SetJustifyH("RIGHT");
-               QuestInfoRewardText:SetSpacing(2);
-            end
-         else
-            QuestInfoDescriptionText:SetText(QTR_ExpandUnitInfo(QTR_quest_LG[QTR_quest_ID].details,false,QuestInfoDescriptionText,WOWTR_Font2));
-            QuestInfoObjectivesText:SetText(QTR_ExpandUnitInfo(QTR_quest_LG[QTR_quest_ID].objectives,true,QuestInfoObjectivesText,WOWTR_Font2));
-            QuestProgressText:SetText(QTR_ExpandUnitInfo(QTR_quest_LG[QTR_quest_ID].progress,false,QuestProgressText,WOWTR_Font2));
-            QuestInfoRewardText:SetText(QTR_ExpandUnitInfo(QTR_quest_LG[QTR_quest_ID].completion,false,QuestInfoRewardText,WOWTR_Font2));
-         end
+         QuestInfoDescriptionText:SetText(QTR_ExpandUnitInfo(QTR_quest_LG[QTR_quest_ID].details,false,QuestInfoDescriptionText,WOWTR_Font2));
+         QuestInfoObjectivesText:SetText(QTR_ExpandUnitInfo(QTR_quest_LG[QTR_quest_ID].objectives,true,QuestInfoObjectivesText,WOWTR_Font2));
+         QuestProgressText:SetText(QTR_ExpandUnitInfo(QTR_quest_LG[QTR_quest_ID].progress,false,QuestProgressText,WOWTR_Font2));
+         QuestInfoRewardText:SetText(QTR_ExpandUnitInfo(QTR_quest_LG[QTR_quest_ID].completion,false,QuestInfoRewardText,WOWTR_Font2));
       end
       if ((not isImmersion()) and (QuestInfoDescriptionText:GetText()~=QTR_quest_LG[QTR_quest_ID].details) and (QTR_first_show2 == 0)) then   -- nie wczytały się tłumaczenia
          QTR_first_show2 = 1;
@@ -2691,42 +2651,4 @@ function WOWTR_DeleteSpecialCodes(txt)
    text = string.gsub(text, '$C$', '');
    text = string.gsub(text, '$C', '');
    return text;
-end
-
--------------------------------------------------------------------------------------------------------
-
--- Reverses the order of UTF-8 letters in lines of 35 or 32 characters (limit)
-function QTR_LineReverse(s, limit)
-   local retstr = "";
-   if (s and limit) then -- check if arguments are not empty (nil)
-      local bytes = strlen(s);
-      local pos = 1;
-      local charbytes;
-      local newstr = "";
-      local counter = 0;
-      local char1;
-      while pos <= bytes do
-         c = strbyte(s, pos);                  -- read the character (odczytaj znak)
-         charbytes = AS_UTF8charbytes(s, pos); -- count of bytes (liczba bajtów znaku)
-         char1 = strsub(s, pos, pos + charbytes - 1);
-         newstr = newstr .. char1;
-         pos = pos + charbytes;
-
-         counter = counter + 1;
-         if ((char1 >= "A") and (char1 <= "z")) then
-            counter = counter + 1; -- latin letters are 2x wider, then Arabic
-         end
-         if ((char1 == "#") or ((char1 == " ") and (counter > limit))) then
-            newstr = string.gsub(newstr, "#", "");
-            retstr = retstr .. AS_UTF8reverse(newstr) .. "\n";
-            newstr = "";
-            counter = 0;
-         end
-      end
-      retstr = retstr .. AS_UTF8reverse(newstr);
-      retstr = string.gsub(retstr, "#", "");
-      retstr = string.gsub(retstr, "\n ", "\n");      -- space after newline code is useless
-      retstr = string.gsub(retstr, "\n\n\n", "\n\n"); -- elimination of redundant newline codes
-   end
-   return retstr;
 end
