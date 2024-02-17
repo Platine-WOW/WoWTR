@@ -914,13 +914,8 @@ objectiveSpecials = {
 function QTR_ObjectiveTracker_Check()
    if ( QUEST_TRACKER_MODULE.usedBlocks.ObjectiveTrackerBlockTemplate and QTR_PS["active"]=="1" and QTR_PS["tracker"]=="1" ) then   -- tłumaczenia włączone
       ObjectiveTrackerFrame.HeaderMenu.Title:SetText(QTR_ReverseIfAR(WoWTR_Localization.objectives));
-      if (WoWTR_Localization.lang == 'AR') then
-         ObjectiveTrackerFrame.HeaderMenu.Title:SetFont(WOWTR_Font2, 16);
-         ObjectiveTrackerBlocksFrame.QuestHeader.Text:SetFont(WOWTR_Font2, 16);
-      else
-         ObjectiveTrackerFrame.HeaderMenu.Title:SetFont(WOWTR_Font2, 18);
-         ObjectiveTrackerBlocksFrame.QuestHeader.Text:SetFont(WOWTR_Font2, 18);
-      end
+      ObjectiveTrackerFrame.HeaderMenu.Title:SetFont(WOWTR_Font2, 16);
+      ObjectiveTrackerBlocksFrame.QuestHeader.Text:SetFont(WOWTR_Font2, 16);
       if (WoWTR_Localization.lang == 'AR') then
          --Added New Translation Campaign and Scenario for Arabic only
          ObjectiveTrackerBlocksFrame.CampaignQuestHeader.Text:SetFont(WOWTR_Font2, 16);
@@ -1024,8 +1019,9 @@ function QTR_QuestLogQuests_Update()
       for button in QuestScrollFrame.titleFramePool:EnumerateActive() do
          local str_ID = tostring(button.questID);
          if (QTR_PS["transtitle"]=="1" and QTR_QuestData[str_ID]) then           -- tłumaczenie tytułu
-            button.Text:SetText(QTR_ReverseIfAR(QTR_QuestData[str_ID]["Title"]));    -- może: QTR_ExtendedUnitInfo ?
-            button.Text:SetFont(WOWTR_Font2, 12);
+            local _font1, _size1, _3 = button.Text:GetFont();                      -- odczytaj aktualną czcionkę i rozmiar
+            button.Text:SetText(QTR_ReverseIfAR(QTR_QuestData[str_ID]["Title"]));    -- może: QTR_ExpandUnitInfo ?
+            button.Text:SetFont(WOWTR_Font2, _size1);
          end
       end
       for frame in QuestScrollFrame.objectiveFramePool:EnumerateActive() do
@@ -1035,12 +1031,14 @@ function QTR_QuestLogQuests_Update()
             for qtr_en, qtr_pl in pairsByKeys(QTR_Tlumacz_Online) do
                qtr_obj = string.gsub(qtr_obj, qtr_en, qtr_pl);
             end
+            local _font1, _size1, _3 = frame.Text:GetFont();                      -- odczytaj aktualną czcionkę i rozmiar
             frame.Text:SetText(QTR_ReverseIfAR(qtr_obj));
-            frame.Text:SetFont(WOWTR_Font2, 12);
+            frame.Text:SetFont(WOWTR_Font2, _size1);
          else
             if ((qtr_obj == QUEST_WATCH_QUEST_READY) or (qtr_obj == "Ready for turn-in")) then
                frame.Text:SetText(QTR_ReverseIfAR(WoWTR_Localization.readyForTurnIn));       -- Ready for turn-in
             else
+               local _font1, _size1, _3 = frame.Text:GetFont();                      -- odczytaj aktualną czcionkę i rozmiar
                if (QTR_quest_EN[frame.questID] and QTR_quest_EN[frame.questID].objectives) then
                   local obj = QTR_quest_EN[frame.questID].objectives;
                   local obj1= strsplit("\n\n", obj);
@@ -1048,20 +1046,20 @@ function QTR_QuestLogQuests_Update()
                      obj = QTR_ExpandUnitInfo(QTR_QuestData[str_ID]["Objectives"],true,frame.Text,WOWTR_Font2);
                      obj1= strsplit("\n\n", obj);
                      frame.Text:SetText(QTR_ReverseIfAR(obj1));      
-                     frame.Text:SetFont(WOWTR_Font2, 12);
+                     frame.Text:SetFont(WOWTR_Font2, _size1);
                   else
                      for qtr_en, qtr_pl in pairsByKeys(QTR_Tlumacz_Online) do
                        qtr_obj = string.gsub(qtr_obj, qtr_en, qtr_pl);
                     end
                      frame.Text:SetText(QTR_ReverseIfAR(qtr_obj));
-                     frame.Text:SetFont(WOWTR_Font2, 12);
+                     frame.Text:SetFont(WOWTR_Font2, _size1);
                   end
                else
                   for qtr_en, qtr_pl in pairsByKeys(QTR_Tlumacz_Online) do
                      qtr_obj = string.gsub(qtr_obj, qtr_en, qtr_pl);
                   end
                   frame.Text:SetText(QTR_ReverseIfAR(qtr_obj));    -- może: QTR_ExtendedUnitInfo ?
-                  frame.Text:SetFont(WOWTR_Font2, 12);
+                  frame.Text:SetFont(WOWTR_Font2, _size1);
                end
             end
          end
