@@ -1390,8 +1390,13 @@ function QTR_Translate_On(typ)
             QTR_Storyline(1);
          end
          if (QTR_PS["transtitle"]=="1") then
-            QuestInfoTitleHeader:SetFont(WOWTR_Font1,  IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtitle.size or 18);
-            QuestProgressTitleText:SetFont(WOWTR_Font1, IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtitle.size or 18);
+            if (WoWTR_Localization.lang == 'AR') then 
+               QuestInfoTitleHeader:SetFont(WOWTR_Font1,  IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtitle.size or 16);
+               QuestProgressTitleText:SetFont(WOWTR_Font1, IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtitle.size or 16);
+            else
+               QuestInfoTitleHeader:SetFont(WOWTR_Font1,  IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtitle.size or 18);
+               QuestProgressTitleText:SetFont(WOWTR_Font1, IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtitle.size or 18);
+            end
             QuestInfoTitleHeader:SetText(QTR_ExpandUnitInfo(QTR_quest_LG[QTR_quest_ID].title,false,QuestInfoTitleHeader,WOWTR_Font1));
             QuestProgressTitleText:SetText(QTR_ExpandUnitInfo(QTR_quest_LG[QTR_quest_ID].title,false,QuestProgressTitleText,WOWTR_Font1, -10));
          end
@@ -2339,11 +2344,16 @@ end
 -------------------------------------------------------------------------------------------------------------------
 
 function WOW_ZmienKody(message, target)
-   if (target == "") then                             -- może być zmienna $target w tłumaczeniu
-      target = WOWTR_player_name;
-   end
    msg = message;
-   if (WoWTR_Localization.lang ~= 'AR') then
+   if (WoWTR_Localization.lang == 'AR') then
+      msg = string.gsub(msg, "|r", "r|");
+      msg = string.gsub(msg, "|FFFFFFFFc", "FFFFFFFFc|");
+      msg = string.gsub(msg, "|ffffffffc", "ffffffffc|");
+      msg = string.gsub(msg, "|FFFF00FFc", "FF00FFFFc|");
+      msg = string.gsub(msg, "|D81E0EFFc", "D81E0EFFc|");
+      msg = string.gsub(msg, "|888888ffc", "888888ffc|");
+      msg = string.gsub(msg, "|cffffffff", "ffffffffc|");
+   else
       msg = string.gsub(msg, "$b", "$B");
       msg = string.gsub(msg, "$n", "$N");
       msg = string.gsub(msg, "$r", "$R");

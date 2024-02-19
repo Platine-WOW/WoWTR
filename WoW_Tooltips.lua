@@ -1,4 +1,4 @@
--- Addon: WoWTR-Tooltips (version: 10.S44) 2024.01.22
+-- Addon: WoWTR-Tooltips (version: 10.S45) 2024.02.18
 -- Description: The AddOn displays the translated text information in chosen language
 -- Author: Platine, Hakan YILMAZ
 -- E-mail: platine.wow@gmail.com
@@ -98,19 +98,30 @@ end
 
 -------------------------------------------------------------------------------------------------------
 
-function ST_CheckAndReplaceTranslationText(obj, sav, prefix, font1)     -- obj=object with stingtext,  sav=permission to save untranstaled tekst (true/false)
-   if (obj and obj.GetText) then                                        -- prefix=text to save group,  font1=if present:SetFont to given font file
-      local txt = obj:GetText();                                        -- Font Files: WOWTR_Font1, Original_Font1, Original_Font2
+function ST_CheckAndReplaceTranslationText(obj, sav, prefix, font1, onlyReverse, ST_corr)     -- obj=object with stingtext,  sav=permission to save untranstaled tekst (true/false)
+   if (obj and obj.GetText) then                                        -- prefix=text to save group,  font1=if present:SetFont to given font file,  onlyReverse=use only Reverse function
+      local txt = obj:GetText();                                        -- Font Files: WOWTR_Font1, Original_Font1, Original_Font2     ST_corr=changing the width of the object to the translation text 
       if (txt and string.find(txt," ")==nil) then
          local ST_Hash = StringHash(ST_UsunZbedneZnaki(txt));
          if (ST_TooltipsHS[ST_Hash]) then
             local a1, a2, a3 = obj:GetFont();
+            if (not ST_corr) then
+               ST_corr = 0;
+            end
             if (font1) then
                obj:SetFont(font1, a2);
-               obj:SetText(QTR_ExpandUnitInfo(ST_TranslatePrepare(txt, ST_TooltipsHS[ST_Hash]),false,obj,font1).." ");     -- hard space at the end of translation
+               if (onlyReverse) then
+                  obj:SetText(QTR_ReverseIfAR(ST_TranslatePrepare(txt, ST_TooltipsHS[ST_Hash])).." ");        -- hard space at the end of translation
+               else
+                  obj:SetText(QTR_ExpandUnitInfo(ST_TranslatePrepare(txt, ST_TooltipsHS[ST_Hash]),false,obj,font1,ST_corr).." ");        -- hard space at the end of translation
+               end
             else
                obj:SetFont(WOWTR_Font2, a2);
-               obj:SetText(QTR_ExpandUnitInfo(ST_TranslatePrepare(txt, ST_TooltipsHS[ST_Hash]),false,obj,WOWTR_Font2).." ");     -- hard space at the end of translation
+               if (onlyReverse) then
+                  obj:SetText(QTR_ReverseIfAR(ST_TranslatePrepare(txt, ST_TooltipsHS[ST_Hash])).." ");        -- hard space at the end of translation
+               else
+                  obj:SetText(QTR_ExpandUnitInfo(ST_TranslatePrepare(txt, ST_TooltipsHS[ST_Hash]),false,obj,WOWTR_Font2,ST_corr).." ");  -- hard space at the end of translation
+               end
             end
          elseif (sav and (ST_PM["saveNW"]=="1")) then
             ST_PH[ST_Hash] = prefix.."@"..ST_PrzedZapisem(txt);
@@ -175,7 +186,11 @@ function ST_TranslatePrepare(ST_origin, ST_tlumacz)
       tlumaczenie = string.gsub(tlumaczenie,"  "," ");
    end
    tlumaczenie = string.gsub(tlumaczenie,"NEW_LINE","\n");
+   tlumaczenie = string.gsub(tlumaczenie,"$B","\n");
+   tlumaczenie = string.gsub(tlumaczenie,"$b","\n");
    tlumaczenie = string.gsub(tlumaczenie,"YOUR_NAME",WOWTR_player_name);
+   tlumaczenie = string.gsub(tlumaczenie,"$N",WOWTR_player_name);
+   tlumaczenie = string.gsub(tlumaczenie,"$n",WOWTR_player_name);
    if (not ST_miasto) then
       ST_miasto = WoWTR_Localization.your_home;
    end
@@ -196,64 +211,64 @@ function ST_TranslatePrepare(ST_origin, ST_tlumacz)
       end
    end;
    if (arg0>19) then
-      tlumaczenie=string.gsub(tlumaczenie, "$20", QTR_ReverseIfAR(wartab[20]));
+      tlumaczenie=string.gsub(tlumaczenie, "$20", WOWTR_AnsiReverse(wartab[20]));
    end
    if (arg0>18) then
-      tlumaczenie=string.gsub(tlumaczenie, "$19", QTR_ReverseIfAR(wartab[19]));
+      tlumaczenie=string.gsub(tlumaczenie, "$19", WOWTR_AnsiReverse(wartab[19]));
    end
    if (arg0>17) then
-      tlumaczenie=string.gsub(tlumaczenie, "$18", QTR_ReverseIfAR(wartab[18]));
+      tlumaczenie=string.gsub(tlumaczenie, "$18", WOWTR_AnsiReverse(wartab[18]));
    end
    if (arg0>16) then
-      tlumaczenie=string.gsub(tlumaczenie, "$17", QTR_ReverseIfAR(wartab[17]));
+      tlumaczenie=string.gsub(tlumaczenie, "$17", WOWTR_AnsiReverse(wartab[17]));
    end
    if (arg0>15) then
-      tlumaczenie=string.gsub(tlumaczenie, "$16", QTR_ReverseIfAR(wartab[16]));
+      tlumaczenie=string.gsub(tlumaczenie, "$16", WOWTR_AnsiReverse(wartab[16]));
    end
    if (arg0>14) then
-      tlumaczenie=string.gsub(tlumaczenie, "$15", QTR_ReverseIfAR(wartab[15]));
+      tlumaczenie=string.gsub(tlumaczenie, "$15", WOWTR_AnsiReverse(wartab[15]));
    end
    if (arg0>13) then
-      tlumaczenie=string.gsub(tlumaczenie, "$14", QTR_ReverseIfAR(wartab[14]));
+      tlumaczenie=string.gsub(tlumaczenie, "$14", WOWTR_AnsiReverse(wartab[14]));
    end
    if (arg0>12) then
-      tlumaczenie=string.gsub(tlumaczenie, "$13", QTR_ReverseIfAR(wartab[13]));
+      tlumaczenie=string.gsub(tlumaczenie, "$13", WOWTR_AnsiReverse(wartab[13]));
    end
    if (arg0>11) then
-      tlumaczenie=string.gsub(tlumaczenie, "$12", QTR_ReverseIfAR(wartab[12]));
+      tlumaczenie=string.gsub(tlumaczenie, "$12", WOWTR_AnsiReverse(wartab[12]));
    end
    if (arg0>10) then
-      tlumaczenie=string.gsub(tlumaczenie, "$11", QTR_ReverseIfAR(wartab[11]));
+      tlumaczenie=string.gsub(tlumaczenie, "$11", WOWTR_AnsiReverse(wartab[11]));
    end
    if (arg0>9) then
-      tlumaczenie=string.gsub(tlumaczenie, "$10", QTR_ReverseIfAR(wartab[10]));
+      tlumaczenie=string.gsub(tlumaczenie, "$10", WOWTR_AnsiReverse(wartab[10]));
    end
    if (arg0>8) then
-      tlumaczenie=string.gsub(tlumaczenie, "$9", QTR_ReverseIfAR(wartab[9]));
+      tlumaczenie=string.gsub(tlumaczenie, "$9", WOWTR_AnsiReverse(wartab[9]));
    end
    if (arg0>7) then
-      tlumaczenie=string.gsub(tlumaczenie, "$8", QTR_ReverseIfAR(wartab[8]));
+      tlumaczenie=string.gsub(tlumaczenie, "$8", WOWTR_AnsiReverse(wartab[8]));
    end
    if (arg0>6) then
-      tlumaczenie=string.gsub(tlumaczenie, "$7", QTR_ReverseIfAR(wartab[7]));
+      tlumaczenie=string.gsub(tlumaczenie, "$7", WOWTR_AnsiReverse(wartab[7]));
    end
    if (arg0>5) then
-      tlumaczenie=string.gsub(tlumaczenie, "$6", QTR_ReverseIfAR(wartab[6]));
+      tlumaczenie=string.gsub(tlumaczenie, "$6", WOWTR_AnsiReverse(wartab[6]));
    end
    if (arg0>4) then
-      tlumaczenie=string.gsub(tlumaczenie, "$5", QTR_ReverseIfAR(wartab[5]));
+      tlumaczenie=string.gsub(tlumaczenie, "$5", WOWTR_AnsiReverse(wartab[5]));
    end
    if (arg0>3) then
-      tlumaczenie=string.gsub(tlumaczenie, "$4", QTR_ReverseIfAR(wartab[4]));
+      tlumaczenie=string.gsub(tlumaczenie, "$4", WOWTR_AnsiReverse(wartab[4]));
    end
    if (arg0>2) then
-      tlumaczenie=string.gsub(tlumaczenie, "$3", QTR_ReverseIfAR(wartab[3]));
+      tlumaczenie=string.gsub(tlumaczenie, "$3", WOWTR_AnsiReverse(wartab[3]));
    end
    if (arg0>1) then
-      tlumaczenie=string.gsub(tlumaczenie, "$2", QTR_ReverseIfAR(wartab[2]));
+      tlumaczenie=string.gsub(tlumaczenie, "$2", WOWTR_AnsiReverse(wartab[2]));
    end
    if (arg0>0) then
-      tlumaczenie=string.gsub(tlumaczenie, "$1", QTR_ReverseIfAR(wartab[1]));
+      tlumaczenie=string.gsub(tlumaczenie, "$1", WOWTR_AnsiReverse(wartab[1]));
    end
 
    if (WoWTR_Localization.lang ~= 'AR') then
@@ -588,7 +603,7 @@ function ST_GameTooltipOnShow()
                   ST_tlumaczenie = ST_TranslatePrepare(ST_leftText, ST_tlumaczenie);
                   _font1, _size1, _1 = _G["GameTooltipTextLeft"..i]:GetFont();    -- odczytaj aktualną czcionkę i rozmiar    
                   _G["GameTooltipTextLeft"..i]:SetFont(WOWTR_Font2, _size1);      -- ustawiamy czcionkę turecką
-                  _G["GameTooltipTextLeft"..i]:SetText(QTR_ExpandUnitInfo(ST_tlumaczenie,false,_G["GameTooltipTextLeft"..i],WOWTR_Font2).." ");      -- dodajemy twardą spacje na końcu
+                  _G["GameTooltipTextLeft"..i]:SetText(QTR_ExpandUnitInfo(ST_tlumaczenie,false,_G["GameTooltipTextLeft"..i],WOWTR_Font2,-10).." ");      -- dodajemy twardą spacje na końcu
                   _G["GameTooltipTextLeft"..i].wrap = true;
                   if (GameTooltip.processingInfo and GameTooltip.processingInfo.tooltipData.id and (GameTooltip.processingInfo.tooltipData.id == 6948)) then   -- wyjątek na Kamień Powrotu
                      break;
@@ -932,13 +947,13 @@ function ST_updateSpellBookFrame()
    ST_CheckAndReplaceTranslationText(PrimaryProfession2Text, true, "Profession:Other");
 
    local SecondaryProfession1Text = SecondaryProfession1.missingText; -- Çevirisi Yapılan Kısım - Przetłumaczona sekcja - https://imgur.com/amgQ7K7
-   ST_CheckAndReplaceTranslationText(SecondaryProfession1Text, true, "Profession:Other");
+   ST_CheckAndReplaceTranslationText(SecondaryProfession1Text, true, "Profession:Other", false, false, -2);
 
    local SecondaryProfession2Text = SecondaryProfession2.missingText; -- Çevirisi Yapılan Kısım - Przetłumaczona sekcja - https://imgur.com/amgQ7K7
-   ST_CheckAndReplaceTranslationText(SecondaryProfession2Text, true, "Profession:Other");
+   ST_CheckAndReplaceTranslationText(SecondaryProfession2Text, true, "Profession:Other", false, false, -2);
 
    local SecondaryProfession3Text = SecondaryProfession3.missingText; -- Çevirisi Yapılan Kısım - Przetłumaczona sekcja - https://imgur.com/amgQ7K7
-   ST_CheckAndReplaceTranslationText(SecondaryProfession3Text, true, "Profession:Other");
+   ST_CheckAndReplaceTranslationText(SecondaryProfession3Text, true, "Profession:Other", false, false, -2);
 
    local SBPageText = SpellBookPageText;
    ST_CheckAndReplaceTranslationText(SBPageText, true, "ui");
@@ -1393,7 +1408,7 @@ end
 function ST_WorldMapFunc()
 --print("WorldMap");
    local wmframe01 = WorldMapFrameTitleText;
-   ST_CheckAndReplaceTranslationText(wmframe01, true, "ui");
+   ST_CheckAndReplaceTranslationText(wmframe01, true, "ui", false, 1);
 
    local wmframe02 = WorldMapFrameHomeButtonText;
    ST_CheckAndReplaceTranslationText(wmframe02, true, "ui");
