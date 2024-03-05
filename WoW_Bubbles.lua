@@ -514,7 +514,9 @@ function BB_OknoTRonline()
   BB_Input2:SetWidth(400);
   BB_Input2:SetAutoFocus(false);
   BB_Input2:SetFontObject(GameFontWhite);
-  BB_Input2:SetText("a tutaj bedzie polskie tlumaczenie");
+  BB_Input2:SetText("a tutaj będzie polskie tłumaczenie");
+  local _font1, _size2, _flag3 = BB_Input2:GetFont(); -- odczytaj aktualną czcionkę i rozmiar
+  BB_Input2:SetFont(WOWTR_Font2, _size2, _flag3);
   BB_Input2:SetCursorPosition(0);
   BB_Input2:Hide();
   
