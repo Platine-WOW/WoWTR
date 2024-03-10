@@ -1395,21 +1395,21 @@ function QTR_Translate_On(typ)
          end
          if (QTR_PS["transtitle"]=="1") then
             if (WoWTR_Localization.lang == 'AR') then 
-               QuestInfoTitleHeader:SetFont(WOWTR_Font1,  IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtitle.size or 16);
-               QuestProgressTitleText:SetFont(WOWTR_Font1, IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtitle.size or 16);
+               QuestInfoTitleHeader:SetFont(WOWTR_Font1,  IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtitle.size or 18);
+               QuestProgressTitleText:SetFont(WOWTR_Font1, IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtitle.size or 18);
             else
                QuestInfoTitleHeader:SetFont(WOWTR_Font1,  IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtitle.size or 18);
                QuestProgressTitleText:SetFont(WOWTR_Font1, IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtitle.size or 18);
             end
             QuestInfoTitleHeader:SetWidth(WOW_width);
             QuestProgressTitleText:SetWidth(WOW_width);
-            QuestInfoTitleHeader:SetText(QTR_ExpandUnitInfo(QTR_quest_LG[QTR_quest_ID].title,false,QuestInfoTitleHeader,WOWTR_Font1));
-            QuestProgressTitleText:SetText(QTR_ExpandUnitInfo(QTR_quest_LG[QTR_quest_ID].title,false,QuestProgressTitleText,WOWTR_Font1));
+            QuestInfoTitleHeader:SetText(QTR_ExpandUnitInfo(QTR_quest_LG[QTR_quest_ID].title,false,QuestInfoTitleHeader,WOWTR_Font1,-10));
+            QuestProgressTitleText:SetText(QTR_ExpandUnitInfo(QTR_quest_LG[QTR_quest_ID].title,false,QuestProgressTitleText,WOWTR_Font1,-10));
          end
-         QuestInfoDescriptionText:SetWidth(WOW_width+5);
-         QuestInfoObjectivesText:SetWidth(WOW_width);
+         QuestInfoDescriptionText:SetWidth(WOW_width-4);
+         QuestInfoObjectivesText:SetWidth(WOW_width-4);
          QuestProgressText:SetWidth(WOW_width);
-         QuestInfoRewardText:SetWidth(WOW_width);
+         QuestInfoRewardText:SetWidth(WOW_width+5);
          QuestInfoDescriptionText:SetFont(WOWTR_Font2, IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtext.size or 13)
          QuestInfoObjectivesText:SetFont(WOWTR_Font2, IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtext.size or 13)
          QuestProgressText:SetFont(WOWTR_Font2, IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtext.size or 13)
@@ -1417,7 +1417,7 @@ function QTR_Translate_On(typ)
          QuestInfoDescriptionText:SetText(QTR_ExpandUnitInfo(QTR_quest_LG[QTR_quest_ID].details,false,QuestInfoDescriptionText,WOWTR_Font2,-5));
          QuestInfoObjectivesText:SetText(QTR_ExpandUnitInfo(QTR_quest_LG[QTR_quest_ID].objectives,true,QuestInfoObjectivesText,WOWTR_Font2));
          QuestProgressText:SetText(QTR_ExpandUnitInfo(QTR_quest_LG[QTR_quest_ID].progress,false,QuestProgressText,WOWTR_Font2));
-         QuestInfoRewardText:SetText(QTR_ExpandUnitInfo(QTR_quest_LG[QTR_quest_ID].completion,false,QuestInfoRewardText,WOWTR_Font2,-10));
+         QuestInfoRewardText:SetText(QTR_ExpandUnitInfo(QTR_quest_LG[QTR_quest_ID].completion,false,QuestInfoRewardText,WOWTR_Font2,-5));
       end
       if ((not isImmersion()) and (QuestInfoDescriptionText:GetText()~=QTR_quest_LG[QTR_quest_ID].details) and (QTR_first_show2 == 0)) then   -- nie wczytały się tłumaczenia
          QTR_first_show2 = 1;
@@ -1506,7 +1506,7 @@ function QTR_display_constants(lg)
       if (QuestFrame:IsVisible()) then
          WOW_width = 275;
       end
-      QuestInfoDescriptionHeader:SetWidth(WOW_width);
+      QuestInfoDescriptionHeader:SetWidth(WOW_width-5);
       QuestInfoObjectivesHeader:SetWidth(WOW_width);
       QuestInfoRewardsFrame.Header:SetWidth(WOW_width);
       QuestProgressRequiredItemsText:SetFont(WOWTR_Font1, IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtitle.size or 18);
@@ -2363,13 +2363,25 @@ end
 function WOW_ZmienKody(message, target)
    msg = message;
    if (WoWTR_Localization.lang == 'AR') then
+
+      --Colors --Note: Web:|cFFE0E18D -- Engin:|D81E0EFFc --> D81E0EFFc|
       msg = string.gsub(msg, "|r", "r|");
       msg = string.gsub(msg, "|FFFFFFFFc", "FFFFFFFFc|");
       msg = string.gsub(msg, "|ffffffffc", "ffffffffc|");
-      msg = string.gsub(msg, "|FFFF00FFc", "FF00FFFFc|");
+      msg = string.gsub(msg, "|FFFF00FFc", "FFFF00FFc|");
       msg = string.gsub(msg, "|D81E0EFFc", "D81E0EFFc|");
-      msg = string.gsub(msg, "|888888ffc", "888888ffc|");
-      msg = string.gsub(msg, "|cffffffff", "ffffffffc|");
+      msg = string.gsub(msg, "|888888ffc", "888888ffc|"); --Gray
+      msg = string.gsub(msg, "|080808ffc", "080808ffc|");
+      msg = string.gsub(msg, "|080808FFc", "080808FFc|");
+
+      -- Colors for arabic version test
+      msg = string.gsub(msg, "|ﺑﻠﻮﻥ|", "r|"); -- eng of color
+      msg = string.gsub(msg, "|ﺫﻫﺒﻲ|", "002DFFFFc|"); --Gold
+      msg = string.gsub(msg, "|ﺭﻣﺎﺩﻱ|", "888888ffc|"); --Gold
+      msg = string.gsub(msg, "|n|n", "n|n|"); --Gold .|n|n
+      --msg = string.gsub(msg, "|n", "n|"); --Gold
+      msg = string.gsub(msg, "2$", "$2");
+
    else
       msg = string.gsub(msg, "$b", "$B");
       msg = string.gsub(msg, "$n", "$N");
@@ -2607,6 +2619,13 @@ function QTR_ExpandUnitInfo(msg, OnObjectives, AR_obj, AR_font, AR_corr)
          _corr = AR_corr;
       end
       msg = string.gsub(msg, "\n", "#");
+      msg = string.gsub(msg, "{r}", "r|");
+      local nr_poz1, nr_poz2 = string.find(msg, "{c");    -- znajdź kod koloru {c , gdy nie znalazł, jest: nil
+      while (nr_poz1) do
+         local pomoc = string.sub(msg, nr_poz2+1, nr_poz2+8);  -- odczytaj składowe koloru
+         msg = string.gsub(msg, "{c"..pomoc.."}", string.reverse(pomoc).."c|");
+         nr_poz1, nr_poz2 = string.find(msg, "{c");       -- znajdź kod koloru {c , gdy nie znalazł, jest: nil
+      end
       msg = AS_ReverseAndPrepareLineText(msg, AR_obj:GetWidth()+_corr, AR_font, AR_size);
    end
    
@@ -2618,7 +2637,14 @@ end
 -- jeśli tekst jest arabski - odwróć kolejność wszystkich liter (znaków)
 function QTR_ReverseIfAR(txt)
    if (WoWTR_Localization.lang == 'AR') then
-      return AS_UTF8reverse(txt);
+      local msg = string.gsub(txt, "{r}", "r|");
+      local nr_poz1, nr_poz2 = string.find(msg, "{c");    -- znajdź kod koloru {c , gdy nie znalazł, jest: nil
+      while (nr_poz1) do
+         local pomoc = string.sub(msg, nr_poz2+1, nr_poz2+8);  -- odczytaj składowe koloru
+         msg = string.gsub(msg, "{c"..pomoc.."}", string.reverse(pomoc).."c|");
+         nr_poz1, nr_poz2 = string.find(msg, "{c");       -- znajdź kod koloru {c , gdy nie znalazł, jest: nil
+      end
+      return AS_UTF8reverse(msg);
    end
    return txt;
 end

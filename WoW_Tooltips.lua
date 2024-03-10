@@ -494,7 +494,7 @@ function ST_GameTooltipOnShow()
          if (string.find(_G["GameTooltipTextLeft1"]:GetText()," ")) then
              return;
          end
-         _G["GameTooltipTextLeft1"]:SetText(_G["GameTooltipTextLeft1"]:GetText().." ");   -- znacznik twardej spacji do tytułu
+         _G["GameTooltipTextLeft1"]:SetText(QTR_ExpandUnitInfo(_G["GameTooltipTextLeft1"]:GetText(),WOWTR_Font2).." ");   -- znacznik twardej spacji do tytułu
       end
       
       local ST_prefix = "h";
@@ -551,7 +551,7 @@ function ST_GameTooltipOnShow()
       if (GameTooltip.shownMoneyFrames) then        -- są ramki z ceną itemu
          for i = 1, GameTooltip.shownMoneyFrames, 1 do
             local moneyFrameName = GameTooltip:GetName().."MoneyFrame"..i;           -- nazwa obiektu
-            _G[moneyFrameName.."PrefixText"]:SetText(WoWTR_Localization.sellPrice);  -- SELL PRICE
+            _G[moneyFrameName.."PrefixText"]:SetText(QTR_ReverseIfAR(WoWTR_Localization.sellPrice));  -- SELL PRICE
             _font1, _size1, _1 = _G[moneyFrameName.."PrefixText"]:GetFont();  -- odczytaj aktualną czcionkę i rozmiar    
             _G[moneyFrameName.."PrefixText"]:SetFont(WOWTR_Font2, _size1);
             if (ST_PM["sellprice"] == "1") then    -- jest zezwolenie na ukrycie ceny skupu
@@ -567,7 +567,7 @@ function ST_GameTooltipOnShow()
       end
       
       if (ST_TooltipsID and (ST_PM["transtitle"]=="1") and ST_TooltipsID[ST_prefix]) then     -- jest zezwolenie na tłumaczenie tytułu i jest tłumaczenie
-         _G["GameTooltipTextLeft1"]:SetText(ST_TooltipsID[ST_prefix].." ");   -- znacznik twardej spacji do tytułu
+         _G["GameTooltipTextLeft1"]:SetText(QTR_ExpandUnitInfo(ST_TooltipsID[ST_prefix],WOWTR_Font2).." ");   -- znacznik twardej spacji do tytułu
          _font1, _size1, _1 = _G["GameTooltipTextLeft1"]:GetFont();           -- odczytaj aktualną czcionkę i rozmiar    
          _G["GameTooltipTextLeft1"]:SetFont(WOWTR_Font2, _size1);
       end
@@ -650,7 +650,7 @@ function ST_GameTooltipOnShow()
       end
       
       if ((ST_PM["constantly"] == "1") and (UnitLevel("player") > 60) and _G["GameTooltipTextLeft1"] and _G["GameTooltipTextLeft1"]:GetText()) then
-         _G["GameTooltipTextLeft1"]:SetText(_G["GameTooltipTextLeft1"]:GetText().." ");
+         _G["GameTooltipTextLeft1"]:SetText(QTR_ExpandUnitInfo(_G["GameTooltipTextLeft1"]:GetText(),WOWTR_Font2).." ");
       end
       GameTooltip:Show();   -- wyświetla ramkę podpowiedzi (zrobi także resize)
       ST_lastNumLines = GameTooltip:NumLines();
@@ -720,7 +720,7 @@ function ST_CurrentEquipped(obj)
          if (obj.shownMoneyFrames) then        -- są ramki z ceną itemu
             for i = 1, obj.shownMoneyFrames, 1 do
                local moneyFrameName = obj:GetName().."MoneyFrame"..i;           -- nazwa obiektu
-               _G[moneyFrameName.."PrefixText"]:SetText(WoWTR_Localization.sellPrice);  -- SELL PRICE
+               _G[moneyFrameName.."PrefixText"]:SetText(QTR_ReverseIfAR(WoWTR_Localization.sellPrice));  -- SELL PRICE
                _font1, _size1, _1 = _G[moneyFrameName.."PrefixText"]:GetFont();  -- odczytaj aktualną czcionkę i rozmiar    
                _G[moneyFrameName.."PrefixText"]:SetFont(WOWTR_Font2, _size1);
                if (ST_PM["sellprice"] == "1") then    -- jest zezwolenie na ukrycie ceny skupu
@@ -745,7 +745,7 @@ function ST_CurrentEquipped(obj)
                --   ST_PI[ST_info]=leftText[1];        -- zapisz
                else
                   _font1, _size1, _1 = _G[obj:GetName().."TextLeft1"]:GetFont();    -- odczytaj aktualną czcionkę i rozmiar    
-                  _G[obj:GetName().."TextLeft1"]:SetText(ST_info.." ");             -- dodajemy twardą spacje na końcu
+                  _G[obj:GetName().."TextLeft1"]:SetText(QTR_ReverseIfAR(ST_info).." ");             -- dodajemy twardą spacje na końcu
                   _G[obj:GetName().."TextLeft1"]:SetFont(WOWTR_Font2, _size1);
                end
             end               
@@ -754,7 +754,7 @@ function ST_CurrentEquipped(obj)
          -- druga linia z tytułem przedmiotu
          ST_pomoc0, _ = string.find(_G[obj:GetName().."TextLeft2"]:GetText()," ");   -- szukamy twardej spacji
          if (ST_TooltipID and (ST_pomoc0==nil) and (ST_TooltipsID[ST_prefix..tostring(ST_itemID)]) and (ST_PM["transtitle"]=="1")) then  -- jest tłumaczenie tytułu w bazie
-            _G[obj:GetName().."TextLeft2"]:SetText(ST_TooltipsID[ST_prefix..tostring(ST_itemID)]);
+            _G[obj:GetName().."TextLeft2"]:SetText(QTR_ExpandUnitInfo(ST_TooltipsID[ST_prefix..tostring(ST_itemID)]),WOWTR_Font2);
             _font1, _size1, _1 = _G[obj:GetName().."TextLeft2"]:GetFont();  -- odczytaj aktualną czcionkę i rozmiar    
             _G[obj:GetName().."TextLeft2"]:SetFont(WOWTR_Font2, _size1);
          end
@@ -844,14 +844,14 @@ function ST_UpdateFrameTitle(classTalentFrame)
    end
    classTalentFrame:SetTitle(ST_SetText(titleText));
    local _font, _size, _ = classTalentFrame.TalentsTab.ApplyButton.Text:GetFont();    -- odczytaj aktualną czcionkę i rozmiar
-   classTalentFrame.TalentsTab.ApplyButton.Text:SetText(ST_SetText(classTalentFrame.TalentsTab.ApplyButton.Text:GetText()));   -- Apply Changes
+   classTalentFrame.TalentsTab.ApplyButton.Text:SetText(QTR_ReverseIfAR(ST_SetText(classTalentFrame.TalentsTab.ApplyButton.Text:GetText())));   -- Apply Changes
    classTalentFrame.TalentsTab.ApplyButton.Text:SetFont(WOWTR_Font2, _size);
 
 --   local _font, _size, _ = classTalentFrame:GetTalentsTabButton():GetFont();
    classTalentFrame:GetTalentsTabButton():SetText(ST_SetText(_G["TALENT_FRAME_TAB_LABEL_TALENTS"]));
 --   classTalentFrame:GetTalentsTabButton():SetFont(WOWTR_Font2, _size);
 --   local _font, _size, _ = classTalentFrame:GetTabButton(classTalentFrame.specTabID):GetFont();
-   classTalentFrame:GetTabButton(classTalentFrame.specTabID):SetText(ST_SetText(_G["TALENT_FRAME_TAB_LABEL_SPEC"]));
+   classTalentFrame:GetTabButton(classTalentFrame.specTabID):SetText(QTR_ReverseIfAR(ST_SetText(_G["TALENT_FRAME_TAB_LABEL_SPEC"])));
 --   classTalentFrame:GetTabButton(classTalentFrame.specTabID):SetFont(WOWTR_Font2, _size);
    if ((ST_PM["active"] == "1") and (classTalentFrame:GetTab() ~= classTalentFrame.specTabID)) then
       WOWTR_ToggleButtonT:Show();
@@ -864,10 +864,10 @@ end
 
 function ST_TalentsTab_OnShow(talentsTab)
    local _font, _size, _ = talentsTab.ClassCurrencyDisplay.CurrencyLabel:GetFont();    -- odczytaj aktualną czcionkę i rozmiar
-   talentsTab.ClassCurrencyDisplay.CurrencyLabel:SetText(ST_SetText(talentsTab.ClassCurrencyDisplay.CurrencyLabel:GetText()));   -- DRUID POINTS AVAILABLE
+   talentsTab.ClassCurrencyDisplay.CurrencyLabel:SetText(QTR_ReverseIfAR(ST_SetText(talentsTab.ClassCurrencyDisplay.CurrencyLabel:GetText())));   -- DRUID POINTS AVAILABLE
    talentsTab.ClassCurrencyDisplay.CurrencyLabel:SetFont(WOWTR_Font2, _size);
    local _font, _size, _ = talentsTab.SpecCurrencyDisplay.CurrencyLabel:GetFont();
-   talentsTab.SpecCurrencyDisplay.CurrencyLabel:SetText(ST_SetText(talentsTab.SpecCurrencyDisplay.CurrencyLabel:GetText()));     -- BALANCE POINTS AVAILABLE
+   talentsTab.SpecCurrencyDisplay.CurrencyLabel:SetText(QTR_ReverseIfAR(ST_SetText(talentsTab.SpecCurrencyDisplay.CurrencyLabel:GetText())));     -- BALANCE POINTS AVAILABLE
    talentsTab.SpecCurrencyDisplay.CurrencyLabel:SetFont(WOWTR_Font2, _size);
 end
 
@@ -892,16 +892,16 @@ function ST_updateSpecContentsHook()
          end
       end
       local _font, _size, _ = specContentFrame.RoleName:GetFont();    -- odczytaj aktualną czcionkę i rozmiar
-      specContentFrame.RoleName:SetText(ST_SetText(specContentFrame.RoleName:GetText()));
+      specContentFrame.RoleName:SetText(QTR_ReverseIfAR(ST_SetText(specContentFrame.RoleName:GetText())));
       specContentFrame.RoleName:SetFont(WOWTR_Font2, _size);
       _font, _size, _ = specContentFrame.SampleAbilityText:GetFont();
-      specContentFrame.SampleAbilityText:SetText(ST_SetText(specContentFrame.SampleAbilityText:GetText()));
+      specContentFrame.SampleAbilityText:SetText(QTR_ReverseIfAR(ST_SetText(specContentFrame.SampleAbilityText:GetText())));
       specContentFrame.SampleAbilityText:SetFont(WOWTR_Font2, _size);
       _font, _size, _ = specContentFrame.ActivatedText:GetFont();
-      specContentFrame.ActivatedText:SetText(ST_SetText(specContentFrame.ActivatedText:GetText()));
+      specContentFrame.ActivatedText:SetText(QTR_ReverseIfAR(ST_SetText(specContentFrame.ActivatedText:GetText())));
       specContentFrame.ActivatedText:SetFont(WOWTR_Font2, _size);
       _font, _size, _ = specContentFrame.ActivateButton.Text:GetFont();
-      specContentFrame.ActivateButton.Text:SetText(ST_SetText(specContentFrame.ActivateButton.Text:GetText()));
+      specContentFrame.ActivateButton.Text:SetText(QTR_ReverseIfAR(ST_SetText(specContentFrame.ActivateButton.Text:GetText())));
       specContentFrame.ActivateButton.Text:SetFont(WOWTR_Font2, _size);
    end
 end
@@ -911,10 +911,6 @@ end
 function ST_updateSpellBookFrame()
    local ST_titleTextFontString = SpellBookFrame:GetTitleText();
    local text0 = QTR_ReverseIfAR(ST_titleTextFontString:GetText());
---   local fo = ST_titleTextFontString:CreateFontString();
---   fo:SetFont(WOWTR_Font2, 13);
---   fo:SetText(text0);
---   ST_titleTextFontString:SetFontString(fo);
    ST_titleTextFontString:SetText(ST_SetText(text0));
 
    local text1 = QTR_ReverseIfAR(ST_SetText(SpellBookFrameTabButton1:GetText()));
@@ -963,12 +959,17 @@ end
 -------------------------------------------------------------------------------------------------------
 
 function STtalent_ON_OFF()
+   
    if (ST_PM["talent"] == "1") then
       ST_PM["talent"] = "0";
       WOWTR_ToggleButtonT:SetText(WoWTR_Localization.WoWTR_Talent_enDESC);
    else
       ST_PM["talent"] = "1";
-      WOWTR_ToggleButtonT:SetText(WoWTR_Localization.WoWTR_Talent_trDESC);
+      local fo = WOWTR_ToggleButtonT:CreateFontString();
+      fo:SetFont(WOWTR_Font2, 13);
+      fo:SetText(QTR_ReverseIfAR(WoWTR_Localization.WoWTR_Talent_arDESC));
+      WOWTR_ToggleButtonT:SetFontString(fo);
+      WOWTR_ToggleButtonT:SetText(QTR_ReverseIfAR(WoWTR_Localization.WoWTR_Talent_arDESC));
    end
 end
 
@@ -996,15 +997,15 @@ function WOWSTR_onEvent(_, event, addonName)
       -- przycisk do przełączania wersji TR - EN dla talentów
       WOWTR_ToggleButtonT = CreateFrame("Button", nil, UIParent, "UIPanelButtonTemplate");
       WOWTR_ToggleButtonT:SetWidth(150);
-      WOWTR_ToggleButtonT:SetHeight(25);
+      WOWTR_ToggleButtonT:SetHeight(22);
       WOWTR_ToggleButtonT:SetFrameStrata("HIGH")
       if (ST_PM["talent"] == "1") then
-         WOWTR_ToggleButtonT:SetText(WoWTR_Localization.WoWTR_Talent_trDESC);
+         WOWTR_ToggleButtonT:SetText(WoWTR_Localization.WoWTR_Talent_arDESC);
       else
          WOWTR_ToggleButtonT:SetText(WoWTR_Localization.WoWTR_Talent_enDESC);
       end
       WOWTR_ToggleButtonT:ClearAllPoints();
-      WOWTR_ToggleButtonT:SetPoint("TOPLEFT", UIParent, "TOPLEFT", UIParent:GetWidth()/2-75, -40);
+      WOWTR_ToggleButtonT:SetPoint("TOPLEFT", UIParent, "TOPLEFT", UIParent:GetWidth()/2-75, -42);
       WOWTR_ToggleButtonT:Hide();
       WOWTR_ToggleButtonT:SetScript("OnClick", STtalent_ON_OFF);
 
