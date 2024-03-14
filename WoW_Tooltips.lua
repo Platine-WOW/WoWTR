@@ -1,4 +1,4 @@
-﻿-- Addon: WoWTR-Tooltips (version: 10.S46) 2024.02.26
+﻿-- Addon: WoWTR-Tooltips (version: 10.S47) 2024.03.14
 -- Description: The AddOn displays the translated text information in chosen language
 -- Author: Platine, Hakan YILMAZ
 -- E-mail: platine.wow@gmail.com
@@ -129,9 +129,7 @@ function ST_CheckAndReplaceTranslationText(obj, sav, prefix, font1, onlyReverse,
       end
    end
 end
-
 -------------------------------------------------------------------------------------------------------
-
 function ST_CheckAndReplaceTranslationTextUI(obj, sav, prefix, font1)     -- obj=object with stingtext,  sav=permission to save untranstaled tekst (true/false)
    if (obj and obj.GetText) then                                          -- prefix=text to save group,  font1=if present:SetFont to given font file
       local txt = obj:GetText();                                          -- Font Files: WOWTR_Font1, Original_Font1, Original_Font2
@@ -537,7 +535,7 @@ function ST_GameTooltipOnShow()
       end
       
       local ST_kodKoloru;
-      local ST_leftText, ST_rightText, ST_tlumaczenie, ST_hash, ST_hash2, ST_pomoc5, ST_pomoc6;
+      local ST_leftText, ST_rightText, ST_tlumaczenie, ST_hash, ST_hash2, ST_pomoc5, ST_pomoc6, ST_pomoc7;
       local _font1, _size1, _1;
       local ST_odstep = true;
       local ST_orygText = {};
@@ -598,8 +596,23 @@ function ST_GameTooltipOnShow()
                if (((ST_kodKoloru == "c7") or (string.len(ST_leftText)>30)) and (not ST_hash2)) then
                   ST_hash2 = ST_hash;
                end
-               if (ST_TooltipsHS[ST_hash]) then        -- mamy przetłumaczony ten Hash
-                  ST_tlumaczenie = ST_TooltipsHS[ST_hash];
+               ST_pomoc7, _ = string.find(ST_leftText,"<Made by");    -- znajdź czy jest to tekst typu "|cff00ff00<Made by Platine>|r"
+               if (ST_pomoc7) then
+                  ST_hash = 1381871427;
+               end
+               if (ST_TooltipsHS[ST_hash]) then        -- mamy przetłumaczony ten Hash lub jest to <Made by...
+                  if (ST_pomoc7) then
+                     local endBy = string.find(ST_leftText,">");
+                     local nameBy = string.sub(ST_leftText,ST_pomoc7+9,endBy-1);
+                     ST_tlumaczenie = ST_TooltipsHS[ST_hash];
+                     if (WoWTR_Localization.lang == 'AR') then
+                        ST_tlumaczenie = string.gsub(ST_tlumaczenie, "NAMEBY", string.reverse(nameBy));
+                     else
+                        ST_tlumaczenie = string.gsub(ST_tlumaczenie, "$M", nameBy);
+                     end
+                  else
+                     ST_tlumaczenie = ST_TooltipsHS[ST_hash];
+                  end
                   ST_tlumaczenie = ST_TranslatePrepare(ST_leftText, ST_tlumaczenie);
                   _font1, _size1, _1 = _G["GameTooltipTextLeft"..i]:GetFont();    -- odczytaj aktualną czcionkę i rozmiar    
                   _G["GameTooltipTextLeft"..i]:SetFont(WOWTR_Font2, _size1);      -- ustawiamy czcionkę turecką
@@ -1714,10 +1727,14 @@ function ST_MountJournal()
    if (TT_PS["ui4"] == "1") then
       local CJobj01 = MountJournalLore;
       local ST_MountName = MountJournalName:GetText();
-      ST_CheckAndReplaceTranslationTextUI(CJobj01, true, "Collections:Mount:"..ST_MountName); -- https://imgur.com/7INQmHh
+      if (WoWTR_Localization.lang == 'AR') then
+         ST_CheckAndReplaceTranslationText(CJobj01, true, "Collections:Mount:"..ST_MountName,false,false,-10);
+      else
+         ST_CheckAndReplaceTranslationTextUI(CJobj01, true, "Collections:Mount:"..ST_MountName); -- https://imgur.com/7INQmHh
+      end
 
       local CJobj02 = MountJournalSummonRandomFavoriteButtonSpellName;
-      ST_CheckAndReplaceTranslationTextUI(CJobj02, false, "ui");
+      ST_CheckAndReplaceTranslationText(CJobj02, false, "ui",false,false);
 
       local CJobj03 = MountJournal.BottomLeftInset.SlotLabel;
       ST_CheckAndReplaceTranslationTextUI(CJobj03, false, "ui");
@@ -1771,10 +1788,18 @@ function ST_MountJournal()
       ST_CheckAndReplaceTranslationTextUI(CJobj19, false, "ui");
 
       local CJobj20 = PetJournalSummonRandomFavoritePetButtonSpellName;
-      ST_CheckAndReplaceTranslationTextUI(CJobj20, false, "ui");
+      if (WoWTR_Localization.lang == 'AR') then
+         ST_CheckAndReplaceTranslationText(CJobj20, false, "ui",false,false);
+      else
+         ST_CheckAndReplaceTranslationTextUI(CJobj20, false, "ui");
+      end
 
       local CJobj21 = PetJournalHealPetButtonSpellName;
-      ST_CheckAndReplaceTranslationTextUI(CJobj21, false, "ui");
+      if (WoWTR_Localization.lang == 'AR') then
+         ST_CheckAndReplaceTranslationText(CJobj21, false, "ui",false,false);
+      else
+         ST_CheckAndReplaceTranslationTextUI(CJobj21, false, "ui");
+      end
 
       local CJobj22 = MountJournalFilterButton.Text;
       ST_CheckAndReplaceTranslationTextUI(CJobj22, false, "ui");
