@@ -1,4 +1,4 @@
--- Addon: WoW_Quests (version: 10.A37) 2024.02.16
+-- Addon: WoW_Quests (version: 10.A38) 2024.03.19
 -- Description: The AddOn displays the translated text information in chosen language
 -- Author: Platine
 -- E-mail: platine.wow@gmail.com
@@ -111,7 +111,11 @@ function GS_ON_OFF()
             Greeting_TR=string.gsub(Greeting_TR, "$1", wartab[1]);
          end
       end
-      GossipGreetingText:SetText(QTR_ExpandUnitInfo(Greeting_TR,false,GossipGreetingText,WOWTR_Font2));
+      if (WoWTR_Localization.lang == 'AR') then
+         GossipGreetingText:SetText(QTR_ExpandUnitInfo(Greeting_TR.." ",false,GossipGreetingText,WOWTR_Font2,-5));    -- dodano na końcu twardą spację
+      else
+         GossipGreetingText:SetText(QTR_ExpandUnitInfo(Greeting_TR.." ",false,GossipGreetingText,WOWTR_Font2));    -- dodano na końcu twardą spację
+      end
 --    GossipGreetingText:SetFont(WOWTR_Font2, 12);      
       QTR_ToggleButtonGS1:SetText("Gossip-Hash="..tostring(QTR_curr_hash).." "..WoWTR_Localization.lang);
       if (QTR_goss_optionsTR) then
@@ -290,7 +294,11 @@ function QTR_Gossip_Show()
                QTR_ToggleButtonGS1:Enable();
                GossipGreetingText = GossipTextFrame.GreetingText;
                local GO_height = GossipGreetingText:GetHeight();
-               GossipGreetingText:SetText(QTR_ExpandUnitInfo(Greeting_TR.." ",false,GossipGreetingText,WOWTR_Font2));    -- dodano na końcu twardą spację
+               if (WoWTR_Localization.lang == 'AR') then
+                  GossipGreetingText:SetText(QTR_ExpandUnitInfo(Greeting_TR.." ",false,GossipGreetingText,WOWTR_Font2,-5));    -- dodano na końcu twardą spację
+               else
+                  GossipGreetingText:SetText(QTR_ExpandUnitInfo(Greeting_TR.." ",false,GossipGreetingText,WOWTR_Font2));    -- dodano na końcu twardą spację
+               end
                GossipGreetingText:SetFont(WOWTR_Font2, tonumber(QTR_PS["fontsize"]));
 --               GossipTextFrame:Resize();
                QTR_curr_goss="1";
@@ -392,7 +400,7 @@ function QTR_Gossip_Show()
    -- Gossip Frame Buttons - Goodbye,
    -- print("Gossip Frame");
    local GFGoodbyeBtext = GossipFrame.GreetingPanel.GoodbyeButton.Text;
-   ST_CheckAndReplaceTranslationText(GFGoodbyeBtext, true, "ui");
+   ST_CheckAndReplaceTranslationText(GFGoodbyeBtext, true, "ui",false,true);
 end
 
 -------------------------------------------------------------------------------------------------------------------
@@ -438,11 +446,11 @@ function GossipOnQuestFrame()       -- frame: QuestFrame
             end
          end
          if (CurrentQuestsText and CurrentQuestsText:IsVisible()) then
-            CurrentQuestsText:SetText(QTR_ReverseIfAR(QTR_Messages.currquests));
+            CurrentQuestsText:SetText(QTR_ExpandUnitInfo(QTR_Messages.currquests,false,CurrentQuestsText,WOWTR_Font1,-30));
             CurrentQuestsText:SetFont(WOWTR_Font1, 18);
          end
          if (AvailableQuestsText and AvailableQuestsText:IsVisible()) then
-            AvailableQuestsText:SetText(QTR_ReverseIfAR(QTR_Messages.avaiquests));
+            AvailableQuestsText:SetText(QTR_ExpandUnitInfo(QTR_Messages.avaiquests,false,AvailableQuestsText,WOWTR_Font1,-30));
             AvailableQuestsText:SetFont(WOWTR_Font1, 18);
          end
          if (QTR_PS["gossip"]=="1") then
@@ -478,7 +486,7 @@ function GossipOnQuestFrame()       -- frame: QuestFrame
                      local point, relativeTo, relativePoint, xOfs, yOfs = GText.Icon:GetPoint(1);
                      if (relativePoint ~= "TOPRIGHT") then
                         GText.Icon:ClearAllPoints();
-                        GText.Icon:SetPoint(point, relativeTo, "TOPRIGHT", xOfs-40, yOfs);
+                        GText.Icon:SetPoint(point, relativeTo, "TOPRIGHT", xOfs-40, yOfs-7);
                      end
                   end
                else
@@ -513,19 +521,19 @@ function GossipOnQuestFrame()       -- frame: QuestFrame
 -- Quest Frame Buttons - Accept, Decline, Complete Quest, Continue and Cancel
 -- print("Quest Frame");
    local QFCompleteQBtext = QuestFrameCompleteQuestButtonText;
-   ST_CheckAndReplaceTranslationText(QFCompleteQBtext, true, "ui");
+   ST_CheckAndReplaceTranslationText(QFCompleteQBtext, true, "ui",false,true);
 
    local QFAcceptBtext = QuestFrameAcceptButtonText;
-   ST_CheckAndReplaceTranslationText(QFAcceptBtext, true, "ui");
+   ST_CheckAndReplaceTranslationText(QFAcceptBtext, true, "ui",false,true);
 
    local QFDeclineBtext = QuestFrameDeclineButtonText;
-   ST_CheckAndReplaceTranslationText(QFDeclineBtext, true, "ui");
+   ST_CheckAndReplaceTranslationText(QFDeclineBtext, true, "ui",false,true);
 
    local QFContinueBtext = QuestFrameContinueButtonText;
-   ST_CheckAndReplaceTranslationText(QFContinueBtext, true, "ui");
+   ST_CheckAndReplaceTranslationText(QFContinueBtext, true, "ui",false,true);
 
    local QFGoodbyeBtext = QuestFrameGoodbyeButtonText;
-   ST_CheckAndReplaceTranslationText(QFGoodbyeBtext, true, "ui");
+   ST_CheckAndReplaceTranslationText(QFGoodbyeBtext, true, "ui",false,true);
 
 end
 
@@ -1193,7 +1201,7 @@ function QTR_QuestPrepare(zdarzenie)
                QTR_quest_LG[QTR_quest_ID].itemchoose = QTR_Messages.itemchoose0;
                if (MapQuestInfoRewardsFrame.ItemChooseText:IsVisible()) then
                   QTR_quest_EN[QTR_quest_ID].itemreceive = QTR_MessOrig.itemreceiv1;
-                  QTR_quest_LG[QTR_quest_ID].itemreceive = QTR_Messages.itemreceiv1;                  
+                  QTR_quest_LG[QTR_quest_ID].itemreceive = QTR_Messages.itemreceiv1;
                else
                   QTR_quest_EN[QTR_quest_ID].itemreceive = QTR_MessOrig.itemreceiv0;
                   QTR_quest_LG[QTR_quest_ID].itemreceive = QTR_Messages.itemreceiv0;
@@ -1365,7 +1373,7 @@ end
 function QTR_Translate_On(typ)
    QTR_display_constants(1);
    if (QuestNPCModelText:IsVisible() and (QTR_ModelTextHash>0)) then         -- jest wyświetlony tekst QuestNPCModelText
-      QuestNPCModelText:SetText(QTR_ExpandUnitInfo(QTR_ModelText_PL.." ",false,QuestNPCModelText,WOWTR_Font2));   -- na końcu dodajemy "twardą" spację
+      QuestNPCModelText:SetText(QTR_ExpandUnitInfo(QTR_ModelText_PL.." ",false,QuestNPCModelText,WOWTR_Font2,-15));   -- na końcu dodajemy "twardą" spację
       QuestNPCModelText:SetFont(WOWTR_Font2, 13);
    end
    
@@ -1389,25 +1397,24 @@ function QTR_Translate_On(typ)
             QTR_ToggleButton5:SetText("Quest ID="..QTR_quest_ID.." ("..QTR_lang..")");
             QTR_Storyline(1);
          end
-         local WOW_width = 260;
-         if (QuestFrame:IsVisible()) then
-            WOW_width = 275;
+         local WOW_width = 265;
+         if (WorldMapFrame:IsVisible()) then
+            WOW_width = 245;
          end
          if (QTR_PS["transtitle"]=="1") then
-            if (WoWTR_Localization.lang == 'AR') then 
-               QuestInfoTitleHeader:SetFont(WOWTR_Font1,  IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtitle.size or 18);
-               QuestProgressTitleText:SetFont(WOWTR_Font1, IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtitle.size or 18);
+            QuestInfoTitleHeader:SetWidth(WOW_width+30);
+            QuestProgressTitleText:SetWidth(WOW_width+10);
+            QuestInfoTitleHeader:SetFont(WOWTR_Font1,  IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtitle.size or 18);
+            QuestProgressTitleText:SetFont(WOWTR_Font1, IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtitle.size or 18);
+            if (WorldMapFrame:IsVisible()) then
+               QuestInfoTitleHeader:SetText(QTR_ExpandUnitInfo(QTR_quest_LG[QTR_quest_ID].title,false,QuestInfoTitleHeader,WOWTR_Font1,-50));
             else
-               QuestInfoTitleHeader:SetFont(WOWTR_Font1,  IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtitle.size or 18);
-               QuestProgressTitleText:SetFont(WOWTR_Font1, IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtitle.size or 18);
+               QuestInfoTitleHeader:SetText(QTR_ExpandUnitInfo(QTR_quest_LG[QTR_quest_ID].title,false,QuestInfoTitleHeader,WOWTR_Font1,-30));
             end
-            QuestInfoTitleHeader:SetWidth(WOW_width);
-            QuestProgressTitleText:SetWidth(WOW_width);
-            QuestInfoTitleHeader:SetText(QTR_ExpandUnitInfo(QTR_quest_LG[QTR_quest_ID].title,false,QuestInfoTitleHeader,WOWTR_Font1,-10));
             QuestProgressTitleText:SetText(QTR_ExpandUnitInfo(QTR_quest_LG[QTR_quest_ID].title,false,QuestProgressTitleText,WOWTR_Font1,-10));
          end
-         QuestInfoDescriptionText:SetWidth(WOW_width-4);
-         QuestInfoObjectivesText:SetWidth(WOW_width-4);
+         QuestInfoDescriptionText:SetWidth(WOW_width+5);
+         QuestInfoObjectivesText:SetWidth(WOW_width+5);
          QuestProgressText:SetWidth(WOW_width);
          QuestInfoRewardText:SetWidth(WOW_width+5);
          QuestInfoDescriptionText:SetFont(WOWTR_Font2, IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtext.size or 13)
@@ -1415,7 +1422,7 @@ function QTR_Translate_On(typ)
          QuestProgressText:SetFont(WOWTR_Font2, IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtext.size or 13)
          QuestInfoRewardText:SetFont(WOWTR_Font2, IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtext.size or 13)
          QuestInfoDescriptionText:SetText(QTR_ExpandUnitInfo(QTR_quest_LG[QTR_quest_ID].details,false,QuestInfoDescriptionText,WOWTR_Font2,-5));
-         QuestInfoObjectivesText:SetText(QTR_ExpandUnitInfo(QTR_quest_LG[QTR_quest_ID].objectives,true,QuestInfoObjectivesText,WOWTR_Font2));
+         QuestInfoObjectivesText:SetText(QTR_ExpandUnitInfo(QTR_quest_LG[QTR_quest_ID].objectives,true,QuestInfoObjectivesText,WOWTR_Font2,-10));
          QuestProgressText:SetText(QTR_ExpandUnitInfo(QTR_quest_LG[QTR_quest_ID].progress,false,QuestProgressText,WOWTR_Font2));
          QuestInfoRewardText:SetText(QTR_ExpandUnitInfo(QTR_quest_LG[QTR_quest_ID].completion,false,QuestInfoRewardText,WOWTR_Font2,-5));
       end
@@ -1495,24 +1502,25 @@ end
 -------------------------------------------------------------------------------------------------------------------
 
 function QTR_display_constants(lg)
-   if (lg==1) then        -- dane stałe przetłumaczone
-      QuestInfoObjectivesHeader:SetFont(WOWTR_Font1, IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtitle.size or 18);
-      QuestInfoObjectivesHeader:SetText(QTR_ExpandUnitInfo(QTR_Messages.objectives,false,QuestInfoObjectivesHeader,WOWTR_Font1));
-      QuestInfoRewardsFrame.Header:SetFont(WOWTR_Font1, IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtitle.size or 18);
-      QuestInfoRewardsFrame.Header:SetText(QTR_ExpandUnitInfo(QTR_Messages.rewards,false,QuestInfoRewardsFrame.Header,WOWTR_Font1));
-      QuestInfoDescriptionHeader:SetFont(WOWTR_Font1, IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtitle.size or 18);
-      QuestInfoDescriptionHeader:SetText(QTR_ExpandUnitInfo(QTR_Messages.details,false,QuestInfoDescriptionHeader,WOWTR_Font1));
-      local WOW_width = 255;
-      if (QuestFrame:IsVisible()) then
-         WOW_width = 275;
+   if (lg==1 and QTR_QuestData[str_ID]) then        -- dane stałe przetłumaczone
+      local WOW_width = 265;
+      if (WorldMapFrame:IsVisible()) then
+         WOW_width = 245;
       end
-      QuestInfoDescriptionHeader:SetWidth(WOW_width-5);
-      QuestInfoObjectivesHeader:SetWidth(WOW_width);
-      QuestInfoRewardsFrame.Header:SetWidth(WOW_width);
+      QuestInfoObjectivesHeader:SetWidth(WOW_width+10);
+      QuestInfoDescriptionHeader:SetWidth(WOW_width+10);
+      QuestInfoRewardsFrame.Header:SetWidth(WOW_width+10);
+      QuestProgressRequiredItemsText:SetWidth(WOW_width+7);
+      QuestInfoObjectivesHeader:SetFont(WOWTR_Font1, IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtitle.size or 18);
+      QuestInfoObjectivesHeader:SetText(QTR_ExpandUnitInfo(QTR_Messages.objectives,false,QuestInfoObjectivesHeader,WOWTR_Font1,-10));
+      QuestInfoDescriptionHeader:SetFont(WOWTR_Font1, IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtitle.size or 18);
+      QuestInfoDescriptionHeader:SetText(QTR_ExpandUnitInfo(QTR_Messages.details,false,QuestInfoDescriptionHeader,WOWTR_Font1,-10));
+      QuestInfoRewardsFrame.Header:SetFont(WOWTR_Font1, IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtitle.size or 18);
+      QuestInfoRewardsFrame.Header:SetText(QTR_ExpandUnitInfo(QTR_Messages.rewards,false,QuestInfoRewardsFrame.Header,WOWTR_Font1,-12));
       QuestProgressRequiredItemsText:SetFont(WOWTR_Font1, IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtitle.size or 18);
-      QuestProgressRequiredItemsText:SetText(QTR_ExpandUnitInfo(QTR_Messages.reqitems,false,QuestProgressRequiredItemsText,WOWTR_Font1,-20));
+      QuestProgressRequiredItemsText:SetText(QTR_ExpandUnitInfo(QTR_Messages.reqitems,false,QuestProgressRequiredItemsText,WOWTR_Font1,-10));
       CurrentQuestsText:SetFont(WOWTR_Font1, IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtitle.size or 18);
-      CurrentQuestsText:SetText(QTR_ReverseIfAR(QTR_Messages.currquests));
+      CurrentQuestsText:SetText(QTR_ExpandUnitInfo(QTR_Messages.currquests,false,CurrentQuestsText,WOWTR_Font1,-30));
       AvailableQuestsText:SetFont(WOWTR_Font1, IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtitle.size or 18);
       AvailableQuestsText:SetText(QTR_ReverseIfAR(QTR_Messages.avaiquests));
       local regions = { QuestMapFrame.DetailsFrame.RewardsFrame:GetRegions() };
@@ -1527,7 +1535,7 @@ function QTR_display_constants(lg)
       -- stałe elementy okna zadania:
       if (WoWTR_Localization.lang == 'AR') then
          QuestInfoRewardsFrame.ItemChooseText:SetFont(WOWTR_Font2, 14);
-         QuestInfoRewardsFrame.ItemChooseText:SetWidth(270);
+         QuestInfoRewardsFrame.ItemChooseText:SetWidth(260);
          QuestInfoRewardsFrame.ItemChooseText:SetJustifyH("RIGHT"); -- wyrównanie od prawego
          QuestInfoRewardsFrame.ItemChooseText:SetText(AS_UTF8reverse(QTR_quest_LG[QTR_quest_ID].itemchoose));
    
@@ -1542,7 +1550,7 @@ function QTR_display_constants(lg)
             QTR_QuestDetail_ItemReceiveText:SetJustifyH("RIGHT");
             QTR_QuestDetail_ItemReceiveText:SetJustifyV("TOP");
             QTR_QuestDetail_ItemReceiveText:ClearAllPoints();
-            QTR_QuestDetail_ItemReceiveText:SetPoint("TOPRIGHT", QuestInfoRewardsFrame.ItemReceiveText, "TOPLEFT", 270, 2);
+            QTR_QuestDetail_ItemReceiveText:SetPoint("TOPRIGHT", QuestInfoRewardsFrame.ItemReceiveText, "TOPLEFT", 260, 2);
             QTR_QuestDetail_ItemReceiveText:SetFont(WOWTR_Font2, 14);
          end
          if (QTR_quest_LG[QTR_quest_ID].itemreceive) then
@@ -1557,7 +1565,7 @@ function QTR_display_constants(lg)
             QTR_QuestReward_ItemReceiveText:SetJustifyH("RIGHT");
             QTR_QuestReward_ItemReceiveText:SetJustifyV("TOP");
             QTR_QuestReward_ItemReceiveText:ClearAllPoints();
-            QTR_QuestReward_ItemReceiveText:SetPoint("TOPRIGHT", QuestInfoRewardsFrame.ItemReceiveText, "TOPLEFT", 270, 2);
+            QTR_QuestReward_ItemReceiveText:SetPoint("TOPRIGHT", QuestInfoRewardsFrame.ItemReceiveText, "TOPLEFT", 260, 2);
             QTR_QuestReward_ItemReceiveText:SetFont(WOWTR_Font2, 14);
          end
          if (QTR_quest_LG[QTR_quest_ID].itemreceive) then
@@ -1571,7 +1579,7 @@ function QTR_display_constants(lg)
             QTR_QuestDetail_InfoXP:SetJustifyH("RIGHT");
             QTR_QuestDetail_InfoXP:SetJustifyV("TOP");
             QTR_QuestDetail_InfoXP:ClearAllPoints();
-            QTR_QuestDetail_InfoXP:SetPoint("TOPRIGHT", QuestInfoRewardsFrame.XPFrame.ReceiveText, "TOPLEFT", 270, 2);
+            QTR_QuestDetail_InfoXP:SetPoint("TOPRIGHT", QuestInfoRewardsFrame.XPFrame.ReceiveText, "TOPLEFT", 260, 2);
             QTR_QuestDetail_InfoXP:SetFont(WOWTR_Font2, 14);
          end
          QTR_QuestDetail_InfoXP:SetText(AS_UTF8reverse(QTR_Messages.experience));
@@ -1582,7 +1590,7 @@ function QTR_display_constants(lg)
             QTR_QuestReward_InfoXP:SetJustifyH("RIGHT");
             QTR_QuestReward_InfoXP:SetJustifyV("TOP");
             QTR_QuestReward_InfoXP:ClearAllPoints();
-            QTR_QuestReward_InfoXP:SetPoint("TOPRIGHT", QuestInfoRewardsFrame.XPFrame.ReceiveText, "TOPLEFT", 270, 2);
+            QTR_QuestReward_InfoXP:SetPoint("TOPRIGHT", QuestInfoRewardsFrame.XPFrame.ReceiveText, "TOPLEFT", 260, 2);
             QTR_QuestReward_InfoXP:SetFont(WOWTR_Font2, 14);
          end
          QTR_QuestReward_InfoXP:SetText(AS_UTF8reverse(QTR_Messages.experience));
@@ -1637,7 +1645,7 @@ function QTR_display_constants(lg)
                QuestInfoXPFrame.ReceiveText:SetText(spaces05);
             end
          end
-   
+
          QuestInfoSpellObjectiveLearnLabel:SetFont(WOWTR_Font2, 13);
          QuestInfoSpellObjectiveLearnLabel:SetJustifyH("LEFT"); -- wyrównanie od prawego
          QuestInfoSpellObjectiveLearnLabel:SetText(AS_UTF8reverse(QTR_Messages.learnspell));
@@ -1854,166 +1862,192 @@ function QTR_display_constants(lg)
          end
       end
    else        -- przywróć oryginalne teksty
-      QuestInfoObjectivesHeader:SetFont(Original_Font1, 18);
-      QuestInfoObjectivesHeader:SetText(QTR_MessOrig.objectives);
-      QuestInfoRewardsFrame.Header:SetFont(Original_Font1, 18);
-      QuestInfoRewardsFrame.Header:SetText(QTR_MessOrig.rewards);
-      QuestInfoDescriptionHeader:SetFont(Original_Font1, 18);
-      QuestInfoDescriptionHeader:SetText(QTR_MessOrig.details);
-      QuestProgressRequiredItemsText:SetFont(Original_Font1, 18);
-      QuestProgressRequiredItemsText:SetText(QTR_MessOrig.reqitems);
-      CurrentQuestsText:SetFont(Original_Font1, 18);
-      CurrentQuestsText:SetText(QTR_MessOrig.currquests);
-      AvailableQuestsText:SetFont(Original_Font1, 18);
-      AvailableQuestsText:SetText(QTR_MessOrig.avaiquests);
-      local regions = { QuestMapFrame.DetailsFrame.RewardsFrame:GetRegions() };
-      for index = 1, #regions do
-         local region = regions[index];
-         if ((region:GetObjectType() == "FontString") and (region:GetText() == QTR_Messages.rewards)) then
-            region:SetText(QUEST_REWARDS);
-            region:SetFont(Original_Font1, 18);
-         end
-      end
-      
-      -- stałe elementy okna zadania:
-      if (WoWTR_Localization.lang == 'AR') then
-         QuestInfoRewardsFrame.ItemChooseText:SetJustifyH("LEFT"); -- wyrównanie od lewego
-         QuestInfoRewardsFrame.ItemReceiveText:SetJustifyH("LEFT"); -- wyrównanie od lewego
-         QuestInfoSpellObjectiveLearnLabel:SetJustifyH("LEFT"); -- wyrównanie od lewego
-         --      QuestInfoXPFrame.ReceiveText:SetJustifyH("LEFT");         -- wyrównanie od lewego / nie zmieniam tego parametru
-         QuestInfoRewardsFrame.XPFrame.ReceiveText:SetJustifyH("LEFT"); -- wyrównanie od lewego
-         MapQuestInfoRewardsFrame.ItemChooseText:SetJustifyH("LEFT"); -- wyrównanie od lewego
-         MapQuestInfoRewardsFrame.ItemReceiveText:SetJustifyH("LEFT"); -- wyrównanie od lewego
-         QuestInfoRewardsFrame.PlayerTitleText:SetJustifyH("LEFT"); -- wyrównanie od lewego
-         QuestInfoRewardsFrame.QuestSessionBonusReward:SetJustifyH("LEFT"); -- wyrównanie od lewego
-      end
-      QuestInfoRewardsFrame.ItemChooseText:SetFont(Original_Font2, 13);
-      QuestInfoRewardsFrame.ItemReceiveText:SetFont(Original_Font2, 13);
-      QuestInfoRewardsFrame.ItemChooseText:SetText(QTR_quest_EN[QTR_quest_ID].itemchoose);
-      QuestInfoRewardsFrame.ItemReceiveText:SetText(QTR_quest_EN[QTR_quest_ID].itemreceive);
-      QuestInfoSpellObjectiveLearnLabel:SetFont(Original_Font2, 13);
-      QuestInfoSpellObjectiveLearnLabel:SetText(QTR_MessOrig.learnspell);
-      QuestInfoXPFrame.ReceiveText:SetFont(Original_Font2, 13);
-      QuestInfoXPFrame.ReceiveText:SetText(QTR_MessOrig.experience);
-      QuestInfoRewardsFrame.XPFrame.ReceiveText:SetFont(Original_Font2, 13);
-      QuestInfoRewardsFrame.XPFrame.ReceiveText:SetText(QTR_MessOrig.experience);
-      MapQuestInfoRewardsFrame.ItemChooseText:SetFont(Original_Font2, 11);
-      MapQuestInfoRewardsFrame.ItemReceiveText:SetFont(Original_Font2, 11);
-      MapQuestInfoRewardsFrame.ItemChooseText:SetText(QTR_quest_EN[QTR_quest_ID].itemchoose);
-      MapQuestInfoRewardsFrame.ItemReceiveText:SetText(QTR_quest_EN[QTR_quest_ID].itemreceive);
-      QuestInfoRewardsFrame.PlayerTitleText:SetFont(Original_Font2, 13);
-      QuestInfoRewardsFrame.PlayerTitleText:SetText(QTR_MessOrig.reward_title);
-      QuestInfoRewardsFrame.QuestSessionBonusReward:SetFont(Original_Font2, 13);
-      QuestInfoRewardsFrame.QuestSessionBonusReward:SetText(QTR_MessOrig.reward_bonus);
-      if (QTR_QuestDetail_ItemReceiveText) then
-         QTR_QuestDetail_ItemReceiveText:Hide();
-      end
-      if (QTR_QuestDetail_InfoXP) then
-         QTR_QuestDetail_InfoXP:Hide();
-      end
-      if ( QuestInfoRewardsFrame:IsVisible() ) then
-         for fontString in QuestInfoRewardsFrame.spellHeaderPool:EnumerateActive() do
-            if (fontString:GetText() == QTR_Messages.reward_aura) then
-               fontString:SetText(REWARD_AURA);
-               fontString:SetJustifyH("LEFT"); -- wyrównanie od lewego
-               fontString:SetFont(Original_Font2, 13);
-            end
-            if (fontString:GetText() == QTR_Messages.reward_spell) then
-               fontString:SetText(REWARD_SPELL);
-               fontString:SetJustifyH("LEFT"); -- wyrównanie od lewego
-               fontString:SetFont(Original_Font2, 13);
-            end
-            if (fontString:GetText() == QTR_Messages.reward_companion) then
-               fontString:SetText(REWARD_COMPANION);
-               fontString:SetJustifyH("LEFT"); -- wyrównanie od lewego
-               fontString:SetFont(Original_Font2, 13);
-            end
-            if (fontString:GetText() == QTR_Messages.reward_follower) then
-               fontString:SetText(REWARD_FOLLOWER);
-               fontString:SetJustifyH("LEFT"); -- wyrównanie od lewego
-               fontString:SetFont(Original_Font2, 13);
-            end
-            if (fontString:GetText() == QTR_Messages.reward_reputation) then
-               fontString:SetText(REWARD_REPUTATION);
-               fontString:SetJustifyH("LEFT"); -- wyrównanie od lewego
-               fontString:SetFont(Original_Font2, 13);
-            end
-            if (fontString:GetText() == QTR_Messages.reward_title) then
-               fontString:SetText(REWARD_TITLE);
-               fontString:SetJustifyH("LEFT"); -- wyrównanie od lewego
-               fontString:SetFont(Original_Font2, 13);
-            end
-            if (fontString:GetText() == QTR_Messages.reward_tradeskill) then
-               fontString:SetText(REWARD_TRADESKILL);
-               fontString:SetJustifyH("LEFT"); -- wyrównanie od lewego
-               fontString:SetFont(Original_Font2, 13);
-            end
-            if (fontString:GetText() == QTR_Messages.reward_unlock) then
-               fontString:SetText(REWARD_UNLOCK);
-               fontString:SetJustifyH("LEFT"); -- wyrównanie od lewego
-               fontString:SetFont(Original_Font2, 13);
-            end
-            if (fontString:GetText() == QTR_Messages.reward_bonus) then
-               fontString:SetText(REWARD_BONUS);
-               fontString:SetJustifyH("LEFT"); -- wyrównanie od lewego
-               fontString:SetFont(Original_Font2, 13);
-            end
-         end
-      end
-      if ( MapQuestInfoRewardsFrame:IsVisible() ) then
-         for fontString in MapQuestInfoRewardsFrame.spellHeaderPool:EnumerateActive() do
-            if (fontString:GetText() == QTR_Messages.reward_aura) then
-               fontString:SetText(REWARD_AURA);
-               fontString:SetJustifyH("LEFT"); -- wyrównanie od lewego
-               fontString:SetFont(Original_Font2, 11);
-            end
-            if (fontString:GetText() == QTR_Messages.reward_spell) then
-               fontString:SetText(REWARD_SPELL);
-               fontString:SetJustifyH("LEFT"); -- wyrównanie od lewego
-               fontString:SetFont(Original_Font2, 11);
-            end
-            if (fontString:GetText() == QTR_Messages.reward_companion) then
-               fontString:SetText(REWARD_COMPANION);
-               fontString:SetJustifyH("LEFT"); -- wyrównanie od lewego
-               fontString:SetFont(Original_Font2, 11);
-            end
-            if (fontString:GetText() == QTR_Messages.reward_follower) then
-               fontString:SetText(REWARD_FOLLOWER);
-               fontString:SetJustifyH("LEFT"); -- wyrównanie od lewego
-               fontString:SetFont(Original_Font2, 11);
-            end
-            if (fontString:GetText() == QTR_Messages.reward_reputation) then
-               fontString:SetText(REWARD_REPUTATION);
-               fontString:SetJustifyH("LEFT"); -- wyrównanie od lewego
-               fontString:SetFont(Original_Font2, 11);
-            end
-            if (fontString:GetText() == QTR_Messages.reward_title) then
-               fontString:SetText(REWARD_TITLE);
-               fontString:SetJustifyH("LEFT"); -- wyrównanie od lewego
-               fontString:SetFont(Original_Font2, 11);
-            end
-            if (fontString:GetText() == QTR_Messages.reward_tradeskill) then
-               fontString:SetText(REWARD_TRADESKILL);
-               fontString:SetJustifyH("LEFT"); -- wyrównanie od lewego
-               fontString:SetFont(Original_Font2, 11);
-            end
-            if (fontString:GetText() == QTR_Messages.reward_unlock) then
-               fontString:SetText(REWARD_UNLOCK);
-               fontString:SetJustifyH("LEFT"); -- wyrównanie od lewego
-               fontString:SetFont(Original_Font2, 11);
-            end
-            if (fontString:GetText() == QTR_Messages.reward_bonus) then
-               fontString:SetText(REWARD_BONUS);
-               fontString:SetJustifyH("LEFT"); -- wyrównanie od lewego
-               fontString:SetFont(Original_Font2, 11);
-            end
-         end
-      end
+      --Call Function for Reset Quest to Original
+      QTR_ResetQuestToOriginal();
    end
 end
 
 -------------------------------------------------------------------------------------------------------------------
 
+function QTR_ResetQuestToOriginal()
+   
+   -- Reset Quest Info headers and text to original values
+   QuestInfoObjectivesHeader:SetText(QTR_MessOrig.objectives);
+   QuestInfoObjectivesHeader:SetFont(Original_Font1, 18);
+   QuestInfoObjectivesText:SetFont(Original_Font2, 13);
+   
+   QuestInfoDescriptionHeader:SetText(QTR_MessOrig.details); 
+   QuestInfoDescriptionHeader:SetFont(Original_Font1, 18);
+   QuestInfoDescriptionText:SetFont(Original_Font2, 13);
+   
+   QuestInfoRewardsFrame.Header:SetText(QTR_MessOrig.rewards);
+   QuestInfoRewardsFrame.Header:SetFont(Original_Font1, 18);
+   
+   QuestProgressRequiredItemsText:SetText(QTR_MessOrig.reqitems);
+   QuestProgressRequiredItemsText:SetFont(Original_Font1, 18);
+   
+   CurrentQuestsText:SetText(QTR_MessOrig.currquests);
+   CurrentQuestsText:SetFont(Original_Font1, 18);
+   
+   AvailableQuestsText:SetText(QTR_MessOrig.avaiquests);
+   AvailableQuestsText:SetFont(Original_Font1, 18);
+
+   -- Reset Quest Map rewards text
+   local regions = { QuestMapFrame.DetailsFrame.RewardsFrame:GetRegions() };
+   for index = 1, #regions do
+      local region = regions[index];
+      if ((region:GetObjectType() == "FontString") and (region:GetText() == QTR_Messages.rewards)) then
+         region:SetText(QUEST_REWARDS);
+         region:SetFont(Original_Font1, 18);
+      end
+   end
+   
+   -- Reset fixed quest window elements
+   if (WoWTR_Localization.lang == 'AR') then
+      -- For Arabic, set text justification to left
+      QuestInfoRewardsFrame.ItemChooseText:SetJustifyH("LEFT");
+      QuestInfoRewardsFrame.ItemReceiveText:SetJustifyH("LEFT"); 
+      QuestInfoSpellObjectiveLearnLabel:SetJustifyH("LEFT");
+      QuestInfoRewardsFrame.XPFrame.ReceiveText:SetJustifyH("LEFT");
+      MapQuestInfoRewardsFrame.ItemChooseText:SetJustifyH("LEFT");
+      MapQuestInfoRewardsFrame.ItemReceiveText:SetJustifyH("LEFT"); 
+      QuestInfoRewardsFrame.PlayerTitleText:SetJustifyH("LEFT");
+      QuestInfoRewardsFrame.QuestSessionBonusReward:SetJustifyH("LEFT");
+   end
+   
+   -- Reset fonts and text for various quest elements
+   QuestInfoRewardsFrame.ItemChooseText:SetFont(Original_Font2, 13);
+   QuestInfoRewardsFrame.ItemReceiveText:SetFont(Original_Font2, 13);
+   QuestInfoRewardsFrame.ItemChooseText:SetText(QTR_quest_EN[QTR_quest_ID].itemchoose);
+   QuestInfoRewardsFrame.ItemReceiveText:SetText(QTR_quest_EN[QTR_quest_ID].itemreceive);
+   
+   QuestInfoSpellObjectiveLearnLabel:SetFont(Original_Font2, 13);
+   QuestInfoSpellObjectiveLearnLabel:SetText(QTR_MessOrig.learnspell);
+   
+   QuestInfoXPFrame.ReceiveText:SetFont(Original_Font2, 13);
+   QuestInfoXPFrame.ReceiveText:SetText(QTR_MessOrig.experience);
+   
+   QuestInfoRewardsFrame.XPFrame.ReceiveText:SetFont(Original_Font2, 13);
+   QuestInfoRewardsFrame.XPFrame.ReceiveText:SetText(QTR_MessOrig.experience);
+   
+   MapQuestInfoRewardsFrame.ItemChooseText:SetFont(Original_Font2, 11);
+   MapQuestInfoRewardsFrame.ItemReceiveText:SetFont(Original_Font2, 11);
+   MapQuestInfoRewardsFrame.ItemChooseText:SetText(QTR_quest_EN[QTR_quest_ID].itemchoose);
+   MapQuestInfoRewardsFrame.ItemReceiveText:SetText(QTR_quest_EN[QTR_quest_ID].itemreceive);
+   
+   QuestInfoRewardsFrame.PlayerTitleText:SetFont(Original_Font2, 13);
+   QuestInfoRewardsFrame.PlayerTitleText:SetText(QTR_MessOrig.reward_title);
+   
+   QuestInfoRewardsFrame.QuestSessionBonusReward:SetFont(Original_Font2, 13);
+   QuestInfoRewardsFrame.QuestSessionBonusReward:SetText(QTR_MessOrig.reward_bonus);
+
+   if (QTR_QuestDetail_ItemReceiveText) then
+      QTR_QuestDetail_ItemReceiveText:Hide();
+   end
+   if (QTR_QuestDetail_InfoXP) then
+      QTR_QuestDetail_InfoXP:Hide();
+   end
+
+   if ( QuestInfoRewardsFrame:IsVisible() ) then
+      for fontString in QuestInfoRewardsFrame.spellHeaderPool:EnumerateActive() do
+         if (fontString:GetText() == QTR_Messages.reward_aura) then
+            fontString:SetText(REWARD_AURA);
+            fontString:SetJustifyH("LEFT"); -- wyrównanie od lewego
+            fontString:SetFont(Original_Font2, 13);
+         end
+         if (fontString:GetText() == QTR_Messages.reward_spell) then
+            fontString:SetText(REWARD_SPELL);
+            fontString:SetJustifyH("LEFT"); -- wyrównanie od lewego
+            fontString:SetFont(Original_Font2, 13);
+         end
+         if (fontString:GetText() == QTR_Messages.reward_companion) then
+            fontString:SetText(REWARD_COMPANION);
+            fontString:SetJustifyH("LEFT"); -- wyrównanie od lewego
+            fontString:SetFont(Original_Font2, 13);
+         end
+         if (fontString:GetText() == QTR_Messages.reward_follower) then
+            fontString:SetText(REWARD_FOLLOWER);
+            fontString:SetJustifyH("LEFT"); -- wyrównanie od lewego
+            fontString:SetFont(Original_Font2, 13);
+         end
+         if (fontString:GetText() == QTR_Messages.reward_reputation) then
+            fontString:SetText(REWARD_REPUTATION);
+            fontString:SetJustifyH("LEFT"); -- wyrównanie od lewego
+            fontString:SetFont(Original_Font2, 13);
+         end
+         if (fontString:GetText() == QTR_Messages.reward_title) then
+            fontString:SetText(REWARD_TITLE);
+            fontString:SetJustifyH("LEFT"); -- wyrównanie od lewego
+            fontString:SetFont(Original_Font2, 13);
+         end
+         if (fontString:GetText() == QTR_Messages.reward_tradeskill) then
+            fontString:SetText(REWARD_TRADESKILL);
+            fontString:SetJustifyH("LEFT"); -- wyrównanie od lewego
+            fontString:SetFont(Original_Font2, 13);
+         end
+         if (fontString:GetText() == QTR_Messages.reward_unlock) then
+            fontString:SetText(REWARD_UNLOCK);
+            fontString:SetJustifyH("LEFT"); -- wyrównanie od lewego
+            fontString:SetFont(Original_Font2, 13);
+         end
+         if (fontString:GetText() == QTR_Messages.reward_bonus) then
+            fontString:SetText(REWARD_BONUS);
+            fontString:SetJustifyH("LEFT"); -- wyrównanie od lewego
+            fontString:SetFont(Original_Font2, 13);
+         end
+      end
+   end
+   if ( MapQuestInfoRewardsFrame:IsVisible() ) then
+      for fontString in MapQuestInfoRewardsFrame.spellHeaderPool:EnumerateActive() do
+         if (fontString:GetText() == QTR_Messages.reward_aura) then
+            fontString:SetText(REWARD_AURA);
+            fontString:SetJustifyH("LEFT"); -- wyrównanie od lewego
+            fontString:SetFont(Original_Font2, 11);
+         end
+         if (fontString:GetText() == QTR_Messages.reward_spell) then
+            fontString:SetText(REWARD_SPELL);
+            fontString:SetJustifyH("LEFT"); -- wyrównanie od lewego
+            fontString:SetFont(Original_Font2, 11);
+         end
+         if (fontString:GetText() == QTR_Messages.reward_companion) then
+            fontString:SetText(REWARD_COMPANION);
+            fontString:SetJustifyH("LEFT"); -- wyrównanie od lewego
+            fontString:SetFont(Original_Font2, 11);
+         end
+         if (fontString:GetText() == QTR_Messages.reward_follower) then
+            fontString:SetText(REWARD_FOLLOWER);
+            fontString:SetJustifyH("LEFT"); -- wyrównanie od lewego
+            fontString:SetFont(Original_Font2, 11);
+         end
+         if (fontString:GetText() == QTR_Messages.reward_reputation) then
+            fontString:SetText(REWARD_REPUTATION);
+            fontString:SetJustifyH("LEFT"); -- wyrównanie od lewego
+            fontString:SetFont(Original_Font2, 11);
+         end
+         if (fontString:GetText() == QTR_Messages.reward_title) then
+            fontString:SetText(REWARD_TITLE);
+            fontString:SetJustifyH("LEFT"); -- wyrównanie od lewego
+            fontString:SetFont(Original_Font2, 11);
+         end
+         if (fontString:GetText() == QTR_Messages.reward_tradeskill) then
+            fontString:SetText(REWARD_TRADESKILL);
+            fontString:SetJustifyH("LEFT"); -- wyrównanie od lewego
+            fontString:SetFont(Original_Font2, 11);
+         end
+         if (fontString:GetText() == QTR_Messages.reward_unlock) then
+            fontString:SetText(REWARD_UNLOCK);
+            fontString:SetJustifyH("LEFT"); -- wyrównanie od lewego
+            fontString:SetFont(Original_Font2, 11);
+         end
+         if (fontString:GetText() == QTR_Messages.reward_bonus) then
+            fontString:SetText(REWARD_BONUS);
+            fontString:SetJustifyH("LEFT"); -- wyrównanie od lewego
+            fontString:SetFont(Original_Font2, 11);
+         end
+      end
+   end
+end
+-------------------------------------------------------------------------------------------------------------------
 function QTR_delayed3()
    QTR_ToggleButton4:SetText(QTR_ReverseIfAR(WoWTR_Localization.choiceQuestFirst));
    QTR_ToggleButton4:Hide();
@@ -2373,6 +2407,7 @@ function WOW_ZmienKody(message, target)
       msg = string.gsub(msg, "|888888ffc", "888888ffc|"); --Gray
       msg = string.gsub(msg, "|080808ffc", "080808ffc|");
       msg = string.gsub(msg, "|080808FFc", "080808FFc|");
+      msg = string.gsub(msg, "|00ff00ffc", "00ff00ffc|");
 
       -- Colors for arabic version test
       msg = string.gsub(msg, "|ﺑﻠﻮﻥ|", "r|"); -- eng of color
@@ -2401,8 +2436,13 @@ function WOW_ZmienKody(message, target)
    end
    
    msg = string.gsub(msg, "NEW_LINE", "\n");
-   msg = string.gsub(msg, "YOUR_NAME$", WOWTR_AnsiReverse(string.upper(WOWTR_player_name)));
-   msg = string.gsub(msg, "YOUR_NAME", WOWTR_AnsiReverse(WOWTR_player_name));
+   if (target) then
+      msg = string.gsub(msg, "YOUR_NAME$", WOWTR_AnsiReverse(string.upper(target)));
+      msg = string.gsub(msg, "YOUR_NAME", WOWTR_AnsiReverse(target));
+   else
+      msg = string.gsub(msg, "YOUR_NAME$", WOWTR_AnsiReverse(string.upper(WOWTR_player_name)));
+      msg = string.gsub(msg, "YOUR_NAME", WOWTR_AnsiReverse(WOWTR_player_name));
+   end
 
    if (WOWTR_player_sex == 3) then   -- female, nominative case
       msg = string.gsub(msg, "YOUR_RACE1", WOWTR_AnsiReverse(player_race_table.M2));
@@ -2618,6 +2658,7 @@ function QTR_ExpandUnitInfo(msg, OnObjectives, AR_obj, AR_font, AR_corr)
       if (AR_corr and (type(AR_corr)=="number")) then
          _corr = AR_corr;
       end
+      msg = string.gsub(msg, "{n}", "\n");
       msg = string.gsub(msg, "\n", "#");
       msg = string.gsub(msg, "{r}", "r|");
       local nr_poz1, nr_poz2 = string.find(msg, "{c");    -- znajdź kod koloru {c , gdy nie znalazł, jest: nil
@@ -2626,6 +2667,42 @@ function QTR_ExpandUnitInfo(msg, OnObjectives, AR_obj, AR_font, AR_corr)
          msg = string.gsub(msg, "{c"..pomoc.."}", string.reverse(pomoc).."c|");
          nr_poz1, nr_poz2 = string.find(msg, "{c");       -- znajdź kod koloru {c , gdy nie znalazł, jest: nil
       end
+      local nr_poz1 = string.find(msg, "{T");    -- znajdź kod {T , gdy nie znalazł, jest: nil
+      while (nr_poz1) do
+         local nr_poz2 = string.find(msg, "{t}");  -- koniec składowych kodu
+         if (nr_poz2) then
+            local pomoc = string.sub(msg, nr_poz1+2, nr_poz2-2);  -- odczytaj składowe
+            msg = string.gsub(msg, "{T"..pomoc.."}", string.reverse(pomoc).."T|");
+            nr_poz1 = string.find(msg, "{T");       -- znajdź kod {T , gdy nie znalazł, jest: nil
+         else
+            break;
+         end
+      end
+      local nr_poz1 = string.find(msg, "{A");    -- znajdź kod {A , gdy nie znalazł, jest: nil
+      while (nr_poz1) do
+         local nr_poz2 = string.find(msg, "{a}");  -- koniec składowych kodu
+         if (nr_poz2) then
+            local pomoc = string.sub(msg, nr_poz1+2, nr_poz2-2);  -- odczytaj składowe
+            msg = string.gsub(msg, "{A"..pomoc.."}", string.reverse(pomoc).."A|");
+            nr_poz1 = string.find(msg, "{A");       -- znajdź kod {A , gdy nie znalazł, jest: nil
+         else
+            break;
+         end
+      end
+      local nr_poz1 = string.find(msg, "{H");    -- znajdź kod {H , gdy nie znalazł, jest: nil
+      while (nr_poz1) do
+         local nr_poz2 = string.find(msg, "{h}");  -- koniec składowych kodu
+         if (nr_poz2) then
+            local pomoc = string.sub(msg, nr_poz1+2, nr_poz2-2);  -- odczytaj składowe
+            msg = string.gsub(msg, "{H"..pomoc.."}", string.reverse(pomoc).."H|");
+            nr_poz1 = string.find(msg, "{H");       -- znajdź kod {H , gdy nie znalazł, jest: nil
+         else
+            break;
+         end
+      end
+      msg = string.gsub(msg, "{t}", "t|");
+      msg = string.gsub(msg, "{a}", "a|");
+      msg = string.gsub(msg, "{h}", "h|");
       msg = AS_ReverseAndPrepareLineText(msg, AR_obj:GetWidth()+_corr, AR_font, AR_size);
    end
    
@@ -2638,6 +2715,8 @@ end
 function QTR_ReverseIfAR(txt)
    if (WoWTR_Localization.lang == 'AR') then
       local msg = string.gsub(txt, "{r}", "r|");
+      msg = string.gsub(msg, "{n}", "\n");
+      msg = string.gsub(msg, "|n|n", "n|n|");
       local nr_poz1, nr_poz2 = string.find(msg, "{c");    -- znajdź kod koloru {c , gdy nie znalazł, jest: nil
       while (nr_poz1) do
          local pomoc = string.sub(msg, nr_poz2+1, nr_poz2+8);  -- odczytaj składowe koloru
@@ -2648,6 +2727,7 @@ function QTR_ReverseIfAR(txt)
    end
    return txt;
 end
+
 
 -------------------------------------------------------------------------------------------------------------------
 

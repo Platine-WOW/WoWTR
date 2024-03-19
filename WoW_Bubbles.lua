@@ -42,7 +42,7 @@ function BB_bubblizeText()
          if (TalkingHeadFrame.TextFrame.Text:GetText() ==  iArray[1]) then
             local _font1, _size1, _3 = TalkingHeadFrame.TextFrame.Text:GetFont(); -- odczytaj aktualną czcionkę i rozmiar
             TalkingHeadFrame.TextFrame.Text:SetFont(WOWTR_Font2, _size1);         -- wpisz czcionkę
-            TalkingHeadFrame.TextFrame.Text:SetText(QTR_ExpandUnitInfo(iArray[2],false,TalkingHeadFrame.TextFrame.Text,WOWTR_Font2));  -- wpisz tłumaczenie
+            TalkingHeadFrame.TextFrame.Text:SetText(QTR_ExpandUnitInfo(iArray[2],false,TalkingHeadFrame.TextFrame.Text,WOWTR_Font2,-15));  -- wpisz tłumaczenie
             tremove(BB_BubblesArray, idx);               -- usuń zapamiętane dane z tablicy
          end
       end
@@ -302,6 +302,7 @@ function BB_ChatFilter(self, event, arg1, arg2, arg3, _, arg5, ...)     -- wywo�
          end
          BB_is_translation="1";      
          nr_poz=BB_FindProS(newMessage,1);
+         
          local mark_AI = "";
          if (BB_AI and BB_AI[HashCode]) then
             mark_AI = " |c0000FFFF(AI)|r";

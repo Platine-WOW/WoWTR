@@ -607,6 +607,7 @@ function ST_GameTooltipOnShow()
                      ST_tlumaczenie = ST_TooltipsHS[ST_hash];
                      if (WoWTR_Localization.lang == 'AR') then
                         ST_tlumaczenie = string.gsub(ST_tlumaczenie, "NAMEBY", string.reverse(nameBy));
+                        ST_tlumaczenie = string.gsub(ST_tlumaczenie, "{$M}", string.reverse(nameBy));
                      else
                         ST_tlumaczenie = string.gsub(ST_tlumaczenie, "$M", nameBy);
                      end
@@ -1068,7 +1069,7 @@ function ST_SuggestTabClick()
 --print("SuggestTab clicked");
    if (TT_PS["ui5"] == "1") then
       local obj0 = EncounterJournalInstanceSelect.Title;
-      ST_CheckAndReplaceTranslationText(obj0, true, "Dungeon&Raid:Suggest:SuggestTittle");
+      ST_CheckAndReplaceTranslationText(obj0, true, "Dungeon&Raid:Suggest:SuggestTittle",false,false);
       
       local obj1 = EncounterJournalSuggestFrame.Suggestion1.centerDisplay.description.text;
       local title1 = EncounterJournalSuggestFrame.Suggestion1.centerDisplay.title.text:GetText() or "?";
@@ -1448,13 +1449,13 @@ function ST_GroupFinder()
       ST_CheckAndReplaceTranslationTextUI(GFobj04, true, "ui");
 
       local GFobj05 = GroupFinderFrameGroupButton1Name;
-      ST_CheckAndReplaceTranslationTextUI(GFobj05, true, "ui");
+      ST_CheckAndReplaceTranslationText(GFobj05, true, "ui",false,true);
 
       local GFobj06 = GroupFinderFrameGroupButton2Name;
       ST_CheckAndReplaceTranslationTextUI(GFobj06, true, "ui");
 
       local GFobj07 = GroupFinderFrameGroupButton3Name;
-      ST_CheckAndReplaceTranslationTextUI(GFobj07, true, "ui");
+      ST_CheckAndReplaceTranslationText(GFobj07, true, "ui",false,true);
 
       local GFobj08 = LFDQueueFrameTypeDropDownName;
       ST_CheckAndReplaceTranslationTextUI(GFobj08, true, "ui");
@@ -1463,13 +1464,13 @@ function ST_GroupFinder()
       ST_CheckAndReplaceTranslationTextUI(GFobj09, true, "ui", WOWTR_Font1);
 
       local GFobj10 = LFDQueueFrameRandomScrollFrameChildFrameDescription;
-      ST_CheckAndReplaceTranslationTextUI(GFobj10, true, "ui");
+      ST_CheckAndReplaceTranslationText(GFobj10, true, "ui",false,false);
 
       local GFobj11 = LFDQueueFrameRandomScrollFrameChildFrameRewardsLabel;
       ST_CheckAndReplaceTranslationTextUI(GFobj11, true, "ui", WOWTR_Font1);
 
       local GFobj12 = LFDQueueFrameRandomScrollFrameChildFrameRewardsDescription;
-      ST_CheckAndReplaceTranslationTextUI(GFobj12, true, "ui");
+      ST_CheckAndReplaceTranslationText(GFobj12, true, "ui",false,false,-10);
 
       local GFobj13 = LFDQueueFrameFindGroupButton.Text;
       ST_CheckAndReplaceTranslationTextUI(GFobj13, true, "ui");
