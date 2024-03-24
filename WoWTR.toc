@@ -1,4 +1,4 @@
-﻿## Interface: 100205
+﻿## Interface: 100206
 ## Title: WoWTR |cff8080ff10.50|r
 ## Version: 10.50
 ## Notes: Oyun içindeki Görevleri Türkçe'ye tercüme eder.
