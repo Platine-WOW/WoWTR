@@ -130,6 +130,8 @@ WoWTR_Config_Interface = {
    translateStoryLineDESC = "Kapatıldığında, StoryLine orjinal dilde görünecektir",                   -- If enabled, texts in StoryLine addon will be translated (TR:Kapatıldığında, StoryLine orjinal dilde görünecektir)
    translateQuestLog = "Çevirileri Classic Quest Log eklentisinde göster",                            -- Display translations in Classic Quest Log addon (TR:Çevirileri Classic Quest Log eklentisinde göster)
    translateQuestLogDESC = "Kapatıldığında, Classic Quest Log orjinal dilde görünecektir",            -- If enabled, texts in Classic Quest Log addon will be translated (TR:Kapatıldığında, Classic Quest Log orjinal dilde görünecektir)
+   translateDialogueUI = "Çevirileri DialogueUI eklentisinde göster",                                 -- Display translations in DialogueUI addon
+   translateDialogueUIDESC = "Kapatıldığında, DialogueUI orjinal dilde görünecektir",                 -- If enabled, texts in DialogueUI addon will be translated
    sampleGossipText = "Gossip NPC Konuşma|nÖrnek Font Büyüklüğü",                                     -- Sample Gossip font size text
 
    titleTab2 = "Baloncuklar",                                                                         -- Bubbles (TR:Baloncuklar)
