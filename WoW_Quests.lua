@@ -2683,24 +2683,25 @@ function QTR_DUIGossipFrame()
    gossip2DUI_EN = { };
 
    local function ProcessGS(fontString)
---      print(event, fontString:GetText());
-      countFontString = countFontString + 1;
-      table.insert(gossipDUI_EN, fontString:GetText());    -- english version
-      local _font1, _size1, _1 = fontString:GetFont();     -- odczytaj aktualną czcionkę i rozmiar
-      fontString:SetFont(WOWTR_Font2,_size1);
-      local firstHeight = fontString:GetHeight();
-      gossipX = gossip[countFontString];
-      fontString:SetText(QTR_ExpandUnitInfo(gossipX,false,fontString,WOWTR_Font2));
-      local secondHeight = fontString:GetHeight();
-      offset = secondHeight - firstHeight;
-      local counter0 = 0;
-      while ((offset > 0) and (counter0<6)) do
-         counter0 = counter0 + 1;
-         fontString:SetSpacing(fontString:GetSpacing()*firstHeight/secondHeight);  -- zmiana odstępu między wierszami
-         secondHeight = fontString:GetHeight();
+      if (string.find(fontString:GetText()," ") == nil) then   -- nie jest to przetłumaczony tekst (twarda spacja)
+         countFontString = countFontString + 1;
+         table.insert(gossipDUI_EN, fontString:GetText());    -- english version
+         local _font1, _size1, _1 = fontString:GetFont();     -- odczytaj aktualną czcionkę i rozmiar
+         fontString:SetFont(WOWTR_Font2,_size1);
+         local firstHeight = fontString:GetHeight();
+         gossipX = gossip[countFontString];
+         fontString:SetText(QTR_ExpandUnitInfo(gossipX.." ",false,fontString,WOWTR_Font2));
+         local secondHeight = fontString:GetHeight();
          offset = secondHeight - firstHeight;
+         local counter0 = 0;
+         while ((offset > 0) and (counter0<6)) do
+            counter0 = counter0 + 1;
+            fontString:SetSpacing(fontString:GetSpacing()*firstHeight/secondHeight);  -- zmiana odstępu między wierszami
+            secondHeight = fontString:GetHeight();
+            offset = secondHeight - firstHeight;
+         end
+         table.insert(gossipDUI_LN, fontString:GetText());    -- translated version
       end
-      table.insert(gossipDUI_LN, fontString:GetText());    -- translated version
    end
    
    local function ProcessOPT(buttonString)
@@ -2711,11 +2712,15 @@ function QTR_DUIGossipFrame()
       table.insert(gossip2DUI_EN, fontString:GetText());   -- english version
       local _font1, _size1, _1 = fontString:GetFont();     -- odczytaj aktualną czcionkę i rozmiar
       fontString:SetFont(WOWTR_Font2,_size1);
+--      buttonString:HookScript("OnClick", QTR_DUIGossipFrame);
       if (string.sub(GOptionText,1,2) == "|c") then
          prefix = string.sub(GOptionText, 1, 10);
          sufix = "|r";
          GOptionText = string.gsub(GOptionText, prefix, "");
          GOptionText = string.gsub(GOptionText, sufix, "");
+      end
+      if (string.sub(GOptionText,2,2)==".") then
+         GOptionText = string.sub(GOptionText,4);
       end
       local OptHash = StringHash(GOptionText);
       if (GS_Gossip[OptHash]) then               -- jest tłumaczenie
