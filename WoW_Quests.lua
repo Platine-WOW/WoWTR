@@ -202,6 +202,33 @@ end
 
 -- NPC chat window opened - frame: GossipFrame
 function QTR_Gossip_Show()
+
+   local function ProcessOPT(buttonString)
+      local fontString = buttonString.Content.Name;
+      local GOptionText = WOWTR_DetectAndReplacePlayerName(fontString:GetText());
+      local prefix = "";
+      local sufix = "";
+      table.insert(gossip2DUI_EN, fontString:GetText());   -- english version
+      local _font1, _size1, _1 = fontString:GetFont();     -- odczytaj aktualną czcionkę i rozmiar
+      fontString:SetFont(WOWTR_Font2,_size1);
+--      buttonString:HookScript("OnClick", QTR_DUIGossipFrame);
+      if (string.sub(GOptionText,1,2) == "|c") then
+         prefix = string.sub(GOptionText, 1, 10);
+         sufix = "|r";
+         GOptionText = string.gsub(GOptionText, prefix, "");
+         GOptionText = string.gsub(GOptionText, sufix, "");
+      end
+      if (string.sub(GOptionText,2,2)==".") then
+         GOptionText = string.sub(GOptionText,4);
+      end
+      local OptHash = StringHash(GOptionText);
+      if (GS_Gossip[OptHash]) then               -- jest tłumaczenie
+         local transLN = prefix .. QTR_ExpandUnitInfo(GS_Gossip[OptHash],false,fontString,WOWTR_Font2,-40) .. sufix .. " ";   -- twarda spacja na końcu
+         fontString:SetText(transLN);
+      end
+      table.insert(gossip2DUI_LN, fontString:GetText());    -- translated version
+   end
+
    QTR_IconAI:Hide();
    GoQ_IconAI:Hide();
    Nazwa_NPC = GossipFrameTitleText:GetText();
@@ -338,7 +365,8 @@ function QTR_Gossip_Show()
                QTR_ToggleButton7:Hide();
                if (TT_PS["ui1"] == "1") then
                   QTR_DUIbuttons();
-                  end
+                  DUIQuestFrame.optionButtonPool:ProcessActiveObjects(ProcessOPT);
+               end
             end
             -- zapis do pliku
             if (QTR_PS["saveGS"]=="1") then
