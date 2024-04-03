@@ -1,4 +1,4 @@
--- Addon: WoW_Quests (version: 10.A42) 2024.03.30
+-- Addon: WoW_Quests (version: 10.A43) 2024.04.03
 -- Description: The AddOn displays the translated text information in chosen language
 -- Author: Platine
 -- E-mail: platine.wow@gmail.com
@@ -2605,9 +2605,9 @@ function QTR_DUIQuestFrame(event)
          fontString:SetText(QTR_ExpandUnitInfo(QTR_Messages.reqitems,false,fontString,WOWTR_Font2,-5));
       else
          local firstHeight = fontString:GetHeight();
-         detailsX = details[countFontString];
-         progressX = progress[countFontString];
-         completionX = completion[countFontString];
+         detailsX = details[countFontString] or '';
+         progressX = progress[countFontString] or '';
+         completionX = completion[countFontString] or '';
          if (event=="QUEST_DETAIL" and detailsX) then
             fontString:SetText(QTR_ExpandUnitInfo(detailsX,false,fontString,WOWTR_Font2));
          elseif (event=="QUEST_PROGRESS" and progressX) then
@@ -2717,7 +2717,7 @@ function QTR_DUIGossipFrame()
          local _font1, _size1, _1 = fontString:GetFont();     -- odczytaj aktualną czcionkę i rozmiar
          fontString:SetFont(WOWTR_Font2,_size1);
          local firstHeight = fontString:GetHeight();
-         gossipX = gossip[countFontString];
+         gossipX = gossip[countFontString] or '';
          fontString:SetText(QTR_ExpandUnitInfo(gossipX.." ",false,fontString,WOWTR_Font2));
          local secondHeight = fontString:GetHeight();
          offset = secondHeight - firstHeight;
