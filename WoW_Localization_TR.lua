@@ -176,6 +176,13 @@ WoWTR_Config_Interface = {
    savingUntranslatedSubtitles = "KAYIT SEÇENEKLERİ",                                                 -- Saving untranslated subtitles (TR:KAYIT SEÇENEKLERİ)
    saveUntranslatedSubtitles = "Çevirisi olmayan altyazıları kaydet",                                 -- Save untranslated subtitles (TR:Çevirisi olmayan altyazıları kaydet)
    saveUntranslatedSubtitlesDESC = "Kayıt dosyasına veri ekler",                                      -- If enbled, untranslated subtitles will be saved (TR:Kayıt dosyasına veri ekler)
+   chatService = "Service of arabic chat",
+   activateChatService = "Activate of arabic chat",
+   activateChatServiceDESC = "If enabled, arabic chat is active",
+   chatFontActivate = "Activate font size changes",
+   chatFontActivateDESC = "If enabled, font size will be set to below value",
+   fontsizeChat = "Choose a font size",
+   fontsizeChatDESC = "The font size is a number between 10 and 20",
 
    titleTab4 = "Arayüz Ayarları",                                                                     -- Tutorials (TR:Ögreticiler)
    generalMainHeaderTT = "ÖĞRETİCİ ÇEVİRİLERİ - Tutorials",                                           -- Tutorial translations (TR:ÖĞRETİCİ ÇEVİRİLERİ)
