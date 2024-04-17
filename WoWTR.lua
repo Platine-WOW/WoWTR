@@ -1,4 +1,4 @@
-﻿-- Addon: WowTR (version: 10.50) 2024.01.22
+﻿-- Addon: WowTR (version: 10.50) 2024.04.17
 -- Description: The AddOn displays the translated text information in Turkish
 -- Autor: Platine
 -- E-mail: platine.wow@gmail.com
@@ -472,9 +472,11 @@ function WOWTR_onEvent(self, event, name, ...)
       end
    elseif (event=="GOSSIP_SHOW") then
       if (QTR_PS["gossip"] == "1") then
-         if (ElvUI) then
-            if (not WOWTR_wait(0.5, QTR_Gossip_Show)) then
-            -- opóźnienie 0.5 sek
+         if (ElvUI and not isDUIQuestFrame()) then
+            if (not isDUIQuestFrame()) then  
+               if (not WOWTR_wait(0.5, QTR_Gossip_Show)) then
+               -- opóźnienie 0.5 sek
+               end
             end
          else
             QTR_Gossip_Show();

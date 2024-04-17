@@ -1,4 +1,4 @@
--- Addon: WoW_Quests (version: 10.A48) 2024.04.16
+-- Addon: WoW_Quests (version: 10.A49) 2024.04.17
 -- Description: The AddOn displays the translated text information in chosen language
 -- Author: Platine
 -- E-mail: platine.wow@gmail.com
@@ -749,9 +749,6 @@ function QTR_START()
    isClassicQuestLog();
    isImmersion();
    isStoryline();
-   if (isDUIQuestFrame()) then
-      DUIQuestFrame:HookScript("OnShow", QTR_Gossip_Show);
-   end
 end
 
 -------------------------------------------------------------------------------------------------------------------
