@@ -2016,7 +2016,16 @@ function ST_CharacterFrame() -- https://imgur.com/FV5MXvb
       ST_CheckAndReplaceTranslationTextUI(ChFrame6, true, "ui");
 
       local ChFrame7 = ReputationDetailFactionDescription; -- https://imgur.com/A77RwLM
-      ST_CheckAndReplaceTranslationTextUI(ChFrame7, true, "other");
+      ST_CheckAndReplaceTranslationTextUI(ChFrame7, true, "faction");
+
+      local ChFrame8 = ReputationDetailAtWarCheckBoxText; -- Check Box Text - At War
+      ST_CheckAndReplaceTranslationTextUI(ChFrame8, true, "ui");
+
+      local ChFrame9 = ReputationDetailInactiveCheckBoxText; -- Check Box Text - Move to Inactive
+      ST_CheckAndReplaceTranslationTextUI(ChFrame9, true, "ui");
+
+      local ChFrame10 = ReputationDetailMainScreenCheckBoxText; -- Check Box Text - Show as Experience Bar
+      ST_CheckAndReplaceTranslationTextUI(ChFrame10, true, "ui");
    end
    
    if (not WOWTR_wait(0.01, ST_CharacterFrameTekrar)) then
