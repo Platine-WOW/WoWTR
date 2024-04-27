@@ -1,4 +1,4 @@
--- Addon: WoW_Quests (version: 10.A51) 2024.04.23
+-- Addon: WoW_Quests (version: 10.A52) 2024.04.27
 -- Description: The AddOn displays the translated text information in chosen language
 -- Author: Platine
 -- E-mail: platine.wow@gmail.com
@@ -735,7 +735,7 @@ function QTR_START()
    hooksecurefunc("QuestMapFrame_ShowQuestDetails", QTR_PrepareReload);
    
    -- funkcja wywoływana po wyświetleniu się obiektu GreetingText w oknie QuestFrame
-   QuestFrame:SetScript("OnShow", GossipOnQuestFrame);
+   QuestFrame:HookScript("OnShow", GossipOnQuestFrame);
    QuestFrameAcceptButton:HookScript("OnClick", QTR_QuestFrameButton_OnClick);
    QuestFrameCompleteQuestButton:HookScript("OnClick", QTR_QuestFrameButton_OnClick);
    QuestLogPopupDetailFrame:HookScript("OnShow", QTR_QuestLogPopupShow);
@@ -2953,8 +2953,16 @@ function WOW_ZmienKody(message, target)
    end
 
    if (WoWTR_Localization.lang == 'AR') then
-      msg = string.gsub(msg, "YOUR_RACE", AS_UTF8reverse(WOWTR_player_race));
-      msg = string.gsub(msg, "YOUR_CLASS", AS_UTF8reverse(WOWTR_player_class));
+      if (WOWTR_player_sex == 3) then   -- female, nominative case
+         msg = string.gsub(msg, "YOUR_CLASS", player_class_table.F);
+      else
+         msg = string.gsub(msg, "YOUR_CLASS", player_class_table.M);
+      end
+      if (WOWTR_player_sex == 3) then   -- female, nominative case
+         msg = string.gsub(msg, "YOUR_RACE", player_race_table.F);
+      else
+         msg = string.gsub(msg, "YOUR_RACE", player_race_table.M);
+      end
    else
       if (WOWTR_player_sex == 3) then   -- female, nominative case
          msg = string.gsub(msg, "YOUR_RACE1", WOWTR_AnsiReverse(player_race_table.M2));
