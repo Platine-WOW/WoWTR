@@ -2034,7 +2034,8 @@ function ST_CharacterFrame() -- https://imgur.com/FV5MXvb
       ST_CheckAndReplaceTranslationTextUI(ChFrame6, true, "ui");
 
       local ChFrame7 = ReputationDetailFactionDescription;            -- https://imgur.com/A77RwLM
-      ST_CheckAndReplaceTranslationTextUI(ChFrame7, true, "faction");
+      local RDFactionName = ReputationDetailFactionName:GetText();    -- Faction Name
+      ST_CheckAndReplaceTranslationTextUI(ChFrame7, true, "Factions:"..ST_RenkKoduSil(RDFactionName));
 
       local ChFrame8 = ReputationDetailAtWarCheckBoxText;             -- Check Box Text - At War
       ST_CheckAndReplaceTranslationTextUI(ChFrame8, true, "ui");
