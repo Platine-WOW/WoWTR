@@ -1,8 +1,6 @@
-﻿-- Addon: WoWTR-Tooltips (version: 10.S52) 2024.04.26
 -- Description: The AddOn displays the translated text information in chosen language
--- Author: Platine, Hakan YILMAZ
--- E-mail: platine.wow@gmail.com
-
+-- Author: Platine [platine.wow@gmail.com]
+-- Co-Author: Dragonarab[WoWAR], Hakan YILMAZ[WoWTR]
 -------------------------------------------------------------------------------------------------------
 
 -- Local Variables
@@ -18,6 +16,10 @@ local ST_load3 = false;
 local ST_load4 = false;
 local ST_load5 = false;
 local ST_load6 = false;
+local ST_load7 = false;
+local ST_load8 = false;
+local ST_load9 = false;
+local ST_load10 = false;
 local ST_firstBoss = true;
 local ST_nameBoss = { };
 local ST_navBar1, ST_navBar2, ST_navBar3, ST_navBar4, ST_navBar5 = false;
@@ -173,23 +175,7 @@ end
 
 -- Przygotowuje tłumaczenie właściwe: zamienia $x w tłumaczeniu na odpowiednie liczby z oryginału
 function ST_TranslatePrepare(ST_origin, ST_tlumacz)
-   local tlumaczenie;
-   if (WoWTR_Localization.lang == 'AR') then
-      tlumaczenie = ST_tlumacz;
-   else
-      tlumaczenie = string.gsub(ST_tlumacz,"$b","$B");
-      tlumaczenie = string.gsub(ST_tlumacz,"$B"," NEW_LINE ");
-      tlumaczenie = string.gsub(tlumaczenie,"$n","$N");
-      tlumaczenie = string.gsub(tlumaczenie,"$N"," YOUR_NAME ");
-      tlumaczenie = string.gsub(tlumaczenie,"  "," ");
-   end
-   tlumaczenie = string.gsub(tlumaczenie,"NEW_LINE","\n");
-   tlumaczenie = string.gsub(tlumaczenie,"$B","\n");
-   tlumaczenie = string.gsub(tlumaczenie,"{B}","\n");
-   tlumaczenie = string.gsub(tlumaczenie,"$b","\n");
-   tlumaczenie = string.gsub(tlumaczenie,"YOUR_NAME",WOWTR_player_name);
-   tlumaczenie = string.gsub(tlumaczenie,"$N",WOWTR_player_name);
-   tlumaczenie = string.gsub(tlumaczenie,"$n",WOWTR_player_name);
+   local tlumaczenie = WOW_ZmienKody(ST_tlumacz);
    if (not ST_miasto) then
       ST_miasto = WoWTR_Localization.your_home;
    end
@@ -359,9 +345,9 @@ end
 if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
 
 -- funkcja wywoływana po wyświetleniu się oryginalnego okienka Tooltip
-   GameTooltip:HookScript('OnShow', function(self, ...)
-      if (not WOWTR_wait(0.02, ST_GameTooltipOnShow)) then
-      -- opóźnienie 0.02 sek
+   GameTooltip:HookScript('OnUpdate', function(self, ...)
+      if (not WOWTR_wait(0.01, ST_GameTooltipOnShow)) then
+      -- opóźnienie 0.01 sek
       end
    end );
 
@@ -475,8 +461,16 @@ function ST_BuffOrDebuff()
          local ST_tlumaczenie = ST_TooltipsHS[ST_hash];
          ST_tlumaczenie = ST_TranslatePrepare(ST_leftText2, ST_tlumaczenie);
          local leftColR, leftColG, leftColB = _G["GameTooltipTextLeft2"]:GetTextColor();
-         GameTooltip:HookScript("OnHide", function() ST_MyGameTooltip:Hide(); end);
---         GameTooltip:GetOwner():HookScript("OnLeave", function() ST_MyGameTooltip:Hide(); end);     -- Hide() kasuje Ownera
+         
+         if not GameTooltip.OnHideHooked then
+            GameTooltip:HookScript("OnHide", function() 
+               C_Timer.After(0.01, function() 
+                  ST_MyGameTooltip:Hide() 
+               end)
+            end)
+            GameTooltip.OnHideHooked = true
+         end
+
          ST_MyGameTooltip:SetOwner(WorldFrame, "ANCHOR_NONE" );
          ST_MyGameTooltip:ClearAllPoints();
          ST_MyGameTooltip:SetPoint("TOPRIGHT", GameTooltip, "BOTTOMRIGHT", 0, 0);    -- pod przyciskiem od prawej strony
@@ -918,7 +912,7 @@ end
 -------------------------------------------------------------------------------------------------------
 
 function ST_updateSpecContentsHook()
-   for specContentFrame in ClassTalentFrame.SpecTab.SpecContentFramePool:EnumerateActive() do
+   for specContentFrame in PlayerSpellsFrame.SpecFrame.SpecContentFramePool:EnumerateActive() do
       local _, _, description, _, _, primaryStat = GetSpecializationInfo(specContentFrame.specIndex, false, false, nil, WOWTR_player_sex);
       if (description and string.find(description," ")==nil) then    -- nie jest to tekst turecki (twarda spacja)
          local ST_hash = StringHash(ST_UsunZbedneZnaki(description));
@@ -999,35 +993,35 @@ function ST_updateSpellBookFrame()
          end
       end
       
-      local PrimaryProfession1Text = PrimaryProfession1.missingText; -- Çevirisi Yapılan Kısım - Przetłumaczona sekcja - https://imgur.com/amgQ7K7
+      local PrimaryProfession1Text = PrimaryProfession1.missingText; -- https://imgur.com/amgQ7K7
       ST_CheckAndReplaceTranslationText(PrimaryProfession1Text, true, "Profession:Other",false, false, -15);
       if (WoWTR_Localization.lang == 'AR') then
          PrimaryProfession1Text:SetFont(WOWTR_Font2, 11);
          PrimaryProfession1Text:SetJustifyH("RIGHT");
       end
 
-      local PrimaryProfession2Text = PrimaryProfession2.missingText; -- Çevirisi Yapılan Kısım - Przetłumaczona sekcja - https://imgur.com/amgQ7K7
+      local PrimaryProfession2Text = PrimaryProfession2.missingText; -- https://imgur.com/amgQ7K7
       ST_CheckAndReplaceTranslationText(PrimaryProfession2Text, true, "Profession:Other",false, false, -15);
       if (WoWTR_Localization.lang == 'AR') then
          PrimaryProfession2Text:SetFont(WOWTR_Font2, 11);
          PrimaryProfession2Text:SetJustifyH("RIGHT");
       end
 
-      local SecondaryProfession1Text = SecondaryProfession1.missingText; -- Çevirisi Yapılan Kısım - Przetłumaczona sekcja - https://imgur.com/amgQ7K7
+      local SecondaryProfession1Text = SecondaryProfession1.missingText; -- https://imgur.com/amgQ7K7
       ST_CheckAndReplaceTranslationText(SecondaryProfession1Text, true, "Profession:Other", false, false, -15);
       if (WoWTR_Localization.lang == 'AR') then
          SecondaryProfession1Text:SetFont(WOWTR_Font2, 10);
          SecondaryProfession1Text:SetJustifyH("RIGHT");
       end
 
-      local SecondaryProfession2Text = SecondaryProfession2.missingText; -- Çevirisi Yapılan Kısım - Przetłumaczona sekcja - https://imgur.com/amgQ7K7
+      local SecondaryProfession2Text = SecondaryProfession2.missingText; -- https://imgur.com/amgQ7K7
       ST_CheckAndReplaceTranslationText(SecondaryProfession2Text, true, "Profession:Other", false, false, -15);
       if (WoWTR_Localization.lang == 'AR') then
          SecondaryProfession2Text:SetFont(WOWTR_Font2, 10);
          SecondaryProfession2Text:SetJustifyH("RIGHT");
       end
 
-      local SecondaryProfession3Text = SecondaryProfession3.missingText; -- Çevirisi Yapılan Kısım - Przetłumaczona sekcja - https://imgur.com/amgQ7K7
+      local SecondaryProfession3Text = SecondaryProfession3.missingText; -- https://imgur.com/amgQ7K7
       ST_CheckAndReplaceTranslationText(SecondaryProfession3Text, true, "Profession:Other", false, false, -15);
       if (WoWTR_Localization.lang == 'AR') then
          SecondaryProfession3Text:SetFont(WOWTR_Font2, 10);
@@ -1041,97 +1035,96 @@ end
 
 -------------------------------------------------------------------------------------------------------
 
-function STtalent_ON_OFF()
-   
-   if (ST_PM["talent"] == "1") then
-      ST_PM["talent"] = "0";
-      WOWTR_ToggleButtonT:SetText(WoWTR_Localization.WoWTR_Talent_enDESC);
-   else
-      ST_PM["talent"] = "1";
-      local fo = WOWTR_ToggleButtonT:CreateFontString();
-      fo:SetFont(WOWTR_Font2, 13);
-      fo:SetText(QTR_ReverseIfAR(WoWTR_Localization.WoWTR_Talent_trDESC));
-      WOWTR_ToggleButtonT:SetFontString(fo);
-      WOWTR_ToggleButtonT:SetText(QTR_ReverseIfAR(WoWTR_Localization.WoWTR_Talent_trDESC));
-   end
-end
-
--------------------------------------------------------------------------------------------------------
-
 function WOWSTR_onEvent(_, event, addonName)
 --print(addonName);
 --QTR_PS["Test"] = Frame; -- search data
-   if (addonName == 'Blizzard_ClassTalentUI') then
+   if (QTR_PS) then
+      C_Timer.After(1, function() 
+      QTR_ObjectiveTrackerFrame_Titles() -- Addon adds translations when it starts
+      end)
+   end
+   if (addonName == 'Blizzard_PlayerSpells') then
       ST_Load1 = true;
-   
-      hooksecurefunc(ClassTalentFrame.SpecTab, "UpdateSpecContents", ST_updateSpecContentsHook);
-      
-      hooksecurefunc(ClassTalentFrame, "UpdateFrameTitle", function(frame)
-         ST_UpdateFrameTitle(frame);
-      end);
-      
-      ClassTalentFrame.TalentsTab:HookScript("OnShow", function(talentsTab)
-         ST_TalentsTab_OnShow(talentsTab);
-         if (ST_PM["active"] == "1") then
-            WOWTR_ToggleButtonT:Show();
-         end
-      end);
-      
-      -- przycisk do przełączania wersji TR - EN dla talentów
-      WOWTR_ToggleButtonT = CreateFrame("Button", nil, UIParent, "UIPanelButtonTemplate");
-      WOWTR_ToggleButtonT:SetWidth(150);
-      WOWTR_ToggleButtonT:SetHeight(22);
-      WOWTR_ToggleButtonT:SetFrameStrata("HIGH")
-      if (ST_PM["talent"] == "1") then
-         WOWTR_ToggleButtonT:SetText(WoWTR_Localization.WoWTR_Talent_trDESC);
-      else
-         WOWTR_ToggleButtonT:SetText(WoWTR_Localization.WoWTR_Talent_enDESC);
-      end
-      WOWTR_ToggleButtonT:ClearAllPoints();
-      WOWTR_ToggleButtonT:SetPoint("TOPLEFT", UIParent, "TOPLEFT", UIParent:GetWidth()/2-75, -42);
-      WOWTR_ToggleButtonT:Hide();
-      WOWTR_ToggleButtonT:SetScript("OnClick", STtalent_ON_OFF);
-
-      ClassTalentFrame.TalentsTab:HookScript("OnHide", function(talentsTab)
-         WOWTR_ToggleButtonT:Hide();
-      end);
+      PlayerSpellsFrame:HookScript("OnShow", ST_SpellBookTranslateButton);
+      PlayerSpellsFrame.SpecFrame:HookScript("OnShow", ST_updateSpecContentsHook);
       
    elseif (addonName == 'Blizzard_EncounterJournal') then
       ST_load2 = true;
-      EncounterJournalEncounterFrameInfo.BossesScrollBox:HookScript("OnShow", ST_openBossesListDelay);
-      EncounterJournal:HookScript("OnShow", ST_SuggestTabClick);
-      EncounterJournalEncounterFrameInstanceFrame.LoreScrollingFont:HookScript("OnShow", ST_showLoreDescription);
+      EncounterJournalEncounterFrameInfo.BossesScrollBox:HookScript("OnShow", function() StartDelayedFunction(ST_openBossesList, 0.2) end)
+      EncounterJournalEncounterFrameInfoOverviewScrollFrameScrollChildLoreDescription:HookScript("OnShow", function() StartTicker(EncounterJournalEncounterFrameInfoOverviewScrollFrameScrollChildLoreDescription, ST_clickBosses, 0.2) end)
+      EncounterJournalEncounterFrameInfoDetailsScrollFrameScrollChildDescription:HookScript("OnShow", function() StartTicker(EncounterJournalEncounterFrameInfoDetailsScrollFrameScrollChildDescription, ST_ShowAbility, 0.2) end)
+      EncounterJournal:HookScript("OnShow", function() StartTicker(EncounterJournal, ST_SuggestTabClick, 0.2) end)
+      EncounterJournalEncounterFrameInstanceFrame.LoreScrollingFont:HookScript("OnShow", ST_showLoreDescription)
       
    elseif (addonName == 'Blizzard_Professions') then
       ST_load3 = true;
-      ProfessionsFrame:HookScript("OnShow", ST_showProfessionDescription);
+      ProfessionsFrame:HookScript("OnShow", function() StartTicker(ProfessionsFrame, ST_showProfessionDescription, 0.2) end)
+      
    elseif (addonName == 'Blizzard_Collections') then
       ST_load4 = true;
-      CollectionsJournalTitleText:HookScript("OnShow", ST_MountJournalDelay);
-      WardrobeCollectionFrame:HookScript("OnShow", ST_HelpPlateTooltip);
+      CollectionsJournalTitleText:HookScript("OnShow", function() StartTicker(CollectionsJournalTitleText, ST_MountJournal, 0.2) end)
+      WardrobeCollectionFrame:HookScript("OnShow", function() StartTicker(WardrobeCollectionFrame, ST_HelpPlateTooltip, 0.2) end)
+      
    elseif (addonName == 'Blizzard_PVPUI') then
       ST_load5 = true;
-      PVPQueueFrameCategoryButton1:HookScript("OnShow", ST_GroupPVPFinder);
+      PVPQueueFrameCategoryButton1:HookScript("OnShow", function() StartTicker(PVPQueueFrameCategoryButton1, ST_GroupPVPFinder, 0.2) end)
       
    elseif (addonName == 'Blizzard_ChallengesUI') then
       ST_load6 = true;
-      ChallengesFrame.WeeklyInfo:HookScript("OnShow", ST_GroupMplusFinder);
+      ChallengesFrame:HookScript("OnShow", function() StartTicker(ChallengesFrame, ST_GroupMplusFinder, 0.2) end)
+      
+   elseif (addonName == 'Blizzard_DelvesDifficultyPicker') then
+      ST_load7 = true;
+      DelvesDifficultyPickerFrame:HookScript("OnShow", function() StartTicker(DelvesDifficultyPickerFrame, ST_showDelveDifficultFrame, 0.2) end)
+      
+   elseif (addonName == 'Blizzard_ItemUpgradeUI') then
+      ST_load8 = true;
+      ItemUpgradeFrame:HookScript("OnShow", function() StartTicker(ItemUpgradeFrame, ST_ItemUpgradeFrm, 0.2) end)
+      
+   elseif (addonName == 'Blizzard_WeeklyRewards') then
+      ST_load9 = true;
+      WeeklyRewardsFrame:HookScript("OnShow", function() StartTicker(WeeklyRewardsFrame, ST_WeeklyRewardsFrame, 0.2) end) 
+      
+   elseif (addonName == 'Blizzard_AdventureMap') then
+      ST_load10 = true;
+      AdventureMapQuestChoiceDialog.Details.Child.DescriptionText:HookScript("OnShow", function() StartTicker(AdventureMapQuestChoiceDialog.Details.Child.DescriptionText, ST_AdvantureMapFrm, 0.2) end) 
    end
-   
-   if (ST_load1 and ST_load2 and ST_load3 and ST_load4 and ST_load5 and ST_load6) then    -- otworzono wszystkie dodatki Blizzarda
+
+   if (ST_load1 and ST_load2 and ST_load3 and ST_load4 and ST_load5 and ST_load6 and ST_load7 and ST_load8 and ST_load9 and ST_load10) then    -- otworzono wszystkie dodatki Blizzarda
       WOWSTR:UnregisterEvent("ADDON_LOADED");      -- wyłącz  nasłuchiwanie
    end
 end
 
 -------------------------------------------------------------------------------------------------------
 
-function ST_MountJournalDelay()
-   if (ST_PM["active"]=="1") then        -- jest zezwolenie na tłumaczenie
-      if (not WOWTR_wait(0.2, ST_MountJournal)) then
+function ST_SpellBookTranslateButton()
+   if (ST_PM["active"] == "1") then
+      -- Button to toggle between TR - EN for talents
+      WOWTR_ToggleButtonS = CreateFrame("Button", nil, SpellBookFrame, "UIPanelButtonTemplate")
+      WOWTR_ToggleButtonS:SetWidth(80)
+      WOWTR_ToggleButtonS:SetHeight(13) -- Set the height to 15
+      WOWTR_ToggleButtonS:SetFrameStrata("TOOLTIP")
+
+      if (ST_PM["spell"] == "1") then
+            if (WoWTR_Localization.lang == 'AR') then
+               WOWTR_ToggleButtonS:SetText(QTR_ReverseIfAR(WoWTR_Localization.WoWTR_Spellbook_trDESC))
+               WOWTR_ToggleButtonS:GetFontString():SetFont(WOWTR_Font2, 7)
+            else
+               WOWTR_ToggleButtonS:SetText(WoWTR_Localization.WoWTR_Spellbook_trDESC)
+               WOWTR_ToggleButtonS:GetFontString():SetFont(WOWTR_ToggleButtonS:GetFontString():GetFont(), 7)
+            end
+      else
+            WOWTR_ToggleButtonS:SetText(WoWTR_Localization.WoWTR_Spellbook_enDESC)
+            WOWTR_ToggleButtonS:GetFontString():SetFont(WOWTR_ToggleButtonS:GetFontString():GetFont(), 7)
       end
+
+      WOWTR_ToggleButtonS:ClearAllPoints()
+      WOWTR_ToggleButtonS:SetPoint("TOPLEFT", PlayerSpellsFrame, "TOPRIGHT", -110, 0)
+      WOWTR_ToggleButtonS:SetScript("OnClick", STspell_ON_OFF)
+      PlayerSpellsFrame:HookScript("OnHide", function() WOWTR_ToggleButtonS:Hide() end)
    end
 end
-
+	  
 -------------------------------------------------------------------------------------------------------
    
 function ST_SuggestTabClick()
@@ -1179,74 +1172,46 @@ function ST_SuggestTabClick()
       local obj12 = EncounterJournalSuggestFrame.Suggestion1.reward.text;               -- https://imgur.com/kkPedLC
       ST_CheckAndReplaceTranslationText(obj12, true, "ui");
 	  
-	  local obj13 = EncounterJournalMonthlyActivitiesFrame.BarComplete.PendingRewardsText;               -- https://imgur.com/kkPedLC
+      local obj13 = EncounterJournalMonthlyActivitiesFrame.BarComplete.PendingRewardsText;               -- https://imgur.com/kkPedLC
       ST_CheckAndReplaceTranslationText(obj13, true, "ui");
-   end
-   if (not WOWTR_wait(0.01, ST_SuggestTabClickTekrar)) then
-   end  
-end
 
--------------------------------------------------------------------------------------------------------
+      local obj14 = EncounterJournalMonthlyActivitiesTab.Text;  -- Tab: Traveler's Log
+      ST_CheckAndReplaceTranslationText(obj14, true, "ui");
 
-function ST_SuggestTabClickTekrar()
-   if ( EncounterJournal:IsVisible()) then
-      ST_SuggestTabClick();
-   end
-end
+      local obj15 = EncounterJournalSuggestTab.Text;            -- Tab: Suggested Content
+      ST_CheckAndReplaceTranslationText(obj15, true, "ui");
 
--------------------------------------------------------------------------------------------------------
+      local obj16 = EncounterJournalDungeonTab.Text;            -- Tab: Dungeons
+      ST_CheckAndReplaceTranslationText(obj16, true, "ui");
 
-function ST_openBossesListDelay()
-   if (ST_PM["active"]=="1") then        -- jest zezwolenie na tłumaczenie
-      if (not WOWTR_wait(0.2, ST_openBossesList)) then
-         -- opóźnienie 0.2 sek
-      end
-   end
-end
+      local obj17 = EncounterJournalRaidTab.Text;               -- Tab: Raids
+      ST_CheckAndReplaceTranslationText(obj17, true, "ui");
 
--------------------------------------------------------------------------------------------------------
-
-function ST_clickBossesDelay()
-   if (not WOWTR_wait(0.2, ST_clickBosses)) then
-      -- opóźnienie 0.2 sek
-   end
-end
-
--------------------------------------------------------------------------------------------------------
-
-function ST_OpenDropDownListDelay()
-   if (not WOWTR_wait(0.2, ST_clickBosses)) then
-      -- opóźnienie 0.2 sek
+      local obj18 = EncounterJournalLootJournalTab.Text;        -- Tab: Item Sets
+      ST_CheckAndReplaceTranslationText(obj18, true, "ui");
    end
 end
 
 -------------------------------------------------------------------------------------------------------
 
 function ST_openBossesList()
---print("openBossesList");
-   if (EncounterJournalNavBarButton1 and not ST_navBar1) then
-      ST_navBar1 = true;
-      EncounterJournalNavBarButton1.MenuArrowButton:HookScript("OnHide", ST_OpenDropDownListDelay);
-   end
-   if (EncounterJournalNavBarButton2 and not ST_navBar2) then
-      ST_navBar2 = true;
-      EncounterJournalNavBarButton2.MenuArrowButton:HookScript("OnHide", ST_OpenDropDownListDelay);
-   end
-   if (EncounterJournalNavBarButton3 and not ST_navBar3) then
-      ST_navBar3 = true;
-      EncounterJournalNavBarButton3.MenuArrowButton:HookScript("OnHide", ST_OpenDropDownListDelay);
-   end
-   if (EncounterJournalNavBarButton4 and not ST_navBar4) then
-      ST_navBar4 = true;
-      EncounterJournalNavBarButton4.MenuArrowButton:HookScript("OnHide", ST_OpenDropDownListDelay);
-   end
-   if (EncounterJournalNavBarButton5 and not ST_navBar5) then
-      ST_navBar5 = true;
-      EncounterJournalNavBarButton5.MenuArrowButton:HookScript("OnHide", ST_OpenDropDownListDelay);
-   end
-   for bossFrame in EncounterJournalEncounterFrameInfo.BossesScrollBox.view.poolCollection.pools.EncounterBossButtonTemplatenil:EnumerateActive() do
-       ST_nameBoss[bossFrame.text:GetText()] = bossFrame;
-       bossFrame:HookScript("OnClick", ST_clickBossesDelay);
+   if ST_PM["active"] == "1" then
+       local navBarButtons = {
+           EncounterJournalNavBarButton1,
+           EncounterJournalNavBarButton2,
+           EncounterJournalNavBarButton3,
+           EncounterJournalNavBarButton4,
+           EncounterJournalNavBarButton5
+       }
+
+       for _, button in ipairs(navBarButtons) do
+           if button and not button.ST_navBarHooked then
+               button.ST_navBarHooked = true
+               button.MenuArrowButton:HookScript("OnHide", function()
+                   StartDelayedFunction(ST_clickBosses, 0.2)
+               end)
+           end
+       end
    end
 end
 
@@ -1263,133 +1228,140 @@ end
 
 --PROFESSION FRAME, TEXT and OTHER TRANSLATE-----------------------------------------------------------
 function ST_showProfessionDescription() 
---print("show ProfessionDescription");
+--print("ST_showProfessionDescription");
    if (TT_PS["ui7"] == "1") then
-      local PRobj01 = ProfessionsFrame.CraftingPage.SchematicForm.Description; -- Çevirisi Yapılan Kısım - Przetłumaczona sekcja - https://imgur.com/BswVlBQ
+      local PRobj01 = ProfessionsFrame.CraftingPage.SchematicForm.Description; -- https://imgur.com/BswVlBQ
       local prof_title = ProfessionsFrame.CraftingPage.SchematicForm.OutputText:GetText() or "?";
       local prof_name = ProfessionsFrameTitleText:GetText() or "?";
       ST_CheckAndReplaceTranslationTextUI(PRobj01, true, "Profession:"..ST_RenkKoduSil(prof_name)..":"..ST_RenkKoduSil(prof_title));
       
-      local PRobj02 = ProfessionsFrame.SpecPage.TreeView.TreeDescription; -- Çevirisi Yapılan Kısım - Przetłumaczona sekcja - https://imgur.com/7iBBl30
+      local PRobj02 = ProfessionsFrame.SpecPage.TreeView.TreeDescription; -- https://imgur.com/7iBBl30
       ST_CheckAndReplaceTranslationTextUI(PRobj02, false, "");       -- don't save untranslated text
       
-      local PRobj03 = ProfessionsFrame.SpecPage.TreePreview.Description; -- Çevirisi Yapılan Kısım - Przetłumaczona sekcja - https://imgur.com/iwhgxcy
+      local PRobj03 = ProfessionsFrame.SpecPage.TreePreview.Description; -- https://imgur.com/iwhgxcy
       ST_CheckAndReplaceTranslationTextUI(PRobj03, false, "");    -- don't save untranslated text
       
-      local PRobj04 = ProfessionsFrame.SpecPage.TreePreview.Highlight1.Description; -- Çevirisi Yapılan Kısım - Przetłumaczona sekcja - https://imgur.com/SeLUJey
+      local PRobj04 = ProfessionsFrame.SpecPage.TreePreview.Highlight1.Description; -- https://imgur.com/SeLUJey
       ST_CheckAndReplaceTranslationTextUI(PRobj04, true, "Profession:"..ST_RenkKoduSil(prof_name)..":Other");
       
-      local PRobj05 = ProfessionsFrame.SpecPage.TreePreview.Highlight2.Description; -- Çevirisi Yapılan Kısım - Przetłumaczona sekcja - https://imgur.com/sIPdOx6
+      local PRobj05 = ProfessionsFrame.SpecPage.TreePreview.Highlight2.Description; -- https://imgur.com/sIPdOx6
       ST_CheckAndReplaceTranslationTextUI(PRobj05, true, "Profession:"..ST_RenkKoduSil(prof_name)..":Other");
       
-      local PRobj06 = ProfessionsFrame.SpecPage.TreePreview.Highlight3.Description; -- Çevirisi Yapılan Kısım - Przetłumaczona sekcja - https://imgur.com/7sH7ygf
+      local PRobj06 = ProfessionsFrame.SpecPage.TreePreview.Highlight3.Description; -- https://imgur.com/7sH7ygf
       ST_CheckAndReplaceTranslationTextUI(PRobj06, true, "Profession:"..ST_RenkKoduSil(prof_name)..":Other");
       
-      local PRobj07 = ProfessionsFrame.SpecPage.TreePreview.Highlight4.Description; -- Çevirisi Yapılan Kısım - Przetłumaczona sekcja - https://imgur.com/ZnJrOjS
+      local PRobj07 = ProfessionsFrame.SpecPage.TreePreview.Highlight4.Description; -- https://imgur.com/ZnJrOjS
       ST_CheckAndReplaceTranslationTextUI(PRobj07, true, "Profession:"..ST_RenkKoduSil(prof_name)..":Other");
       
-      local PRobj08 = ProfessionsFrame.CraftingPage.SchematicForm.Details.Label; -- Çevirisi Yapılan Kısım - Przetłumaczona sekcja - https://imgur.com/piy41yl
+      local PRobj08 = ProfessionsFrame.CraftingPage.SchematicForm.Details.Label; -- https://imgur.com/piy41yl
       ST_CheckAndReplaceTranslationTextUI(PRobj08, true, "Profession:Other");
       
-      local PRobj09 = ProfessionsFrame.SpecPage.TreePreview.HighlightsHeader; -- Çevirisi Yapılan Kısım - Przetłumaczona sekcja - https://imgur.com/4CrqODj
+      local PRobj09 = ProfessionsFrame.SpecPage.TreePreview.HighlightsHeader; -- https://imgur.com/4CrqODj
       ST_CheckAndReplaceTranslationTextUI(PRobj09, true, "Profession:Other");
       
-      local PRobj10 = ProfessionsFrame.SpecPage.ViewPreviewButton.Text; -- Çevirisi Yapılan Kısım - Przetłumaczona sekcja - https://imgur.com/ZhTfjUH
+      local PRobj10 = ProfessionsFrame.SpecPage.ViewPreviewButton.Text; -- https://imgur.com/ZhTfjUH
       ST_CheckAndReplaceTranslationTextUI(PRobj10, true, "Profession:Other");
       
-      local PRobj11 = ProfessionsFrame.SpecPage.BackToFullTreeButton.Text; -- Çevirisi Yapılan Kısım - Przetłumaczona sekcja - https://imgur.com/5iEFYpV
+      local PRobj11 = ProfessionsFrame.SpecPage.BackToFullTreeButton.Text; -- https://imgur.com/5iEFYpV
       ST_CheckAndReplaceTranslationTextUI(PRobj11, true, "Profession:Other");
       
-      local PRobj12 = ProfessionsFrame.SpecPage.DetailedView.SpendPointsButton.Text; -- Çevirisi Yapılan Kısım - Przetłumaczona sekcja - https://imgur.com/KmjEPCc
+      local PRobj12 = ProfessionsFrame.SpecPage.DetailedView.SpendPointsButton.Text; -- https://imgur.com/KmjEPCc
       ST_CheckAndReplaceTranslationTextUI(PRobj12, true, "Profession:Other");
       
-      local PRobj13 = ProfessionsFrame.SpecPage.DetailedView.UnlockPathButton.Text; -- Çevirisi Yapılan Kısım - Przetłumaczona sekcja - https://imgur.com/zR0RamH
+      local PRobj13 = ProfessionsFrame.SpecPage.DetailedView.UnlockPathButton.Text; -- https://imgur.com/zR0RamH
       ST_CheckAndReplaceTranslationTextUI(PRobj13, true, "Profession:Other");
       
-      local PRobj14 = ProfessionsFrame.SpecPage.ApplyButton.Text; -- Çevirisi Yapılan Kısım - Przetłumaczona sekcja - https://imgur.com/1RqSqU2
+      local PRobj14 = ProfessionsFrame.SpecPage.ApplyButton.Text; -- https://imgur.com/1RqSqU2
       ST_CheckAndReplaceTranslationTextUI(PRobj14, true, "Profession:Other");
 
       local PRobj15 = ProfessionsFrame.SpecPage.ViewTreeButton.Text; 
       ST_CheckAndReplaceTranslationTextUI(PRobj15, true, "Profession:Other");
 
-      local PRobj16 = ProfessionsFrame.CraftingPage.SchematicForm.Details.FinishingReagentSlotContainer.Label; -- Çevirisi Yapılan Kısım - Przetłumaczona sekcja - https://imgur.com/PIAUMIB
+      local PRobj16 = ProfessionsFrame.CraftingPage.SchematicForm.Details.CraftingChoicesContainer.FinishingReagentSlotContainer.Label; -- https://imgur.com/PIAUMIB
       ST_CheckAndReplaceTranslationTextUI(PRobj16, true, "Profession:Other");
 
-      local PRobj17 = ProfessionsFrame.CraftingPage.SchematicForm.AllocateBestQualityCheckBox.Text; -- Çevirisi Yapılan Kısım - Przetłumaczona sekcja - https://imgur.com/XDbs3N5
-      ST_CheckAndReplaceTranslationTextUI(PRobj17, true, "Profession:Other");
+      -- local PRobj17 = ProfessionsFrame.CraftingPage.SchematicForm.AllocateBestQualityCheckBox.Text; -- https://imgur.com/XDbs3N5
+      -- ST_CheckAndReplaceTranslationTextUI(PRobj17, true, "Profession:Other");
 
-      local PRobj18 = ProfessionsFrame.CraftingPage.SchematicForm.FirstCraftBonus.Text; -- Çevirisi Yapılan Kısım - Przetłumaczona sekcja - https://imgur.com/2N0WWfd
+      local PRobj18 = ProfessionsFrame.CraftingPage.SchematicForm.FirstCraftBonus.Text; -- https://imgur.com/2N0WWfd
       ST_CheckAndReplaceTranslationTextUI(PRobj18, true, "Profession:Other");
       
-      local PRobj19 = ProfessionsFrame.CraftingPage.SchematicForm.RecipeSourceButton.Text; -- Çevirisi Yapılan Kısım - Przetłumaczona sekcja - https://imgur.com/W3mmU92
+      local PRobj19 = ProfessionsFrame.CraftingPage.SchematicForm.RecipeSourceButton.Text; -- https://imgur.com/W3mmU92
       ST_CheckAndReplaceTranslationTextUI(PRobj19, true, "Profession:Other");
 
-      local PRobj20 = ProfessionsFrame.CraftingPage.SchematicForm.Reagents.Label; -- Çevirisi Yapılan Kısım - Przetłumaczona sekcja - https://imgur.com/3C9smY0
+      local PRobj20 = ProfessionsFrame.CraftingPage.SchematicForm.Reagents.Label; -- https://imgur.com/3C9smY0
       ST_CheckAndReplaceTranslationTextUI(PRobj20, true, "Profession:Other");
 
-      local PRobj21 = ProfessionsFrame.CraftingPage.SchematicForm.OptionalReagents.Label; -- Çevirisi Yapılan Kısım - Przetłumaczona sekcja - https://imgur.com/oaYzd5v
+      local PRobj21 = ProfessionsFrame.CraftingPage.SchematicForm.OptionalReagents.Label; -- https://imgur.com/oaYzd5v
       ST_CheckAndReplaceTranslationTextUI(PRobj21, true, "Profession:Other");
 
-      local PRobj22 = ProfessionsFrame.CraftingPage.SchematicForm.TrackRecipeCheckBox.Text; -- Çevirisi Yapılan Kısım - Przetłumaczona sekcja - https://imgur.com/jZcvEE9
-      ST_CheckAndReplaceTranslationTextUI(PRobj22, true, "Profession:Other");
+      -- local PRobj22 = ProfessionsFrame.CraftingPage.SchematicForm.TrackRecipeCheckBox.Text; -- https://imgur.com/jZcvEE9
+      -- ST_CheckAndReplaceTranslationTextUI(PRobj22, true, "Profession:Other");
 
-      local PRobj23 = ProfessionsFrame.CraftingPage.SchematicForm.RecraftingDescription; -- Çevirisi Yapılan Kısım - Przetłumaczona sekcja - https://imgur.com/ihYuF3m
+      local PRobj23 = ProfessionsFrame.CraftingPage.SchematicForm.RecraftingDescription; -- https://imgur.com/ihYuF3m
       ST_CheckAndReplaceTranslationTextUI(PRobj23, true, "Profession:Other");
       
-      local PRobj24 = ProfessionsFrame.SpecPage.UnlockTabButton.Text; -- Çevirisi Yapılan Kısım - Przetłumaczona sekcja - https://imgur.com/TSpN8BY
+      local PRobj24 = ProfessionsFrame.SpecPage.UnlockTabButton.Text; -- https://imgur.com/TSpN8BY
       ST_CheckAndReplaceTranslationTextUI(PRobj24, true, "Profession:Other");
 
-      local PRobj25 = ProfessionsFrame.CraftingPage.RecipeList.FilterButton.Text;
+      local PRobj25 = ProfessionsFrame.CraftingPage.RecipeList.FilterDropdown.Text;
       ST_CheckAndReplaceTranslationTextUI(PRobj25, true, "ui");
    end
-   
-   if (not WOWTR_wait(0.01, ST_showProfessionDescriptionTekrar)) then
-   end  
 end
 
 -------------------------------------------------------------------------------------------------------
 
-function ST_showProfessionDescriptionTekrar()
-   if ( ProfessionsFrame:IsVisible()) then
-      ST_showProfessionDescription();
-   end
+--DelveDifficultFrame, TEXT and OTHER TRANSLATE
+function ST_showDelveDifficultFrame() 
+--print("show DelveDifficultFrame");
+   -- if (TT_PS["ui7"] == "1") then
+      local DelveDF01 = DelvesDifficultyPickerFrame.Description; -- https://imgur.com/a/SAyXuiR
+      ST_CheckAndReplaceTranslationTextUI(DelveDF01, true, "Dungeon&Raid:Zone:DelvesFrame");       -- save untranslated text
+      
+      local DelveDF02 = DelvesDifficultyPickerFrame.EnterDelveButton.Text; -- https://imgur.com/a/SAyXuiR
+      ST_CheckAndReplaceTranslationTextUI(DelveDF02, false, "ui");       -- dont save untranslated text
+
+      local DelveDF03 = DelvesDifficultyPickerFrame.DelveRewardsContainerFrame.RewardText; -- https://imgur.com/a/SAyXuiR
+      ST_CheckAndReplaceTranslationTextUI(DelveDF03, false, "ui");       -- dont save untranslated text
+
+      local DelveDF04 = DelvesDifficultyPickerFrame.ScenarioLabel; -- https://imgur.com/a/SAyXuiR
+      ST_CheckAndReplaceTranslationTextUI(DelveDF04, false, "ui");       -- dont save untranslated text
+
+      local DelveDF05 = DelvesDifficultyPickerFrame.Title; -- https://imgur.com/a/SAyXuiR
+      ST_CheckAndReplaceTranslationTextUI(DelveDF05, true, "Dungeon&Raid:Zone:DelvesFrame");       -- dont save untranslated text
+   -- end
 end
 
 -------------------------------------------------------------------------------------------------------
-
 function ST_clickBosses()
---print("clickBosses");
-   if (EncounterJournalNavBarButton1 and not ST_navBar1) then
-      ST_navBar1 = true;
-      EncounterJournalNavBarButton1.MenuArrowButton:HookScript("OnHide", ST_OpenDropDownListDelay);
+   local navBarButtons = {
+       EncounterJournalNavBarButton1,
+       EncounterJournalNavBarButton2,
+       EncounterJournalNavBarButton3,
+       EncounterJournalNavBarButton4,
+       EncounterJournalNavBarButton5
+   }
+
+   for _, button in ipairs(navBarButtons) do
+       if button and not button.ST_navBarHooked then
+           button.ST_navBarHooked = true
+           button.MenuArrowButton:HookScript("OnHide", function()
+               StartDelayedFunction(ST_clickBosses, 0.2)
+           end)
+       end
    end
-   if (EncounterJournalNavBarButton2 and not ST_navBar2) then
-      ST_navBar2 = true;
-      EncounterJournalNavBarButton2.MenuArrowButton:HookScript("OnHide", ST_OpenDropDownListDelay);
-   end
-   if (EncounterJournalNavBarButton3 and not ST_navBar3) then
-      ST_navBar3 = true;
-      EncounterJournalNavBarButton3.MenuArrowButton:HookScript("OnHide", ST_OpenDropDownListDelay);
-   end
-   if (EncounterJournalNavBarButton4 and not ST_navBar4) then
-      ST_navBar4 = true;
-      EncounterJournalNavBarButton4.MenuArrowButton:HookScript("OnHide", ST_OpenDropDownListDelay);
-   end
-   if (EncounterJournalNavBarButton5 and not ST_navBar5) then
-      ST_navBar5 = true;
-      EncounterJournalNavBarButton5.MenuArrowButton:HookScript("OnHide", ST_OpenDropDownListDelay);
-   end
+
    local ST_bossName = EncounterJournalEncounterFrameInfoEncounterTitle:GetText();
-   if (ST_bossName) then
-      local ST_bossDescription = EncounterJournalEncounterFrameInfoOverviewScrollFrameScrollChildLoreDescription;
-      ST_CheckAndReplaceTranslationText(ST_bossDescription, true, "Dungeon&Raid:Boss:"..ST_bossName);
-      local ST_bossOverview = EncounterJournalEncounterFrameInfo.overviewScroll.child.overviewDescription;
-      ST_CheckAndReplaceTranslationText(ST_bossOverview, true, "Dungeon&Raid:Boss:"..ST_bossName);
-      local ST_bossDescription2 = EncounterJournalEncounterFrameInfoDetailsScrollFrameScrollChildDescription;
-      ST_CheckAndReplaceTranslationText(ST_bossDescription2, true, "Dungeon&Raid:Boss:"..ST_bossName);
+   if ST_bossName then
+       local ST_bossDescription = EncounterJournalEncounterFrameInfoOverviewScrollFrameScrollChildLoreDescription;
+       ST_CheckAndReplaceTranslationText(ST_bossDescription, true, "Dungeon&Raid:Boss:"..ST_bossName);
+       local ST_bossOverview = EncounterJournalEncounterFrameInfo.overviewScroll.child.overviewDescription;
+       ST_CheckAndReplaceTranslationText(ST_bossOverview, true, "Dungeon&Raid:Boss:"..ST_bossName);
+       local ST_bossDescription2 = EncounterJournalEncounterFrameInfoDetailsScrollFrameScrollChildDescription;
+       ST_CheckAndReplaceTranslationText(ST_bossDescription2, true, "Dungeon&Raid:Boss:"..ST_bossName);
    end
-   
 end
+
 
 -------------------------------------------------------------------------------------------------------
 
@@ -1400,51 +1372,11 @@ function ST_ShowAbility()            -- sprawdzanie tekstów Ability
          local obj1= _G["EncounterJournalInfoHeader"..i];
          local obj2= _G["EncounterJournalInfoHeader"..i.."DescriptionBG"];
          local txt = obj:GetText();
-         if (not _G["ST_EJbutton"..i]) then        -- nie jest jeszcze utworzony przycisk [TR]
-            _G["ST_EJbutton"..i] = CreateFrame("Button",nil, obj1, "UIPanelButtonTemplate");
-            _G["ST_EJbutton"..i]:SetWidth(26);
-            _G["ST_EJbutton"..i]:SetHeight(18);
-            _G["ST_EJbutton"..i]:SetText(WoWTR_Localization.lang);
-            local regions = { _G["ST_EJbutton"..i]:GetRegions() };     -- poszukiwanie obiektu FontString do ustawienia własnej czcionki
-            for k, v in pairs(regions) do
-               if (v:GetObjectType() == "FontString") then
-                  v:SetFont(WOWTR_Font2, 8);
-               end
-            end
-            _G["ST_EJbutton"..i]:Show();
-            _G["ST_EJbutton"..i]:ClearAllPoints();
-            _G["ST_EJbutton"..i]:SetPoint("BOTTOMRIGHT", obj2, "BOTTOMRIGHT", 0, 0);
-            _G["ST_EJbutton"..i]:SetScript("OnClick", function() ST_EJTranslate(i); end);
-         end
+
          ST_CheckAndReplaceTranslationText(obj, true, "Dungeon&Raid:Ability:".._G["EncounterJournalInfoHeader"..i.."HeaderButton"].title:GetText());
-         if (obj:IsVisible()) then
-            _G["ST_EJbutton"..i]:Show();
-         else
-            _G["ST_EJbutton"..i]:Hide();
-         end
+         local ST_bossDescription2 = EncounterJournalEncounterFrameInfoDetailsScrollFrameScrollChildDescription;
+         ST_CheckAndReplaceTranslationText(ST_bossDescription2, false);
       end
-   end
-end
-
--------------------------------------------------------------------------------------------------------
-
-function ST_EJTranslate(nr)
---print(nr);
-   local obj = _G["EncounterJournalInfoHeader"..nr.."Description"];
-   ST_CheckAndReplaceTranslationText(obj, true, "Dungeon&Raid:Ability:".._G["EncounterJournalInfoHeader"..nr.."HeaderButton"].title:GetText());
-   local txt = obj:GetText();
-   if (obj:IsVisible()) then
-      _G["ST_EJbutton"..nr]:Show();
-   else
-      _G["ST_EJbutton"..nr]:Hide();
-   end
-end
-
--------------------------------------------------------------------------------------------------------
-
-function ST_HideMyButton(nr)
-   if (_G["ST_EJbutton"..nr]) then
-      _G["ST_EJbutton"..nr]:Hide();
    end
 end
 
@@ -1490,7 +1422,7 @@ end
 
 --WORLD MAP TITLE
 function ST_WorldMapFunc()
---print("WorldMap");
+--print("ST_WorldMapFunc");
    local wmframe01 = WorldMapFrameTitleText;
    ST_CheckAndReplaceTranslationText(wmframe01, true, "ui", false, 1);
 
@@ -1613,17 +1545,6 @@ function ST_GroupFinder()
       local GFobj36 = LFDQueueFrameFollowerDescription;
       ST_CheckAndReplaceTranslationTextUI(GFobj36, true, "ui");
    end
-
-   if (not WOWTR_wait(0.01, ST_GroupFinder5)) then
-   end  
-end
-
--------------------------------------------------------------------------------------------------------
-
-function ST_GroupFinder5()
-   if ( PVEFrame:IsVisible()) then
-      ST_GroupFinder();
-   end
 end
 
 -------------------------------------------------------------------------------------------------------
@@ -1678,66 +1599,39 @@ function ST_GroupPVPFinder()
       ST_CheckAndReplaceTranslationTextUI(gfpvpobj15, true, "ui");
    end
 
-   if (not WOWTR_wait(0.01, ST_GroupPVPFinderTekrar)) then
-   end  
-end
-
--------------------------------------------------------------------------------------------------------
-
-function ST_GroupPVPFinderTekrar()
-   if ( PVEFrameTitleText:IsVisible()) then
-      ST_GroupPVPFinder();
-   end
 end
 
 -------------------------------------------------------------------------------------------------------
 
 function ST_GroupMplusFinder()
---print("m+ page");
---Player vs. Player
-   if (TT_PS["ui3"] == "1") then
-      local GMplusobj01 = ChallengesFrame.SeasonChangeNoticeFrame.NewSeason;
-      ST_CheckAndReplaceTranslationTextUI(GMplusobj01, true, "ui");
-
-      local GMplusobj02 = ChallengesFrame.SeasonChangeNoticeFrame.SeasonDescription;
-      ST_CheckAndReplaceTranslationTextUI(GMplusobj02, true, "ui");
-
-      local GMplusobj03 = ChallengesFrame.SeasonChangeNoticeFrame.SeasonDescription2;
-      ST_CheckAndReplaceTranslationTextUI(GMplusobj03, true, "ui");
-
-      local GMplusobj04 = ChallengesFrame.WeeklyInfo.Child.Description;
-      ST_CheckAndReplaceTranslationTextUI(GMplusobj04, true, "ui");
-
-      local GMplusobj05 = ChallengesFrame.WeeklyInfo.Child.SeasonBest;
-      ST_CheckAndReplaceTranslationTextUI(GMplusobj05, true, "ui");
-
-      local GMplusobj06 = ChallengesFrame.WeeklyInfo.Child.ThisWeekLabel;
-      ST_CheckAndReplaceTranslationTextUI(GMplusobj06, true, "ui");
-
-      local GMplusobj07 = ChallengesFrame.WeeklyInfo.Child.WeeklyChest.RunStatus;
-      ST_CheckAndReplaceTranslationTextUI(GMplusobj07, true, "ui");
-
-      local GMplusobj08 = ChallengesFrame.WeeklyInfo.Child.DungeonScoreInfo.Title;
-      ST_CheckAndReplaceTranslationTextUI(GMplusobj08, true, "ui");
+   if TT_PS["ui3"] == "1" then
+     local elements = {
+       {ChallengesFrame.SeasonChangeNoticeFrame.NewSeason, "ui"},
+       {ChallengesFrame.SeasonChangeNoticeFrame.SeasonDescription, "ui"},
+       {ChallengesFrame.SeasonChangeNoticeFrame.SeasonDescription2, "ui"},
+       {ChallengesFrame.WeeklyInfo.Child.Description, "ui"},
+       {ChallengesFrame.WeeklyInfo.Child.SeasonBest, "ui"},
+       {ChallengesFrame.WeeklyInfo.Child.ThisWeekLabel, "ui"},
+       {ChallengesFrame.WeeklyInfo.Child.WeeklyChest.RunStatus, "ui"},
+       {ChallengesFrame.WeeklyInfo.Child.DungeonScoreInfo.Title, "ui"},
+     };
+ 
+     for _, elementData in ipairs(elements) do
+       local element, prefix = unpack(elementData);
+       if WoWTR_Localization.lang == 'AR' then
+         ST_CheckAndReplaceTranslationText(element, true, prefix, false, false, -10);
+       else
+         ST_CheckAndReplaceTranslationTextUI(element, true, prefix);
+       end
+     end
    end
-
-   if (not WOWTR_wait(0.2, ST_GroupMplusFinderTekrar)) then
-   end  
-end
-
--------------------------------------------------------------------------------------------------------
-
-function ST_GroupMplusFinderTekrar()
-   if ( PVEFrameTitleText:IsVisible()) then
-      ST_GroupMplusFinder();
-   end
-end
+ end
 
 -------------------------------------------------------------------------------------------------------
 
 --MERCHANT FRAME
 function ST_MerchantFrame()
---print("Merchant");
+--print("ST_MerchantFrame");
    if (TT_PS["ui1"] == "1") then
       local MercTab1 = MerchantFrameTab1.Text;
       ST_CheckAndReplaceTranslationTextUI(MercTab1, true, "ui");
@@ -1752,7 +1646,7 @@ end
 --GAME MENU
 
 function ST_GameMenuTranslate() -- https://imgur.com/drHJ9Yn
---print("Game Menu");
+--print("ST_GameMenuTranslate");
    if (TT_PS["ui1"] == "1") then
       local gamemenu1 = GameMenuButtonHelpText;
       ST_CheckAndReplaceTranslationTextUI(gamemenu1, false, "ui");
@@ -1793,7 +1687,7 @@ end
 
 --Collections Journal & Toys
 function ST_MountJournal()
---print(test);
+--print(ST_MountJournal);
    if (TT_PS["ui4"] == "1") then
       local CJobj01 = MountJournalLore;
       local ST_MountName = MountJournalName:GetText();
@@ -1871,16 +1765,16 @@ function ST_MountJournal()
          ST_CheckAndReplaceTranslationTextUI(CJobj21, false, "ui");
       end
 
-      local CJobj22 = MountJournalFilterButton.Text;
+      local CJobj22 = MountJournal.FilterDropdown.Text;
       ST_CheckAndReplaceTranslationTextUI(CJobj22, false, "ui");
 
-      local CJobj23 = PetJournalFilterButton.Text;
+      local CJobj23 = PetJournal.FilterDropdown.Text;
       ST_CheckAndReplaceTranslationTextUI(CJobj23, false, "ui");
 
       local CJobj24 = ToyBox.searchBox.Instructions;
       ST_CheckAndReplaceTranslationTextUI(CJobj24, false, "ui");
 
-      local CJobj25 = ToyBoxFilterButton.Text;
+      local CJobj25 = ToyBox.FilterDropdown.Text;
       ST_CheckAndReplaceTranslationTextUI(CJobj25, false, "ui");
 
       local CJobj26 = ToyBox.PagingFrame.PageText;
@@ -1889,7 +1783,7 @@ function ST_MountJournal()
       local CJobj27 = HeirloomsJournalSearchBox.Instructions;
       ST_CheckAndReplaceTranslationTextUI(CJobj27, false, "ui");
 
-      local CJobj28 = HeirloomsJournal.FilterButton.Text;
+      local CJobj28 = HeirloomsJournal.FilterDropdown.Text;
       ST_CheckAndReplaceTranslationTextUI(CJobj28, false, "ui");
 
       local CJobj29 = HeirloomsJournal.PagingFrame.PageText;
@@ -1908,124 +1802,6 @@ function ST_MountJournal()
          local CJToys = ToyBox.iconsFrame["spellButton"..i].name;
          ST_CheckAndReplaceTranslationTextUI(CJToys, true, "toyname");
       end
-   end
-   
-   if (not WOWTR_wait(0.01, ST_MountJournalTekrar)) then
-   end  
-end
-
--------------------------------------------------------------------------------------------------------
-
-function ST_MountJournalTekrar()
-   if ( CollectionsJournalTitleText:IsVisible()) then
-      ST_MountJournal();
-   end
-end
-
--------------------------------------------------------------------------------------------------------
-
---Filter Menu and Alt Menu
-function ST_FilterandButtons() -- https://imgur.com/6TafsjL
---print("Filtre çalıştı");
-   if (TT_PS["ui8"] == "1") then
-      local DList1B1 = DropDownList1Button1NormalText;
-      ST_CheckAndReplaceTranslationTextUI(DList1B1, true, "h@filter-ui");
-
-      local DList1B2 = DropDownList1Button2NormalText;
-      ST_CheckAndReplaceTranslationTextUI(DList1B2, true, "h@filter-ui");
-
-      local DList1B3 = DropDownList1Button3NormalText;
-      ST_CheckAndReplaceTranslationTextUI(DList1B3, true, "h@filter-ui");
-
-      local DList1B4 = DropDownList1Button4NormalText;
-      ST_CheckAndReplaceTranslationTextUI(DList1B4, true, "h@filter-ui");
-
-      local DList1B5 = DropDownList1Button5NormalText;
-      ST_CheckAndReplaceTranslationTextUI(DList1B5, true, "h@filter-ui");
-
-      local DList1B6 = DropDownList1Button6NormalText;
-      ST_CheckAndReplaceTranslationTextUI(DList1B6, true, "h@filter-ui");
-
-      local DList1B7 = DropDownList1Button7NormalText;
-      ST_CheckAndReplaceTranslationTextUI(DList1B7, true, "h@filter-ui");
-
-      local DList1B8 = DropDownList1Button8NormalText;
-      ST_CheckAndReplaceTranslationTextUI(DList1B8, true, "h@filter-ui");
-
-      local DList1B9 = DropDownList1Button9NormalText;
-      ST_CheckAndReplaceTranslationTextUI(DList1B9, true, "h@filter-ui");
-
-      local DList1B10 = DropDownList1Button10NormalText;
-      ST_CheckAndReplaceTranslationTextUI(DList1B10, true, "h@filter-ui");
-
-      local DList1B11 = DropDownList1Button11NormalText;
-      ST_CheckAndReplaceTranslationTextUI(DList1B11, true, "h@filter-ui");
-
-      local DList1B12 = DropDownList1Button12NormalText;
-      ST_CheckAndReplaceTranslationTextUI(DList1B12, true, "h@filter-ui");
-
-      local DList1B13 = DropDownList1Button13NormalText;
-      ST_CheckAndReplaceTranslationTextUI(DList1B13, true, "h@filter-ui");
-
-      local DList1B14 = DropDownList1Button14NormalText;
-      ST_CheckAndReplaceTranslationTextUI(DList1B14, true, "h@filter-ui");
-
-      local DList1B15 = DropDownList1Button15NormalText;
-      ST_CheckAndReplaceTranslationTextUI(DList1B15, true, "h@filter-ui");
-
-      local DList1B16 = DropDownList1Button16NormalText;
-      ST_CheckAndReplaceTranslationTextUI(DList1B16, true, "h@filter-ui");
-
-      local DList1B17 = DropDownList1Button17NormalText;
-      ST_CheckAndReplaceTranslationTextUI(DList1B17, true, "h@filter-ui");
-
-      local DList1B18 = DropDownList1Button18NormalText;
-      ST_CheckAndReplaceTranslationTextUI(DList1B18, true, "h@filter-ui");
-
-      local DList1B19 = DropDownList1Button19NormalText;
-      ST_CheckAndReplaceTranslationTextUI(DList1B19, true, "h@filter-ui");
-
-      local DList1B20 = DropDownList1Button20NormalText;
-      ST_CheckAndReplaceTranslationTextUI(DList1B20, true, "h@filter-ui");
-
-      local DList2B1 = DropDownList2Button1NormalText;
-      ST_CheckAndReplaceTranslationTextUI(DList2B1, true, "h@filter-ui");
-
-      local DList2B2 = DropDownList2Button2NormalText;
-      ST_CheckAndReplaceTranslationTextUI(DList2B2, true, "h@filter-ui");
-
-      local DList2B3 = DropDownList2Button3NormalText;
-      ST_CheckAndReplaceTranslationTextUI(DList2B3, true, "h@filter-ui");
-
-      local DList2B4 = DropDownList2Button4NormalText;
-      ST_CheckAndReplaceTranslationTextUI(DList2B4, true, "h@filter-ui");
-
-      local DList2B5 = DropDownList2Button5NormalText;
-      ST_CheckAndReplaceTranslationTextUI(DList2B5, true, "h@filter-ui");
-
-      local DList2B6 = DropDownList2Button6NormalText;
-      ST_CheckAndReplaceTranslationTextUI(DList2B6, true, "h@filter-ui");
-
-      local DList2B7 = DropDownList2Button7NormalText;
-      ST_CheckAndReplaceTranslationTextUI(DList2B7, true, "h@filter-ui");
-
-      local DList2B8 = DropDownList2Button8NormalText;
-      ST_CheckAndReplaceTranslationTextUI(DList2B8, true, "h@filter-ui");
-
-      local DList2B9 = DropDownList2Button9NormalText;
-      ST_CheckAndReplaceTranslationTextUI(DList2B9, true, "h@filter-ui");
-
-      local DList2B10 = DropDownList2Button10NormalText;
-      ST_CheckAndReplaceTranslationTextUI(DList2B10, true, "h@filter-ui");
-
-      local DList2B11 = DropDownList2Button11NormalText;
-      ST_CheckAndReplaceTranslationTextUI(DList2B11, true, "h@filter-ui");
-
-      local DList2B12 = DropDownList2Button12NormalText;
-      ST_CheckAndReplaceTranslationTextUI(DList2B12, true, "h@filter-ui");
-
-      local DList2B13 = DropDownList2Button13NormalText;
-      ST_CheckAndReplaceTranslationTextUI(DList2B13, true, "h@filter-ui");
    end
 end
 
@@ -2053,8 +1829,8 @@ function ST_CharacterFrame() -- https://imgur.com/FV5MXvb
       local ChFrame6 = CharacterFrameTab3.Text;                       -- Currency Tab
       ST_CheckAndReplaceTranslationTextUI(ChFrame6, true, "ui");
 
-      local ChFrame7 = ReputationDetailFactionDescription;            -- https://imgur.com/A77RwLM
-      local RDFactionName = ReputationDetailFactionName:GetText();    -- Faction Name
+      local ChFrame7 = ReputationFrame.ReputationDetailFrame.Description;            -- https://imgur.com/A77RwLM
+      local RDFactionName = ReputationFrame.ReputationDetailFrame.Title:GetText();    -- Faction Name
       ST_CheckAndReplaceTranslationTextUI(ChFrame7, true, "Factions:"..ST_RenkKoduSil(RDFactionName));
 
       local ChFrame8 = ReputationDetailAtWarCheckBoxText;             -- Check Box Text - At War
@@ -2066,25 +1842,14 @@ function ST_CharacterFrame() -- https://imgur.com/FV5MXvb
       local ChFrame10 = ReputationDetailMainScreenCheckBoxText;       -- Check Box Text - Show as Experience Bar
       ST_CheckAndReplaceTranslationTextUI(ChFrame10, true, "ui");
    end
-   
-   if (not WOWTR_wait(0.01, ST_CharacterFrameTekrar)) then
-   end  
-   
-end
 
--------------------------------------------------------------------------------------------------------
-
-function ST_CharacterFrameTekrar()
-   if ( ReputationDetailFrame:IsVisible()) then
-      ST_CharacterFrame();
-   end
 end
 
 -------------------------------------------------------------------------------------------------------
 
 --FRIENDS FRAME
 function ST_FriendsFrame()
---print("FRIENDS FRAME");
+--print("ST_FriendsFrame");
    if (TT_PS["ui6"] == "1") then
       local Friendsobj01 = FriendsFrameTitleText;
       ST_CheckAndReplaceTranslationTextUI(Friendsobj01, true, "ui");
@@ -2181,18 +1946,6 @@ function ST_FriendsFrame()
       local Friendsobj32 = RecruitAFriendFrame.RewardClaiming.EarnInfo;
       ST_CheckAndReplaceTranslationTextUI(Friendsobj32, true, "ui");
    end
-
-   if (not WOWTR_wait(0.2, ST_FriendsFrameTekrar)) then
-   end  
-   
-end
-
--------------------------------------------------------------------------------------------------------
-
-function ST_FriendsFrameTekrar()
-   if ( FriendsFrame:IsVisible()) then
-      ST_FriendsFrame();
-   end
 end
 
 -------------------------------------------------------------------------------------------------------
@@ -2208,7 +1961,7 @@ end
 
 -------------------------------------------------------------------------------------------------------
 
---SPLASH FRAME
+--SPLASH FRAME (What's New)
 function ST_SplashFrame()   -- https://imgur.com/80WLNbC       You can use FontFile: Original_Font1, Original_Font2
 --print("ST_SplashFrame");
    if (TT_PS["active"] == "1") then
@@ -2253,10 +2006,6 @@ function ST_SplashFrame()   -- https://imgur.com/80WLNbC       You can use FontF
       local SplashF09 = SplashFrame.RightFeature.Title;
       ST_CheckAndReplaceTranslationTextUI(SplashF09, true, "ui");
    end
-
-   if (not WOWTR_wait(0.01, ST_SplashFrameTekrar)) then
-   end  
-   
 end
 
 -------------------------------------------------------------------------------------------------------
@@ -2288,17 +2037,171 @@ function ST_PingSystemTutorial()   -- https://imgur.com/tv61op7      You can use
 
       local PST08 = PingSystemTutorial.Tutorial4.ImageBounds.TutorialBody3;
       ST_CheckAndReplaceTranslationTextUI(PST08, true, "ui");
-
    end
-
-   if (not WOWTR_wait(0.3, ST_PingSystemTutorialTekrar)) then
-   end  
-   
 end
 
-function ST_PingSystemTutorialTekrar()
-   if ( SettingsPanel:IsVisible()) then
-      ST_PingSystemTutorial();
+-------------------------------------------------------------------------------------------------------
+
+--BANK FRAME (Bank, Reagent, Warband Bank)
+function ST_WarbandBankFrm()
+--print("ST_WarbandBankFrm")
+   if (TT_PS["active"] == "1") then
+      local BANKFrame01 = AccountBankPanel.PurchasePrompt.Title;
+      ST_CheckAndReplaceTranslationTextUI(BANKFrame01, false, "ui");
+
+      local BANKFrame02 = AccountBankPanel.PurchasePrompt.PromptText;
+      ST_CheckAndReplaceTranslationTextUI(BANKFrame02, false, "ui");
+
+      local BANKFrame03 = AccountBankPanel.PurchasePrompt.TabCostFrame.PurchaseButton.Text;
+      ST_CheckAndReplaceTranslationTextUI(BANKFrame03, false, "ui");
+
+      local BANKFrame04 = AccountBankPanel.PurchasePrompt.TabCostFrame.TabCost;
+      ST_CheckAndReplaceTranslationTextUI(BANKFrame04, false, "ui");
+
+      local BANKFrame05 = AccountBankPanel.MoneyFrame.WithdrawButton.Text;
+      ST_CheckAndReplaceTranslationTextUI(BANKFrame05, false, "ui");
+
+      local BANKFrame06 = AccountBankPanel.MoneyFrame.DepositButton.Text;
+      ST_CheckAndReplaceTranslationTextUI(BANKFrame06, false, "ui");
+
+      local BANKFrame07 = AccountBankPanel.ItemDepositFrame.DepositButton.Text;
+      ST_CheckAndReplaceTranslationTextUI(BANKFrame07, false, "ui");
+
+      local BANKFrame08 = AccountBankPanel.ItemDepositFrame.IncludeReagentsCheckbox.Text;
+      ST_CheckAndReplaceTranslationTextUI(BANKFrame08, false, "ui");
+
+      local BANKFrame09 = BankItemSearchBox.Instructions;
+      ST_CheckAndReplaceTranslationTextUI(BANKFrame09, false, "ui");
+   end
+end
+
+-------------------------------------------------------------------------------------------------------
+
+--TOOLTIPS FRAME (click on chat frame) 
+function ST_ItemRefTooltip()			-- https://imgur.com/a/5Ooqnb2
+    local ignorePatterns = {
+        "^Achievement in progress by",
+        "^Achievement earned by",
+        "You completed this on "
+    }
+
+    local function shouldIgnore(text)
+        for _, pattern in ipairs(ignorePatterns) do
+            if text:find(pattern) then
+                return true
+            end
+        end
+        return false
+    end
+
+    for i = 2, 20 do
+        local itemRefLeft = _G["ItemRefTooltipTextLeft" .. i];
+        if itemRefLeft and itemRefLeft:GetText() and not shouldIgnore(itemRefLeft:GetText()) then
+            ST_CheckAndReplaceTranslationTextUI(itemRefLeft, true, "other");
+        end
+
+        local itemRefRight = _G["ItemRefTooltipTextRight" .. i];
+        if itemRefRight and itemRefRight:GetText() and not shouldIgnore(itemRefRight:GetText()) then
+            ST_CheckAndReplaceTranslationTextUI(itemRefRight, true, "other");
+        end
+    end
+end
+
+-------------------------------------------------------------------------------------------------------
+
+--ITEM UPGRADE FRAME
+function ST_ItemUpgradeFrm()			-- https://imgur.com/a/Vy6wNjO
+   if (TT_PS["ui1"] == "1") then
+	local ItemUpFrm01 = ItemUpgradeFrameTitleText;
+	ST_CheckAndReplaceTranslationTextUI(ItemUpFrm01, false, "ui");
+	local ItemUpFrm02 = ItemUpgradeFrame.ItemInfo.MissingItemText;
+	ST_CheckAndReplaceTranslationTextUI(ItemUpFrm02, false, "ui");
+	local ItemUpFrm03 = ItemUpgradeFrame.MissingDescription;
+	ST_CheckAndReplaceTranslationTextUI(ItemUpFrm03, false, "ui");
+	local ItemUpFrm04 = ItemUpgradeFrame.UpgradeButton.Text;
+	ST_CheckAndReplaceTranslationTextUI(ItemUpFrm04, false, "ui");
+	local ItemUpFrm05 = ItemUpgradeFrame.UpgradeCostFrame.Label;
+	ST_CheckAndReplaceTranslationTextUI(ItemUpFrm05, false, "ui");
+	local ItemUpFrm06 = ItemUpgradeFrame.ItemInfo.UpgradeTo;
+	ST_CheckAndReplaceTranslationTextUI(ItemUpFrm06, false, "ui");
+	local ItemUpFrm07 = ItemUpgradeFrameLeftItemPreviewFrameTextLeft1;
+	ST_CheckAndReplaceTranslationTextUI(ItemUpFrm07, false, "ui");
+	local ItemUpFrm08 = ItemUpgradeFrameRightItemPreviewFrameTextLeft1;
+	ST_CheckAndReplaceTranslationTextUI(ItemUpFrm08, false, "ui");
+   end
+end
+
+-------------------------------------------------------------------------------------------------------
+
+--WEEKLY REWARDS - GREAT VAULT FRAME
+function ST_WeeklyRewardsFrame()
+   if (TT_PS["ui1"] == "1") then
+    local WeeklyRFrm01 = WeeklyRewardsFrame.HeaderFrame.Text
+    ST_CheckAndReplaceTranslationTextUI(WeeklyRFrm01, false, "ui")
+    local WeeklyRFrm02 = WeeklyRewardsFrame.RaidFrame.Name
+    ST_CheckAndReplaceTranslationTextUI(WeeklyRFrm02, false, "ui")
+    local WeeklyRFrm03 = WeeklyRewardsFrame.MythicFrame.Name
+    ST_CheckAndReplaceTranslationTextUI(WeeklyRFrm03, false, "ui")
+    local WeeklyRFrm04 = WeeklyRewardsFrame.WorldFrame.Name
+    ST_CheckAndReplaceTranslationTextUI(WeeklyRFrm04, false, "ui")
+    if WeeklyRewardsFrame.Overlay and WeeklyRewardsFrame.Overlay.Title then
+        local WeeklyRFrm05 = WeeklyRewardsFrame.Overlay.Title
+        ST_CheckAndReplaceTranslationTextUI(WeeklyRFrm05, true, "ui")
+    end
+    if WeeklyRewardsFrame.Overlay and WeeklyRewardsFrame.Overlay.Text then
+        local WeeklyRFrm06 = WeeklyRewardsFrame.Overlay.Text
+        ST_CheckAndReplaceTranslationTextUI(WeeklyRFrm06, true, "ui")
+    end
+   end
+end
+
+-------------------------------------------------------------------------------------------------------
+
+-- EVENT UNLOCKED TEXT FRAME
+function ST_EventToastManagerFrame()
+   if (TT_PS["ui1"] == "1") then
+      local toast = EventToastManagerFrame.currentDisplayingToast
+      if toast then
+         local EventTextScreen01 = toast.Title
+         ST_CheckAndReplaceTranslationTextUI(EventTextScreen01, true, "Collections:TextEvent", WOWTR_Font1)
+         
+         local EventTextScreen02 = toast.SubTitle
+         ST_CheckAndReplaceTranslationTextUI(EventTextScreen02, true, "Collections:TextEvent")
+         
+         local EventTextScreen03 = toast.Description
+         ST_CheckAndReplaceTranslationTextUI(EventTextScreen03, true, "Collections:TextEvent")
+         
+         if toast.Contents then
+            local EventTextScreen04 = toast.Contents.Title
+            ST_CheckAndReplaceTranslationTextUI(EventTextScreen04, true, "Collections:TextEvent", WOWTR_Font1)
+            
+            local EventTextScreen05 = toast.Contents.SubTitle
+            ST_CheckAndReplaceTranslationTextUI(EventTextScreen05, true, "Collections:TextEvent")
+            
+            local EventTextScreen06 = toast.Contents.Description
+            ST_CheckAndReplaceTranslationTextUI(EventTextScreen06, true, "Collections:TextEvent")
+         end
+      end
+   end
+end
+
+-------------------------------------------------------------------------------------------------------
+
+-- RAID BOSS EMOTE FRAME
+function ST_RaidBossEmoteFrame()
+   if (TT_PS["ui1"] == "1") then
+	local RBossEmoteFrm04 = RaidBossEmoteFrame.slot1Text
+    ST_CheckAndReplaceTranslationTextUI(RBossEmoteFrm04, false, "Collections:Emote")
+    local RBossEmoteFrm05 = RaidBossEmoteFrame.slot2Text
+    ST_CheckAndReplaceTranslationTextUI(RBossEmoteFrm05, false, "Collections:Emote")
+    local RBossEmoteFrm06 = RaidBossEmoteFrame.slot3Text
+    ST_CheckAndReplaceTranslationTextUI(RBossEmoteFrm06, false, "Collections:Emote")
+    local RBossEmoteFrm01 = RaidBossEmoteFrame.slot1
+    ST_CheckAndReplaceTranslationTextUI(RBossEmoteFrm01, true, "Collections:Emote")
+    local RBossEmoteFrm02 = RaidBossEmoteFrame.slot2
+    ST_CheckAndReplaceTranslationTextUI(RBossEmoteFrm02, true, "Collections:Emote")
+    local RBossEmoteFrm03 = RaidBossEmoteFrame.slot3
+    ST_CheckAndReplaceTranslationTextUI(RBossEmoteFrm03, true, "Collections:Emote")
    end
 end
 
