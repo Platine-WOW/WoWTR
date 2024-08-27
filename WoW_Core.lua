@@ -1,9 +1,7 @@
-﻿-- Addon: WowTR (version: 10.50) 2024.04.17
--- Description: The AddOn displays the translated text information in Turkish
--- Autor: Platine
--- E-mail: platine.wow@gmail.com
-
----------------------------------------------------------------------------------------------------------
+-- Description: The AddOn displays the translated text information in chosen language
+-- Author: Platine [platine.wow@gmail.com]
+-- Co-Author: Dragonarab[WoWAR], Hakan YILMAZ[WoWTR]
+-------------------------------------------------------------------------------------------------------
 
 -- General Variables
 WOWTR_player_name = UnitName("player");
@@ -16,6 +14,7 @@ WOWTR_waitFrame = nil;
 ---------------------------------------------------------------------------------------------------------
 
 function StringHash(text)           -- funkcja tworząca Hash (32-bitowa liczba) podanego tekstu
+   if (not text or (#text == 0)) then return 0 end  -- Check if string is empty or nil
    local counter = 1;
    local pomoc = 0;
    local dlug = string.len(text);
@@ -59,6 +58,29 @@ function WOWTR_wait(delay, func, ...)           -- można też użyć funkcji sy
    end
    tinsert(WOWTR_waitTable,{delay,func,{...}});
    return true;
+end
+
+----------------------------------------------------------------------------------------------------------------------------------------
+-- Repetitive function and delay function until the frame is opened and closed
+
+local tickers = {}
+function StartTicker(frame, func, interval)
+    if not tickers[frame] then
+        --print("Ticker is activated: " .. tostring(frame:GetName()))
+        tickers[frame] = C_Timer.NewTicker(interval, function()
+            if frame:IsVisible() then
+                func()
+            else
+                --print("Ticker stopped: " .. tostring(frame:GetName()))
+                tickers[frame]:Cancel()
+                tickers[frame] = nil
+            end
+        end)
+    end
+end
+
+function StartDelayedFunction(func, delay)
+    C_Timer.After(delay, func)
 end
 
 ----------------------------------------------------------------------------------------------------------------------------------------
@@ -120,10 +142,10 @@ function WOWTR_CheckVars()
    if (not QTR_PS["fontsize"] ) then
       QTR_PS["fontsize"] = "13";   
    end
-   -- display own names in translation language
---   if (not QTR_PS["ownnames"] ) then
+   -- display own names in translation language (active in Polish version)
+   if (not QTR_PS["ownnames"] ) then
       QTR_PS["ownnames"] = "0";   
---   end
+   end
    -- activate the quest tracker translation ONLINE
    if (not QTR_PS["tracker"] ) then
       QTR_PS["tracker"] = "1";   
@@ -156,7 +178,9 @@ function WOWTR_CheckVars()
    if (not QTR_PS["FontFile"] ) then
       QTR_PS["FontFile"] = WOWTR_Fonts[1];   
    end
-   WOWTR_Font2 = WoWTR_Localization.mainFolder.."\\Fonts\\"..QTR_PS["FontFile"];
+   if (#WOWTR_Fonts > 1) then
+      WOWTR_Font2 = WoWTR_Localization.mainFolder.."\\Fonts\\"..QTR_PS["FontFile"];
+   end
 
    if (not QTR_PS.firstTimeLoaded) then   -- Automatic log cleaning (reset saved texts)
       QTR_PS.firstTimeLoaded = true;
@@ -355,7 +379,7 @@ end
 ----------------------------------------------------------------------------------------------------------------------------------------
 
 function WOWTR_onEvent(self, event, name, ...)
-   if (event=="ADDON_LOADED" and name==WoWTR_Localization.addonName) then
+   if (event=="ADDON_LOADED" and name==WoWTR_Localization.addonFolder) then
       self:UnregisterEvent("ADDON_LOADED");
       self:RegisterEvent("QUEST_ACCEPTED");
       self:RegisterEvent("QUEST_DETAIL");
@@ -385,6 +409,9 @@ function WOWTR_onEvent(self, event, name, ...)
       WOWTR_CheckVars();
       QTR_START();
       Config_OnEnable();
+      if (WoWTR_Localization.lang == 'AR') then
+         CHAT_START();
+      end
       TutorialFrame:HookScript("OnShow", TT_onTutorialShow);
       if (not PlayerChoiceFrame) then
          PlayerChoice_LoadUI();
@@ -411,42 +438,43 @@ function WOWTR_onEvent(self, event, name, ...)
          end );
       end
       
-      -- przycisk do przełączania wersji TR - EN dla talentów
-      WOWTR_ToggleButtonS = CreateFrame("Button", nil, SpellBookFrame, "UIPanelButtonTemplate");
-      WOWTR_ToggleButtonS:SetWidth(150);
-      WOWTR_ToggleButtonS:SetHeight(22);
-      WOWTR_ToggleButtonS:SetFrameStrata("HIGH")
-      if (ST_PM["spell"] == "1") then
-         WOWTR_ToggleButtonS:SetText(WoWTR_Localization.WoWTR_Spellbook_trDESC);
-      else
-         WOWTR_ToggleButtonS:SetText(WoWTR_Localization.WoWTR_Spellbook_enDESC);
-      end
-      WOWTR_ToggleButtonS:ClearAllPoints();
-      WOWTR_ToggleButtonS:SetPoint("TOPLEFT", SpellBookFrame, "TOPLEFT", 210, -1);
-      WOWTR_ToggleButtonS:SetScript("OnClick", STspell_ON_OFF);
+      -- -- przycisk do przełączania wersji TR - EN dla talentów
+      -- WOWTR_ToggleButtonS = CreateFrame("Button", nil, SpellBookFrame, "UIPanelButtonTemplate");
+      -- WOWTR_ToggleButtonS:SetWidth(150);
+      -- WOWTR_ToggleButtonS:SetHeight(22);
+      -- WOWTR_ToggleButtonS:SetFrameStrata("HIGH")
+      -- if (ST_PM["spell"] == "1") then
+         -- WOWTR_ToggleButtonS:SetText(WoWTR_Localization.WoWTR_Spellbook_trDESC);
+      -- else
+         -- WOWTR_ToggleButtonS:SetText(WoWTR_Localization.WoWTR_Spellbook_enDESC);
+      -- end
+      -- WOWTR_ToggleButtonS:ClearAllPoints();
+      -- WOWTR_ToggleButtonS:SetPoint("TOPLEFT", SpellBookFrame, "TOPLEFT", 210, -1);
+      -- WOWTR_ToggleButtonS:SetScript("OnClick", STspell_ON_OFF);
 
-      SpellBookFrame:HookScript("OnShow", function()
-         if (ST_PM["active"] == "1") then
-            WOWTR_ToggleButtonS:Show();
-         else
-            WOWTR_ToggleButtonS:Hide();
-         end
-      end);
-      
-      StaticPopup1:HookScript("OnShow", ST_StaticPopup1);
-      StaticPopup2:HookScript("OnShow", ST_StaticPopup1);
-      DropDownList1:HookScript("OnShow", ST_FilterandButtons);
-      DropDownList2:HookScript("OnShow", ST_FilterandButtons);
+      -- SpellBookFrame:HookScript("OnShow", function()
+         -- if (ST_PM["active"] == "1") then
+            -- WOWTR_ToggleButtonS:Show();
+         -- else
+            -- WOWTR_ToggleButtonS:Hide();
+         -- end
+      -- end);
+
+      StaticPopup1:HookScript("OnShow", function() StartTicker(StaticPopup1, ST_StaticPopup1, 0.1) end);
+      StaticPopup2:HookScript("OnShow", function() StartTicker(StaticPopup1, ST_StaticPopup1, 0.1) end);
       GameMenuFrame:HookScript("OnShow", ST_GameMenuTranslate);
       MerchantFrame:HookScript("OnShow", ST_MerchantFrame);
-      PVEFrame:HookScript("OnShow", ST_GroupFinder);
-      WorldMapFrame.NavBar.overlay:HookScript("OnUpdate", ST_WorldMapFunc);
-      CharacterFrame:HookScript("OnShow", ST_CharacterFrame);
-      FriendsFrame:HookScript("OnShow", ST_FriendsFrame);
-      HelpPlateTooltip:HookScript("OnShow", ST_HelpPlateTooltip);  
-      ReputationDetailFrame:HookScript("OnShow", ST_CharacterFrame);
-      SplashFrame:HookScript("OnShow", ST_SplashFrame);
-      PingSystemTutorialTitleText:HookScript("OnShow", ST_PingSystemTutorial);
+      PVEFrame:HookScript("OnShow", function() StartTicker(PVEFrame, ST_GroupFinder, 0.2) end);
+      WorldMapFrame:HookScript("OnShow", function() StartTicker(WorldMapFrame, ST_WorldMapFunc, 0.2) end);
+      CharacterFrame:HookScript("OnShow", function() StartTicker(CharacterFrame, ST_CharacterFrame, 0.2) end);
+      FriendsFrame:HookScript("OnShow", function() StartTicker(FriendsFrame, ST_FriendsFrame, 0.2) end);
+      HelpPlateTooltip:HookScript("OnShow", function() StartTicker(HelpPlateTooltip, ST_HelpPlateTooltip, 0.2) end);
+      SplashFrame:HookScript("OnShow", function() StartTicker(SplashFrame, ST_SplashFrame, 0.1) end);
+      PingSystemTutorialTitleText:HookScript("OnShow", function() StartTicker(PingSystemTutorialTitleText, ST_PingSystemTutorial, 0.2) end);
+      BankFrame:HookScript("OnShow", function() StartTicker(BankFrame, ST_WarbandBankFrm, 0.2) end);
+      ItemRefTooltip:HookScript("OnShow", function() StartTicker(ItemRefTooltip, ST_ItemRefTooltip, 0.2) end);
+	  EventToastManagerFrame:HookScript("OnShow", function() StartTicker(EventToastManagerFrame, ST_EventToastManagerFrame, 0.2) end);
+	  RaidBossEmoteFrame:HookScript("OnShow", function() StartTicker(RaidBossEmoteFrame, ST_RaidBossEmoteFrame, 0.2) end);
       BB_OknoTRonline();
       DEFAULT_CHAT_FRAME:AddMessage("|cffffff00"..WoWTR_Localization.addonName.."  ver. "..WOWTR_version.." - "..WoWTR_Localization.started);
       if ((not QTR_PS["welcome"]) and (string.len(WoWTR_Config_Interface.welcomeText) > 1)) then
@@ -520,12 +548,18 @@ function STspell_ON_OFF()
    if (ST_PM["spell"] == "1") then
       ST_PM["spell"] = "0";
       WOWTR_ToggleButtonS:SetText(WoWTR_Localization.WoWTR_Spellbook_enDESC);
+      WOWTR_ToggleButtonS:GetFontString():SetFont(WOWTR_ToggleButtonS:GetFontString():GetFont(), 7)
    else
       ST_PM["spell"] = "1";
-      WOWTR_ToggleButtonS:SetText(WoWTR_Localization.WoWTR_Spellbook_trDESC);
+      if (WoWTR_Localization.lang == 'AR') then
+         WOWTR_ToggleButtonS:SetText(QTR_ReverseIfAR(WoWTR_Localization.WoWTR_Spellbook_trDESC));
+         WOWTR_ToggleButtonS:GetFontString():SetFont(WOWTR_Font2, 7)
+      else
+         WOWTR_ToggleButtonS:SetText(WoWTR_Localization.WoWTR_Spellbook_trDESC);
+         WOWTR_ToggleButtonS:GetFontString():SetFont(WOWTR_ToggleButtonS:GetFontString():GetFont(), 7)
+      end
    end
 end
-
 ----------------------------------------------------------------------------------------------------------------------------------------
 
 if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
