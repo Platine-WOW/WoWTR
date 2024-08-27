@@ -1,8 +1,6 @@
--- Addon: WoWTR-Books (version: 10.E8) 2024.06.30
 -- Description: The AddOn displays the translated text information in chosen language
--- Author: Platine
--- E-mail: platine.wow@gmail.com
-
+-- Author: Platine [platine.wow@gmail.com]
+-- Co-Author: Dragonarab[WoWAR], Hakan YILMAZ[WoWTR]
 -------------------------------------------------------------------------------------------------------
 
 -- Local Variables
@@ -22,16 +20,24 @@ function BookTranslator_ShowTranslation()
       BT_tytul_en=ItemTextGetItem();
       BT_tekst_en=ItemTextGetText();
       BT_nr_str=tostring(ItemTextGetPage());
+      if (BT_nr_str == nil) then
+         BT_nr_str = '1';
+      end
       BT_bookID = 0;
-      local par1, par2, par3 =  C_Item.GetItemInfo(ItemTextGetItem());
-      if (par2) then
+      local par1, par2, par3 = C_Item.GetItemInfo(ItemTextGetItem());
+      local BT_bookIDsh = tostring(StringHash(BT_tekst_en));
+      if ((BT_tytul_en == "Plain Letter") or (BT_tytul_en == "Order of Night Propaganda") or (BT_Books[BT_bookIDsh])) then
+         BT_bookID = BT_bookIDsh;
+      elseif (par2) then
          local pa1, itemID, pa3 = strsplit(":",par2);
          BT_bookID = itemID;
       else
          local BT_beginTXT=string.gsub(BT_tekst_en,"\n","");
          local BT_znacznik=BT_tytul_en.."#"..BT_nr_str.."#"..string.sub(BT_beginTXT,1,15);
-         if (BT_BooksID[BT_znacznik]) then                -- jest znacznik w bazie ID - pobierz bookID
-            BT_bookID = BT_BooksID[BT_znacznik];          -- jako string
+         if (BT_BooksID[BT_znacznik]) then             -- jest znacznik w bazie ID - pobierz bookID
+            BT_bookID = BT_BooksID[BT_znacznik];       -- jako string
+         else
+            BT_bookID = BT_bookIDsh;
          end
       end
       if (BT_bookID and (tonumber(BT_bookID)>0)) then
