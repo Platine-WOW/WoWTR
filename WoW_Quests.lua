@@ -1,9 +1,8 @@
--- Addon: WoW_Quests (version: 10.A52) 2024.04.27
 -- Description: The AddOn displays the translated text information in chosen language
--- Author: Platine
--- E-mail: platine.wow@gmail.com
+-- Author: Platine [platine.wow@gmail.com]
+-- Co-Author: Dragonarab[WoWAR], Hakan YILMAZ[WoWTR]
+-------------------------------------------------------------------------------------------------------
 
--------------------------------------------------------------------------------------------------------------------
 -- Test both version 11.00 and 10.2.7 will be delete it after testing
 local version, build, date, tocversion = GetBuildInfo()
 local qtrmajor, qtrminor, qtrpatch = strsplit(".", version)
@@ -396,7 +395,7 @@ function QTR_Gossip_Show()
             GossipTextFrame = GTxtframe;
          else
             if (((GTtype==3) or (GTtype==4) or (GTtype==5)) and (QTR_PS["gossip"]=="1") and (string.find(GTxtframe:GetText()," ")==nil)) then    -- gossip options
-               local GOptionText = WOWTR_DetectAndReplacePlayerName(GTxtframe:GetText());
+               local GOptionText = WOWTR_DetectAndReplacePlayerName(GTxtframe:GetText(), nil, '$N');     -- detect only name of player
                local prefix = "";
                local sufix = "";
                if (string.sub(GOptionText,1,2) == "|c") then
@@ -405,7 +404,8 @@ function QTR_Gossip_Show()
                   GOptionText = string.gsub(GOptionText, prefix, "");
                   GOptionText = string.gsub(GOptionText, sufix, "");
                end
-               local OptHash = StringHash(GOptionText);
+               local Czysty_Text = WOWTR_DeleteSpecialCodes(GOptionText, '$N');
+               local OptHash = StringHash(Czysty_Text);
                if (GO_resized > 0) then
                   local point, relativeTo, relativePoint, xOfs, yOfs = GTxtframe:GetPoint(1);
                   GTxtframe:ClearAllPoints();
@@ -526,8 +526,9 @@ function GossipOnQuestFrame()       -- frame: QuestFrame
                   GossText = string.gsub(GossText, prefix, "");
                   GossText = string.gsub(GossText, sufix, "");
                end
-               local GOptionText = WOWTR_DetectAndReplacePlayerName(GossText);
-               local TitleHash = StringHash(GossText);
+               local GOptionText = WOWTR_DetectAndReplacePlayerName(GossText, nil, '$N');    -- detect only name of player
+               local Czysty_Text = WOWTR_DeleteSpecialCodes(GOptionText, '$N');
+               local TitleHash = StringHash(Czysty_text);
                if (GO_resized > 0) then
                   local point, relativeTo, relativePoint, xOfs, yOfs = GText:GetPoint(1);
                   GText:ClearAllPoints();
@@ -597,15 +598,17 @@ function GossipOnQuestFrame()       -- frame: QuestFrame
    local QFGoodbyeBtext = QuestFrameGoodbyeButtonText;
    ST_CheckAndReplaceTranslationText(QFGoodbyeBtext, true, "ui",false,true);
 
+   local QFNoticetext = QuestInfoAccountCompletedNotice;
+   ST_CheckAndReplaceTranslationText(QFNoticetext, true, "ui",false,true);
 end
 
 -------------------------------------------------------------------------------------------------------------------
 
 function QTR_SaveQuest(event)
    if (event=="QUEST_DETAIL") then
-      QTR_SAVED[QTR_quest_ID.." TITLE"]=GetTitleText();            -- save original title to future translation
-      QTR_SAVED[QTR_quest_ID.." DESCRIPTION"]=WOWTR_DetectAndReplacePlayerName(GetQuestText());      -- save original text to future translation
-      QTR_SAVED[QTR_quest_ID.." OBJECTIVE"]=WOWTR_DetectAndReplacePlayerName(GetObjectiveText());    -- save original text to future translation
+      QTR_SAVED[QTR_quest_ID.." TITLE"]=C_QuestLog.GetTitleForQuestID(QTR_quest_ID);            -- save original title to future translation
+      QTR_SAVED[QTR_quest_ID.." DESCRIPTION"]=WOWTR_DetectAndReplacePlayerName(QuestInfoDescriptionText:GetText());      -- save original text to future translation
+      QTR_SAVED[QTR_quest_ID.." OBJECTIVE"]=WOWTR_DetectAndReplacePlayerName(QuestInfoObjectivesText:GetText());    -- save original text to future translation
       local QTR_mapID = C_Map.GetBestMapForUnit("player");
       if (QTR_mapID) then
          local QTR_mapINFO = C_Map.GetMapInfo(QTR_mapID);
@@ -616,10 +619,10 @@ function QTR_SaveQuest(event)
       QTR_SAVED[QTR_quest_ID.." PROGRESS"]=WOWTR_DetectAndReplacePlayerName(GetProgressText());      -- save original text to future translation
    end
    if (event=="QUEST_COMPLETE") then
-      QTR_SAVED[QTR_quest_ID.." COMPLETE"]=WOWTR_DetectAndReplacePlayerName(GetRewardText());        -- save original text to future translation
+      QTR_SAVED[QTR_quest_ID.." COMPLETE"]=WOWTR_DetectAndReplacePlayerName(QuestInfoRewardText:GetText());        -- save original text to future translation
    end
    if (QTR_SAVED[QTR_quest_ID.." TITLE"]==nil) then
-      QTR_SAVED[QTR_quest_ID.." TITLE"]=GetTitleText();            -- zapisz tytuł w przypadku tylko Zakończenia
+      QTR_SAVED[QTR_quest_ID.." TITLE"]=C_QuestLog.GetTitleForQuestID(QTR_quest_ID);            -- zapisz tytuł w przypadku tylko Zakończenia
    end
    QTR_SAVED[QTR_quest_ID.." PLAYER"]=WOWTR_player_name..'@'..WOWTR_player_race..'@'..WOWTR_player_class;  -- zapisz dane gracza
 end
@@ -687,7 +690,7 @@ function QTR_START()
    QTR_IconAI:SetPoint("TOPRIGHT", QTR_ToggleButtonGS1, "TOPRIGHT", 40, 0)
    QTR_IconAI:SetWidth(24)
    QTR_IconAI:SetHeight(24)
-   QTR_IconAI:SetTexture(WoWTR_Localization.mainFolder.."\\Fonts\\images\\icon_ai.png")
+   QTR_IconAI:SetTexture(WoWTR_Localization.mainFolder.."\\Images\\icon_ai.png")
    QTR_IconAI:SetScript("OnEnter", function(self)
       GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
       GameTooltip:ClearLines()
@@ -707,7 +710,7 @@ function QTR_START()
    GoQ_IconAI:SetPoint("TOPRIGHT", QTR_ToggleButton0, "TOPRIGHT", 72, 0)
    GoQ_IconAI:SetWidth(24)
    GoQ_IconAI:SetHeight(24)
-   GoQ_IconAI:SetTexture(WoWTR_Localization.mainFolder.."\\Fonts\\images\\icon_ai.png")
+   GoQ_IconAI:SetTexture(WoWTR_Localization.mainFolder.."\\Images\\icon_ai.png")
    GoQ_IconAI:SetScript("OnEnter", function(self)
       GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
       GameTooltip:ClearLines()
@@ -722,24 +725,26 @@ function QTR_START()
    end)
    GoQ_IconAI:Hide()
 
-   -- Ensure QUEST_TRACKER_MODULE exists before hooking functions
+   -- Ensure QUEST_TRACKER_MODULE exists before hooking functions (QUEST TRACKER IS NOT SERVICES)
    if QUEST_TRACKER_MODULE then
-      -- Function called on clicking a quest name in QuestTracker   
-      hooksecurefunc(QUEST_TRACKER_MODULE, "OnBlockHeaderClick", QTR_PrepareReload)
+--      -- Function called on clicking a quest name in QuestTracker   
+--      hooksecurefunc(QUEST_TRACKER_MODULE, "OnBlockHeaderClick", QTR_PrepareReload)
       -- Function called on updating QuestTracker
       hooksecurefunc(QUEST_TRACKER_MODULE, "EnumQuestWatchData", QTR_ObjectiveTracker_Check)
    end
 
    WorldMapFrame:HookScript("OnHide", function() 
-      if (not WOWTR_wait(0.1, QTR_ObjectiveTracker_QuestHeader)) then
+      if (not WOWTR_wait(0.01, QTR_ObjectiveTrackerFrame_Titles)) then
       -- opóźnienie 0.1 sek
       end
    end );
+
    WorldMapFrame:HookScript("OnShow", function() 
       if (not WOWTR_wait(0.2, QTR_QuestScrollFrame_OnShow)) then
       -- opóźnienie 0.2 sek
       end
-   end );
+    WOWTR_wait(0.01, QTR_ObjectiveTrackerFrame_Titles)
+   end);
    
    hooksecurefunc("QuestLogQuests_Update", QTR_QuestLogQuests_Update)
    
@@ -751,12 +756,7 @@ function QTR_START()
    QuestFrameAcceptButton:HookScript("OnClick", QTR_QuestFrameButton_OnClick)
    QuestFrameCompleteQuestButton:HookScript("OnClick", QTR_QuestFrameButton_OnClick)
    QuestLogPopupDetailFrame:HookScript("OnShow", QTR_QuestLogPopupShow)
-   
-   QuestMapFrame.CampaignOverview:HookScript("OnShow", function() 
-      if (not WOWTR_wait(0.1, TT_CampaignOverview)) then
-      -- Delay of 0.1 sec
-      end
-   end)
+   QuestMapFrame.CampaignOverview:HookScript("OnShow", function() StartDelayedFunction(TT_CampaignOverview, 0.5) end)
    
    isClassicQuestLog()
    isImmersion()
@@ -775,18 +775,19 @@ end
 
 -------------------------------------------------------------------------------------------------------------------
 
-function QTR_ObjectiveTracker_QuestHeader()
-   if ( QTR_PS["active"]=="1" and QTR_PS["tracker"]=="1" ) then   -- tłumaczenia włączone
-      --10.2.7
-      local _font1, _size1, _3 = QuestObjectiveTracker.Header.Text:GetFont();   -- odczytaj aktualną czcionkę i rozmiar
-      QuestObjectiveTracker.Header.Text:SetText(QTR_ReverseIfAR(WoWTR_Localization.quests));
-      QuestObjectiveTracker.Header.Text:SetFont(WOWTR_Font2, _size1);
-      --11.00
-      --local _font1, _size1, _3 = QuestObjectiveTracker.Header.Text:GetFont();   -- odczytaj aktualną czcionkę i rozmiar
-      --QuestObjectiveTracker.Header.Text:SetText(QTR_ReverseIfAR(WoWTR_Localization.quests));
-      --QuestObjectiveTracker.Header.Text:SetFont(WOWTR_Font2, _size1);
-   end
-end
+-- function QTR_ObjectiveTracker_QuestHeader()
+-- print("questheader")
+   -- if ( QTR_PS["active"]=="1" and QTR_PS["tracker"]=="1" ) then   -- tłumaczenia włączone
+      -- --10.2.7
+      -- --local _font1, _size1, _3 = QuestObjectiveTracker.Header.Text:GetFont();   -- odczytaj aktualną czcionkę i rozmiar
+      -- --QuestObjectiveTracker.Header.Text:SetText(QTR_ReverseIfAR(WoWTR_Localization.quests));
+      -- --QuestObjectiveTracker.Header.Text:SetFont(WOWTR_Font2, _size1);
+      -- --11.00
+      -- local _font1, _size1, _3 = QuestObjectiveTracker.Header.Text:GetFont();   -- odczytaj aktualną czcionkę i rozmiar
+      -- --QuestObjectiveTracker.Header.Text:SetText(QTR_ReverseIfAR(WoWTR_Localization.quests));
+      -- --QuestObjectiveTracker.Header.Text:SetFont(WOWTR_Font2, _size1);
+   -- end
+-- end
 
 -------------------------------------------------------------------------------------------------------------------
 
@@ -794,17 +795,24 @@ function QTR_QuestScrollFrame_OnShow()
    if (QTR_PS["active"]=="1" and QTR_PS["tracker"]=="1") then   -- translations enabled
       if (QuestScrollFrame.Contents.StoryHeader.Progress and QuestScrollFrame.Contents.StoryHeader.Progress:GetText()) then
          local txt = QuestScrollFrame.Contents.StoryHeader.Progress:GetText();
+         
          txt = string.gsub(txt, "Story Progress", QTR_ReverseIfAR(WoWTR_Localization.storyLineProgress));
          txt = string.gsub(txt, "Chapters", QTR_ReverseIfAR(WoWTR_Localization.storyLineChapters));
 
          local _font1, _size1, _3 = QuestScrollFrame.Contents.StoryHeader.Progress:GetFont();   -- get current font and size
-         QuestScrollFrame.Contents.StoryHeader.Progress:SetText(QTR_ReverseIfAR(txt));
+         QuestScrollFrame.Contents.StoryHeader.Progress:SetText(txt);
          QuestScrollFrame.Contents.StoryHeader.Progress:SetFont(WOWTR_Font2, _size1);
+         
          if (WoWTR_Localization.lang == 'AR') then
             -- Set text alignment to right using anchors
             QuestScrollFrame.Contents.StoryHeader.Progress:ClearAllPoints();
             QuestScrollFrame.Contents.StoryHeader.Progress:SetPoint("TOPRIGHT", QuestScrollFrame.Contents.StoryHeader, "TOPRIGHT", -10, -40);
             QuestScrollFrame.Contents.StoryHeader.Progress:SetJustifyH("RIGHT");
+         else
+            -- For other languages, set alignment to left
+            QuestScrollFrame.Contents.StoryHeader.Progress:ClearAllPoints();
+            QuestScrollFrame.Contents.StoryHeader.Progress:SetPoint("TOPLEFT", QuestScrollFrame.Contents.StoryHeader, "TOPLEFT", 10, -40);
+            QuestScrollFrame.Contents.StoryHeader.Progress:SetJustifyH("LEFT");
          end
       end
    end
@@ -1057,81 +1065,116 @@ objectiveSpecials = {
 -------------------------------------------------------------------------------------------------------------------
 
 function QTR_ObjectiveTracker_Check()
-   --10.2.7
-   if ( QUEST_TRACKER_MODULE.usedBlocks.ObjectiveTrackerBlockTemplate and QTR_PS["active"]=="1" and QTR_PS["tracker"]=="1" ) then   -- tłumaczenia włączone
-      ObjectiveTrackerFrame.HeaderMenu.Title:SetText(QTR_ReverseIfAR(WoWTR_Localization.objectives));
-      ObjectiveTrackerFrame.HeaderMenu.Title:SetFont(WOWTR_Font2, 16);
-      ObjectiveTrackerBlocksFrame.QuestHeader.Text:SetFont(WOWTR_Font2, 16);
-   --11.00   
-   --if ( QTR_PS["active"]=="1" and QTR_PS["tracker"]=="1" ) then   -- tłumaczenia włączone
-   --   ObjectiveTrackerFrame.Header.Text:SetText(QTR_ReverseIfAR(WoWTR_Localization.objectives));
-   --   ObjectiveTrackerFrame.Header.Text:SetFont(WOWTR_Font2, 16);
-   --   QuestObjectiveTracker.Header.Text:SetFont(WOWTR_Font2, 16);
-      if (WoWTR_Localization.lang == 'AR') then
-         --Added New Translation Campaign and Scenario for Arabic only
-         ObjectiveTrackerBlocksFrame.CampaignQuestHeader.Text:SetFont(WOWTR_Font2, 16);
-         ObjectiveTrackerBlocksFrame.ScenarioHeader.Text:SetFont(WOWTR_Font2, 16);
-         ObjectiveTrackerBlocksFrame.CampaignQuestHeader.Text:SetText(QTR_ReverseIfAR(WoWTR_Localization.campaignquests));
-         ObjectiveTrackerBlocksFrame.ScenarioHeader.Text:SetText(QTR_ReverseIfAR(WoWTR_Localization.scenariodung));
-         --Make LEFT
-         ObjectiveTrackerBlocksFrame.CampaignQuestHeader.Text:SetJustifyH("LEFT");
-         ObjectiveTrackerBlocksFrame.ScenarioHeader.Text:SetJustifyH("LEFT");
-         --10.2.7
-         ObjectiveTrackerBlocksFrame.QuestHeader.Text:SetJustifyH("LEFT");
-         --11.00
-         --QuestObjectiveTracker.Header.Text:SetJustifyH("LEFT");
-      end
-      --10.2.7
-      ObjectiveTrackerBlocksFrame.QuestHeader.Text:SetText(QTR_ReverseIfAR(WoWTR_Localization.quests));   -- może: QTR_ExpandUnitInfo ?
-      --11.00
-      --QuestObjectiveTracker.Header.Text:SetText(QTR_ReverseIfAR(WoWTR_Localization.quests));   -- może: QTR_ExpandUnitInfo ?
-      for questID, block in pairs(QUEST_TRACKER_MODULE.usedBlocks.ObjectiveTrackerBlockTemplate) do
-         local str_ID = tostring(questID);
-         if (str_ID and QTR_PS["transtitle"]=="1" and QTR_QuestData[str_ID] and block.HeaderText) then  -- tłumaczenie tytułu
-            block.HeaderText:SetText(QTR_ReverseIfAR(QTR_ExpandUnitInfo(QTR_QuestData[str_ID]["Title"]),false,block.HeaderText,WOWTR_Font2));
-            if (WoWTR_Localization.lang == 'AR') then
-               block.HeaderText:SetFont(WOWTR_Font2, 14);
-            else
-               block.HeaderText:SetFont(WOWTR_Font2, 11);
-            end
-            QTR_ResizeBlock(block.HeaderText);
-         end
-         local objectives = block.lines;
-         for special, func in pairs(objectiveSpecials) do
-            if (questID and objectives[special]) then
-               func(objectives[special].Text, questID);
-            end
-         end
-         if (block.currentLine and block.currentLine.Text) then
-            local qtr_obj = block.currentLine.Text:GetText();
-            for qtr_en, qtr_pl in pairsByKeys(QTR_Tlumacz_Online) do
-               qtr_obj = string.gsub(qtr_obj, qtr_en, qtr_pl);
-            end
-            block.currentLine.Text:SetText(QTR_ReverseIfAR(qtr_obj));    -- może: QTR_ExpandUnitInfo ?
-            if (WoWTR_Localization.lang == 'AR') then
-               block.currentLine.Text:SetFont(WOWTR_Font2, 13);
-            else
-               block.currentLine.Text:SetFont(WOWTR_Font2, 11);
-            end
-            QTR_ResizeBlock(block.currentLine.Text);
-         end
-         for index = 1, #objectives do
-            if ((index <= #objectives) and objectives[index]) then
-               local qtr_obj = objectives[index].Text:GetText();
-               for qtr_en, qtr_pl in pairsByKeys(QTR_Tlumacz_Online) do
-                  qtr_obj = string.gsub(qtr_obj, qtr_en, qtr_pl);
-               end
-               objectives[index].Text:SetText(QTR_ReverseIfAR(qtr_obj)); -- może: QTR_ExpandUnitInfo ?
-               if (WoWTR_Localization.lang == 'AR') then
-                  objectives[index].Text:SetFont(WOWTR_Font2, 13);
-               else
-                  objectives[index].Text:SetFont(WOWTR_Font2, 11);
-               end
-               QTR_ResizeBlock(objectives[index].Text);
-            end
-         end
-      end
+   if ( QTR_PS["active"]=="1" and QTR_PS["tracker"]=="1" ) then   -- tłumaczenia włączone
+      -- ObjectiveTrackerFrame.Header.Text:SetText(QTR_ReverseIfAR(WoWTR_Localization.objectives));
+      -- ObjectiveTrackerFrame.Header.Text:SetFont(WOWTR_Font2, 16);
+      -- QuestObjectiveTracker.Header.Text:SetFont(WOWTR_Font2, 16);
+      -- if (WoWTR_Localization.lang == 'AR') then
+         -- --Added New Translation Campaign and Scenario for Arabic only
+         -- ObjectiveTrackerBlocksFrame.CampaignQuestHeader.Text:SetFont(WOWTR_Font2, 16);
+         -- ObjectiveTrackerBlocksFrame.ScenarioHeader.Text:SetFont(WOWTR_Font2, 16);
+         -- ObjectiveTrackerBlocksFrame.CampaignQuestHeader.Text:SetText(QTR_ReverseIfAR(WoWTR_Localization.campaignquests));
+         -- ObjectiveTrackerBlocksFrame.ScenarioHeader.Text:SetText(QTR_ReverseIfAR(WoWTR_Localization.scenariodung));
+         -- --Make LEFT
+         -- ObjectiveTrackerBlocksFrame.CampaignQuestHeader.Text:SetJustifyH("LEFT");
+         -- ObjectiveTrackerBlocksFrame.ScenarioHeader.Text:SetJustifyH("LEFT");
+         -- -- --10.2.7
+         -- -- --ObjectiveTrackerBlocksFrame.QuestHeader.Text:SetJustifyH("LEFT");
+         -- -- --11.00
+         -- QuestObjectiveTracker.Header.Text:SetJustifyH("LEFT");
+      -- end
+      -- --10.2.7
+      -- --ObjectiveTrackerBlocksFrame.QuestHeader.Text:SetText(QTR_ReverseIfAR(WoWTR_Localization.quests));   -- może: QTR_ExpandUnitInfo ?
+      -- --11.00
+      -- QuestObjectiveTracker.Header.Text:SetText(QTR_ReverseIfAR(WoWTR_Localization.quests));   -- może: QTR_ExpandUnitInfo ?
+
+--      for questID, block in pairs(QUEST_TRACKER_MODULE.usedBlocks.ObjectiveTrackerBlockTemplate) do
+--         local str_ID = tostring(questID);
+--         if (str_ID and QTR_PS["transtitle"]=="1" and QTR_QuestData[str_ID] and block.HeaderText) then  -- tłumaczenie tytułu
+--            block.HeaderText:SetText(QTR_ReverseIfAR(QTR_ExpandUnitInfo(QTR_QuestData[str_ID]["Title"]),false,block.HeaderText,WOWTR_Font2));
+--            if (WoWTR_Localization.lang == 'AR') then
+--               block.HeaderText:SetFont(WOWTR_Font2, 14);
+--            else
+--               block.HeaderText:SetFont(WOWTR_Font2, 11);
+--            end
+--            QTR_ResizeBlock(block.HeaderText);
+--         end
+--         local objectives = block.lines;
+--         for special, func in pairs(objectiveSpecials) do
+--            if (questID and objectives[special]) then
+--               func(objectives[special].Text, questID);
+--            end
+--         end
+--         if (block.currentLine and block.currentLine.Text) then
+--            local qtr_obj = block.currentLine.Text:GetText();
+--            for qtr_en, qtr_pl in pairsByKeys(QTR_Tlumacz_Online) do
+--               qtr_obj = string.gsub(qtr_obj, qtr_en, qtr_pl);
+--            end
+--            block.currentLine.Text:SetText(QTR_ReverseIfAR(qtr_obj));    -- może: QTR_ExpandUnitInfo ?
+--            if (WoWTR_Localization.lang == 'AR') then
+--               block.currentLine.Text:SetFont(WOWTR_Font2, 13);
+--            else
+--               block.currentLine.Text:SetFont(WOWTR_Font2, 11);
+--            end
+--            QTR_ResizeBlock(block.currentLine.Text);
+--         end
+--         for index = 1, #objectives do
+--            if ((index <= #objectives) and objectives[index]) then
+--               local qtr_obj = objectives[index].Text:GetText();
+--               for qtr_en, qtr_pl in pairsByKeys(QTR_Tlumacz_Online) do
+--                  qtr_obj = string.gsub(qtr_obj, qtr_en, qtr_pl);
+--               end
+--               objectives[index].Text:SetText(QTR_ReverseIfAR(qtr_obj)); -- może: QTR_ExpandUnitInfo ?
+--               if (WoWTR_Localization.lang == 'AR') then
+--                  objectives[index].Text:SetFont(WOWTR_Font2, 13);
+--               else
+--                  objectives[index].Text:SetFont(WOWTR_Font2, 11);
+--               end
+--               QTR_ResizeBlock(objectives[index].Text);
+--            end
+--         end
+--      end
    end
+end
+
+-------------------------------------------------------------------------------------------------------------------
+
+function QTR_ObjectiveTrackerFrame_Titles()                       -- Translation of Quest Tracker titles
+	if ( QTR_PS["active"]=="1" and QTR_PS["tracker"]=="1" ) then   -- Translations included
+			 ObjectiveTrackerFrame.Header.Text:SetText(QTR_ReverseIfAR(WoWTR_Localization.objectives));
+			 ObjectiveTrackerFrame.Header.Text:SetFont(WOWTR_Font2, 14);
+			 QuestObjectiveTracker.Header.Text:SetText(QTR_ReverseIfAR(WoWTR_Localization.quests));
+			 QuestObjectiveTracker.Header.Text:SetFont(WOWTR_Font2, 14);
+			 WorldQuestObjectiveTracker.Header.Text:SetText(QTR_ReverseIfAR(WoWTR_Localization.worldquests));
+			 WorldQuestObjectiveTracker.Header.Text:SetFont(WOWTR_Font2, 14);
+			 CampaignQuestObjectiveTracker.Header.Text:SetText(QTR_ReverseIfAR(WoWTR_Localization.campaignquests));
+			 CampaignQuestObjectiveTracker.Header.Text:SetFont(WOWTR_Font2, 14);
+			 BonusObjectiveTracker.Header.Text:SetText(QTR_ReverseIfAR(WoWTR_Localization.bonusobjective));
+			 BonusObjectiveTracker.Header.Text:SetFont(WOWTR_Font2, 14);
+			 MonthlyActivitiesObjectiveTracker.Header.Text:SetText(QTR_ReverseIfAR(WoWTR_Localization.travelerlog));
+			 MonthlyActivitiesObjectiveTracker.Header.Text:SetFont(WOWTR_Font2, 14);
+
+			if (WoWTR_Localization.lang == 'AR') then
+			 --Added New Translation Campaign and Scenario for Arabic only
+			 ObjectiveTrackerFrame.Header.Text:SetText(QTR_ReverseIfAR(WoWTR_Localization.objectives));
+			 ObjectiveTrackerFrame.Header.Text:SetFont(WOWTR_Font2, 16);
+			 QuestObjectiveTracker.Header.Text:SetText(QTR_ReverseIfAR(WoWTR_Localization.quests));
+			 QuestObjectiveTracker.Header.Text:SetFont(WOWTR_Font2, 16);
+			 WorldQuestObjectiveTracker.Header.Text:SetText(QTR_ReverseIfAR(WoWTR_Localization.worldquests));
+			 WorldQuestObjectiveTracker.Header.Text:SetFont(WOWTR_Font2, 16);
+			 CampaignQuestObjectiveTracker.Header.Text:SetText(QTR_ReverseIfAR(WoWTR_Localization.campaignquests));
+			 CampaignQuestObjectiveTracker.Header.Text:SetFont(WOWTR_Font2, 16);
+			 BonusObjectiveTracker.Header.Text:SetText(QTR_ReverseIfAR(WoWTR_Localization.bonusobjective));
+			 BonusObjectiveTracker.Header.Text:SetFont(WOWTR_Font2, 16);
+			 MonthlyActivitiesObjectiveTracker.Header.Text:SetText(QTR_ReverseIfAR(WoWTR_Localization.travelerlog));
+			 MonthlyActivitiesObjectiveTracker.Header.Text:SetFont(WOWTR_Font2, 16);
+			 --Make LEFT
+			 ObjectiveTrackerFrame.Header.Text:SetJustifyH("LEFT");
+			 QuestObjectiveTracker.Header.Text:SetJustifyH("LEFT");
+			 WorldQuestObjectiveTracker.Header.Text:SetJustifyH("LEFT");
+			 CampaignQuestObjectiveTracker.Header.Text:SetJustifyH("LEFT");
+			end
+	end
 end
 
 -------------------------------------------------------------------------------------------------------------------
@@ -1181,45 +1224,57 @@ function QTR_QuestLogQuests_Update()
             button.Text:SetFont(WOWTR_Font2, _size1);
          end
       end
-      for frame in QuestScrollFrame.objectiveFramePool:EnumerateActive() do
-         local str_ID = tostring(frame.questID);
-         local qtr_obj = frame.Text:GetText();
-         if (strfind(qtr_obj,"/") and (strfind(qtr_obj,"/") > 0)) then
-            for qtr_en, qtr_pl in pairsByKeys(QTR_Tlumacz_Online) do
-               qtr_obj = string.gsub(qtr_obj, qtr_en, qtr_pl);
-            end
-            local _font1, _size1, _3 = frame.Text:GetFont();                      -- odczytaj aktualną czcionkę i rozmiar
-            frame.Text:SetText(QTR_ReverseIfAR(qtr_obj));
-            frame.Text:SetFont(WOWTR_Font2, _size1);
-         else
-            if ((qtr_obj == QUEST_WATCH_QUEST_READY) or (qtr_obj == "Ready for turn-in")) then
-               frame.Text:SetText(QTR_ReverseIfAR(WoWTR_Localization.readyForTurnIn));       -- Ready for turn-in
+         for frame in QuestScrollFrame.objectiveFramePool:EnumerateActive() do
+            local str_ID = tostring(frame.questID);
+            local qtr_obj_original = frame.Text:GetText();  -- Store the original text
+            local qtr_obj_translated = qtr_obj_original;    -- Start with the original text for translation attempts
+      
+            if (strfind(qtr_obj_original, "/") and (strfind(qtr_obj_original, "/") > 0)) then
+               for qtr_en, qtr_pl in pairsByKeys(QTR_Tlumacz_Online) do
+                  qtr_obj_translated = string.gsub(qtr_obj_translated, qtr_en, qtr_pl);
+               end
+               local _font1, _size1, _3 = frame.Text:GetFont();  -- read current font and size
+               frame.Text:SetText((qtr_obj_translated));        -- Set the text objective in the Quest Scroll Frame
+               frame.Text:SetFont(WOWTR_Font2, _size1);
             else
-               local _font1, _size1, _3 = frame.Text:GetFont();                      -- odczytaj aktualną czcionkę i rozmiar
-               if (QTR_quest_EN[frame.questID] and QTR_quest_EN[frame.questID].objectives) then
-                  local obj = QTR_quest_EN[frame.questID].objectives;
-                  local obj1= strsplit("\n\n", obj);
-                  if (qtr_obj == obj1) then
-                     obj = QTR_ExpandUnitInfo(QTR_QuestData[str_ID]["Objectives"],true,frame.Text,WOWTR_Font2);
-                     obj1= strsplit("\n\n", obj);
-                     frame.Text:SetText(QTR_ReverseIfAR(obj1));      
-                     frame.Text:SetFont(WOWTR_Font2, _size1);
-                  else
-                     for qtr_en, qtr_pl in pairsByKeys(QTR_Tlumacz_Online) do
-                       qtr_obj = string.gsub(qtr_obj, qtr_en, qtr_pl);
-                    end
-                     frame.Text:SetText(QTR_ReverseIfAR(qtr_obj));
-                     frame.Text:SetFont(WOWTR_Font2, _size1);
-                  end
+               if ((qtr_obj_original == QUEST_WATCH_QUEST_READY) or (qtr_obj_original == "Ready for turn-in")) then
+                  frame.Text:SetText(QTR_ReverseIfAR(WoWTR_Localization.readyForTurnIn));  -- Ready for turn-in
                else
-                  for qtr_en, qtr_pl in pairsByKeys(QTR_Tlumacz_Online) do
-                     qtr_obj = string.gsub(qtr_obj, qtr_en, qtr_pl);
+                  local _font1, _size1, _3 = frame.Text:GetFont();  -- Read the current font and size
+                  if (QTR_quest_EN[frame.questID] and QTR_quest_EN[frame.questID].objectives) then
+                        local obj = QTR_quest_EN[frame.questID].objectives;
+                        local obj1 = strsplit("\n\n", obj);
+                        if (qtr_obj_original == obj1) then
+                           obj = QTR_ExpandUnitInfo(QTR_QuestData[str_ID]["Objectives"], true, frame.Text, WOWTR_Font2);
+                           obj1 = strsplit("\n\n", obj);
+                           frame.Text:SetText(QTR_ReverseIfAR(obj1));      
+                           frame.Text:SetFont(WOWTR_Font2, _size1);
+                        else
+                           for qtr_en, qtr_pl in pairsByKeys(QTR_Tlumacz_Online) do
+                              qtr_obj_translated = string.gsub(qtr_obj_translated, qtr_en, qtr_pl);
+                           end
+                           -- Check if the translation is the same as the original
+                           if qtr_obj_translated == qtr_obj_original then
+                              frame.Text:SetText(qtr_obj_original);  -- revert to the original text
+                           else
+                              frame.Text:SetText(QTR_ReverseIfAR(qtr_obj_translated));
+                           end
+                           frame.Text:SetFont(WOWTR_Font2, _size1);
+                        end
+                  else
+                        for qtr_en, qtr_pl in pairsByKeys(QTR_Tlumacz_Online) do
+                           qtr_obj_translated = string.gsub(qtr_obj_translated, qtr_en, qtr_pl);
+                        end
+                        -- Check if the translation is the same as the original
+                        if qtr_obj_translated == qtr_obj_original then
+                           frame.Text:SetText(qtr_obj_original);  -- revert to the original text
+                        else
+                           frame.Text:SetText(QTR_ReverseIfAR(qtr_obj_translated));  -- Not using QTR_ExpandUnitInfo here as per your instruction
+                        end
+                        frame.Text:SetFont(WOWTR_Font2, _size1);
                   end
-                  frame.Text:SetText(QTR_ReverseIfAR(qtr_obj));    -- może: QTR_ExpandUnitInfo ?
-                  frame.Text:SetFont(WOWTR_Font2, _size1);
                end
             end
-         end
       end
       QTR_QuestScrollFrame_OnShow();     -- Story Progress
    end
@@ -1342,10 +1397,16 @@ function QTR_QuestPrepare(zdarzenie)
                QTR_quest_LG[QTR_quest_ID].itemreceive = QTR_Messages.itemreceiv0;
             end
             if (strlen(QTR_quest_EN[QTR_quest_ID].details)>0 and strlen(QTR_quest_LG[QTR_quest_ID].details)==0) then
-               QTR_MISSING[QTR_quest_ID.." DESCRIPTION"]=QTR_quest_EN[QTR_quest_ID].details;     -- save missing translation part
+               QTR_MISSING[QTR_quest_ID.." DESCRIPTION"]=QTR_quest_EN[QTR_quest_ID].details;    -- save missing translation part
+            end
+            if (strlen(QTR_quest_LG[QTR_quest_ID].details)==0) then
+               QTR_quest_LG[QTR_quest_ID].details = QTR_quest_EN[QTR_quest_ID].details;         -- If the translation is missing, the original text appears.
             end
             if (strlen(QTR_quest_EN[QTR_quest_ID].objectives)>0 and strlen(QTR_quest_LG[QTR_quest_ID].objectives)==0) then
-               QTR_MISSING[QTR_quest_ID.." OBJECTIVE"]=QTR_quest_EN[QTR_quest_ID].objectives;    -- save missing translation part
+               QTR_MISSING[QTR_quest_ID.." OBJECTIVE"]=QTR_quest_EN[QTR_quest_ID].objectives;   -- save missing translation part
+            end
+            if (strlen(QTR_quest_LG[QTR_quest_ID].objectives)==0) then
+               QTR_quest_LG[QTR_quest_ID].objectives = QTR_quest_EN[QTR_quest_ID].objectives;   -- If the translation is missing, the original text appears.
             end
          else        -- nie jest to zdarzenie QUEST_DETAILS
             if (QTR_quest_EN[QTR_quest_ID].details == nil) then
@@ -1390,8 +1451,8 @@ function QTR_QuestPrepare(zdarzenie)
             if (strlen(QTR_quest_EN[QTR_quest_ID].progress)>0 and strlen(QTR_quest_LG[QTR_quest_ID].progress)==0) then
                QTR_MISSING[QTR_quest_ID.." PROGRESS"]=QTR_quest_EN[QTR_quest_ID].progress;     -- save missing translation part
             end
-            if (strlen(QTR_quest_LG[QTR_quest_ID].progress)==0) then      -- treść jest pusta, a otworzono okienko Progress
-               QTR_quest_LG[QTR_quest_ID].progress = WoWTR_Localization.emptyProgress;         -- You are doing well, YOUR_NAME
+            if (strlen(QTR_quest_LG[QTR_quest_ID].progress)==0) then
+               QTR_quest_LG[QTR_quest_ID].progress = QTR_quest_EN[QTR_quest_ID].progress;   -- If the translation is missing, the original text appears.
             end
          end
          if (zdarzenie=="QUEST_COMPLETE") then
@@ -1421,7 +1482,10 @@ function QTR_QuestPrepare(zdarzenie)
             if (strlen(QTR_quest_EN[QTR_quest_ID].completion)>0 and strlen(QTR_quest_LG[QTR_quest_ID].completion)==0) then
                QTR_MISSING[QTR_quest_ID.." COMPLETE"]=QTR_quest_EN[QTR_quest_ID].completion;     -- save missing translation part
             end
-         end         
+            if (strlen(QTR_quest_LG[QTR_quest_ID].completion)==0) then
+               QTR_quest_LG[QTR_quest_ID].completion = QTR_quest_EN[QTR_quest_ID].completion;    -- If the translation is missing, the original text appears.
+            end
+         end   
          QTR_ToggleButton0:SetText("Quest ID="..QTR_quest_ID.." ("..QTR_lang..")");
          QTR_ToggleButton1:SetText("Quest ID="..QTR_quest_ID.." ("..QTR_lang..")");
          QTR_ToggleButton2:SetText("Quest ID="..QTR_quest_ID.." ("..QTR_lang..")");
@@ -1518,10 +1582,8 @@ function QTR_QuestPrepare(zdarzenie)
    end   -- tłumaczenia są włączone
    
    if (TT_PS["ui1"] == "1") then
-      --10.2.7
-      local QuestMFrame01 = QuestMapFrame.DetailsFrame.BackButton.Text;
-      --11.00
-      --local QuestMFrame01 = QuestMapFrame.DetailsFrame.BackFrame.BackButton.Text;
+      
+      local QuestMFrame01 = QuestMapFrame.DetailsFrame.BackFrame.BackButton.Text;
       ST_CheckAndReplaceTranslationTextUI(QuestMFrame01, true, "ui");
 
       local QuestMFrame02 = QuestMapFrame.DetailsFrame.AbandonButton.Text;
@@ -1578,8 +1640,8 @@ function QTR_Translate_On(typ,event)
             if (QTR_PS["transtitle"] == "1") then
                 QuestInfoTitleHeader:SetWidth(WOW_width + 30);
                 QuestProgressTitleText:SetWidth(WOW_width + 10);
-                QuestInfoTitleHeader:SetFont(WOWTR_Font1, IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtitle.size or 18);
-                QuestProgressTitleText:SetFont(WOWTR_Font1, IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtitle.size or 18);
+                QuestInfoTitleHeader:SetFont(WOWTR_Font1, C_AddOns.IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtitle.size or 18);
+                QuestProgressTitleText:SetFont(WOWTR_Font1, C_AddOns.IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtitle.size or 18);
                 if (WorldMapFrame:IsVisible()) then
                     QuestInfoTitleHeader:SetText(QTR_ExpandUnitInfo(QTR_quest_LG[QTR_quest_ID].title, false, QuestInfoTitleHeader, WOWTR_Font1, -50));
                 else
@@ -1591,17 +1653,21 @@ function QTR_Translate_On(typ,event)
             QuestInfoObjectivesText:SetWidth(WOW_width + 5);
             QuestProgressText:SetWidth(WOW_width);
             QuestInfoRewardText:SetWidth(WOW_width + 5);
-            QuestInfoDescriptionText:SetFont(WOWTR_Font2, IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtext.size or 13)
-            QuestInfoObjectivesText:SetFont(WOWTR_Font2, IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtext.size or 13)
-            QuestProgressText:SetFont(WOWTR_Font2, IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtext.size or 13)
-            QuestInfoRewardText:SetFont(WOWTR_Font2, IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtext.size or 13)
+            QuestInfoDescriptionText:SetFont(WOWTR_Font2, C_AddOns.IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtext.size or 13)
+            QuestInfoObjectivesText:SetFont(WOWTR_Font2, C_AddOns.IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtext.size or 13)
+            QuestProgressText:SetFont(WOWTR_Font2, C_AddOns.IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtext.size or 13)
+            QuestInfoRewardText:SetFont(WOWTR_Font2, C_AddOns.IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtext.size or 13)
             QuestInfoDescriptionText:SetText(QTR_ExpandUnitInfo(QTR_quest_LG[QTR_quest_ID].details, false, QuestInfoDescriptionText, WOWTR_Font2, -5));
         elseif qtrmajor == 11 then
-            -- Code for version 11.x.x
-            local WOW_width = 320;
-            if (WorldMapFrame:IsVisible()) then
-                WOW_width = 320;
-            end
+         local WOW_width = 280;
+
+         if (WoWTR_Localization.lang == 'AR') then
+             WOW_width = 320;
+         end
+         
+         if (QuestInfoRewardsFrame:IsVisible() and WoWTR_Localization.lang ~= 'AR') then
+             WOW_width = 280;
+         end
             if (QTR_PS["transtitle"] == "1") then
                 QuestInfoTitleHeader:SetWidth(WOW_width);
                 QuestProgressTitleText:SetWidth(WOW_width);
@@ -1614,14 +1680,21 @@ function QTR_Translate_On(typ,event)
                 end
                 QuestProgressTitleText:SetText(QTR_ExpandUnitInfo(QTR_quest_LG[QTR_quest_ID].title, false, QuestProgressTitleText, WOWTR_Font1, -50));
             end
-            QuestInfoDescriptionText:SetWidth(WOW_width - 50);
-            QuestInfoObjectivesText:SetWidth(WOW_width - 50);
-            QuestProgressText:SetWidth(WOW_width - 50);
-            QuestInfoRewardText:SetWidth(WOW_width);
-            QuestInfoDescriptionText:SetFont(WOWTR_Font2, C_AddOns.IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtext.size or 14)
-            QuestInfoObjectivesText:SetFont(WOWTR_Font2, C_AddOns.IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtext.size or 14)
-            QuestProgressText:SetFont(WOWTR_Font2, C_AddOns.IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtext.size or 14)
-            QuestInfoRewardText:SetFont(WOWTR_Font2, C_AddOns.IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtext.size or 14)
+            if (WoWTR_Localization.lang == 'AR') then
+               QuestInfoDescriptionText:SetWidth(WOW_width - 50);
+               QuestInfoObjectivesText:SetWidth(WOW_width - 50);
+               QuestProgressText:SetWidth(WOW_width - 50);
+               QuestInfoRewardText:SetWidth(WOW_width - 45);
+           else
+               QuestInfoDescriptionText:SetWidth(WOW_width - 1);
+               QuestInfoObjectivesText:SetWidth(WOW_width - 1);
+               QuestProgressText:SetWidth(WOW_width - 1);
+               QuestInfoRewardText:SetWidth(WOW_width);
+           end
+            QuestInfoDescriptionText:SetFont(WOWTR_Font2, C_AddOns.IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtext.size or tonumber(QTR_PS["fontsize"]))
+            QuestInfoObjectivesText:SetFont(WOWTR_Font2, C_AddOns.IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtext.size or tonumber(QTR_PS["fontsize"]))
+            QuestProgressText:SetFont(WOWTR_Font2, C_AddOns.IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtext.size or tonumber(QTR_PS["fontsize"]))
+            QuestInfoRewardText:SetFont(WOWTR_Font2, C_AddOns.IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtext.size or tonumber(QTR_PS["fontsize"]))
             QuestInfoDescriptionText:SetText(QTR_ExpandUnitInfo(QTR_quest_LG[QTR_quest_ID].details, false, QuestInfoDescriptionText, WOWTR_Font2, -5));
         else
             -- Handle other versions if necessary
@@ -1697,14 +1770,22 @@ function QTR_Translate_Off(typ,event)
             QTR_ToggleButton5:SetText("Quest ID="..QTR_quest_ID.." (EN)");
             QTR_Storyline_OFF(1);
          end
+		    local WOW_width = 280;
+            if (QuestInfoRewardsFrame:IsVisible()) then
+                WOW_width = 280;
+            end
          QuestInfoTitleHeader:SetFont(Original_Font1, C_AddOns.IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtitle.size or 18);
          QuestProgressTitleText:SetFont(Original_Font1, C_AddOns.IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtitle.size or 18);
          QuestInfoTitleHeader:SetText(QTR_quest_EN[QTR_quest_ID].title);
          QuestProgressTitleText:SetText(QTR_quest_EN[QTR_quest_ID].title);
-         QuestInfoDescriptionText:SetFont(Original_Font2, C_AddOns.IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtext.size or 13);
-         QuestInfoObjectivesText:SetFont(Original_Font2, C_AddOns.IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtext.size or 13);
-         QuestProgressText:SetFont(Original_Font2, C_AddOns.IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtext.size or 13);
-         QuestInfoRewardText:SetFont(Original_Font2, C_AddOns.IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtext.size or 13);
+		    QuestInfoDescriptionText:SetWidth(WOW_width - 1);
+            QuestInfoObjectivesText:SetWidth(WOW_width - 1);
+            QuestProgressText:SetWidth(WOW_width - 1);
+            QuestInfoRewardText:SetWidth(WOW_width);
+         QuestInfoDescriptionText:SetFont(Original_Font2, C_AddOns.IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtext.size or tonumber(QTR_PS["fontsize"]));
+         QuestInfoObjectivesText:SetFont(Original_Font2, C_AddOns.IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtext.size or tonumber(QTR_PS["fontsize"]));
+         QuestProgressText:SetFont(Original_Font2, C_AddOns.IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtext.size or tonumber(QTR_PS["fontsize"]));
+         QuestInfoRewardText:SetFont(Original_Font2, C_AddOns.IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtext.size or tonumber(QTR_PS["fontsize"]));
          QuestInfoDescriptionText:SetText(QTR_quest_EN[QTR_quest_ID].details);
          if (WoWTR_Localization.lang == 'AR') then
             QuestInfoDescriptionText:SetJustifyH("LEFT");
@@ -1761,9 +1842,9 @@ function QTR_display_constants(lg)
       AvailableQuestsText:SetFont(WOWTR_Font1, C_AddOns.IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtitle.size or 18);
       AvailableQuestsText:SetText(QTR_ReverseIfAR(QTR_Messages.avaiquests));
       --10.2.7
-      local regions = { QuestMapFrame.DetailsFrame.RewardsFrame:GetRegions() };
+      --local regions = { QuestMapFrame.DetailsFrame.RewardsFrame:GetRegions() };
       --11.00
-      --local regions = { QuestMapFrame.DetailsFrame.RewardsFrameContainer.RewardsFrame:GetRegions() };
+      local regions = { QuestMapFrame.DetailsFrame.RewardsFrameContainer.RewardsFrame:GetRegions() };
       for index = 1, #regions do
          local region = regions[index];
          if ((region:GetObjectType() == "FontString") and (region:GetText() == QUEST_REWARDS)) then
@@ -1791,7 +1872,7 @@ function QTR_display_constants(lg)
             QTR_QuestDetail_ItemReceiveText:SetJustifyV("TOP");
             QTR_QuestDetail_ItemReceiveText:ClearAllPoints();
             QTR_QuestDetail_ItemReceiveText:SetPoint("TOPRIGHT", QuestInfoRewardsFrame.ItemReceiveText, "TOPLEFT", 260, 2);
-            QTR_QuestDetail_ItemReceiveText:SetFont(WOWTR_Font2, 14);
+            QTR_QuestDetail_ItemReceiveText:SetFont(WOWTR_Font2, 13);
          end
          if (QTR_quest_LG[QTR_quest_ID].itemreceive) then
             QTR_QuestDetail_ItemReceiveText:SetText(AS_UTF8reverse(QTR_quest_LG[QTR_quest_ID].itemreceive));
@@ -2012,8 +2093,8 @@ function QTR_display_constants(lg)
          QuestInfoXPFrame.ReceiveText:SetText(QTR_Messages.experience);
          QuestInfoRewardsFrame.XPFrame.ReceiveText:SetFont(WOWTR_Font2, 13);
          QuestInfoRewardsFrame.XPFrame.ReceiveText:SetText(QTR_Messages.experience);
-         MapQuestInfoRewardsFrame.ItemChooseText:SetFont(WOWTR_Font2, 11);
-         MapQuestInfoRewardsFrame.ItemReceiveText:SetFont(WOWTR_Font2, 11);
+         MapQuestInfoRewardsFrame.ItemChooseText:SetFont(WOWTR_Font2, 13);
+         MapQuestInfoRewardsFrame.ItemReceiveText:SetFont(WOWTR_Font2, 13);
          MapQuestInfoRewardsFrame.ItemChooseText:SetText(QTR_quest_LG[QTR_quest_ID].itemchoose);
          MapQuestInfoRewardsFrame.ItemReceiveText:SetText(QTR_quest_LG[QTR_quest_ID].itemreceive);
          QuestInfoRewardsFrame.PlayerTitleText:SetFont(WOWTR_Font2, 13);
@@ -2137,9 +2218,9 @@ function QTR_ResetQuestToOriginal()
 
    -- Reset Quest Map rewards text
    --10.2.7
-   local regions = { QuestMapFrame.DetailsFrame.RewardsFrame:GetRegions() };
+   --local regions = { QuestMapFrame.DetailsFrame.RewardsFrame:GetRegions() };
    --11.00
-   --local regions = { QuestMapFrame.DetailsFrame.RewardsFrameContainer.RewardsFrame:GetRegions() };
+   local regions = { QuestMapFrame.DetailsFrame.RewardsFrameContainer.RewardsFrame:GetRegions() };
    for index = 1, #regions do
       local region = regions[index];
       if ((region:GetObjectType() == "FontString") and (region:GetText() == QTR_Messages.rewards)) then
@@ -2991,6 +3072,50 @@ function QTR_DUIGossipFrame()
 end
 
 -------------------------------------------------------------------------------------------------------------------
+-- New function to handle special WoW codes
+function HandleWoWSpecialCodes(msg)
+   local specialCodes = {}
+   local index = 1
+
+   -- Handle color codes separately
+   msg = msg:gsub("(|c%x%x%x%x%x%x%x%x)(.-)(|r)", function(colorStart, text, colorEnd)
+       specialCodes[index] = colorStart
+       local startPlaceholder = "\001" .. index .. "\002"
+       index = index + 1
+       specialCodes[index] = colorEnd
+       local endPlaceholder = "\001" .. index .. "\002"
+       index = index + 1
+       return startPlaceholder .. text .. endPlaceholder
+   end)
+
+   -- Find and store other special WoW codes
+   msg = msg:gsub("(|T.-|t)", function(code)
+       specialCodes[index] = code
+       index = index + 1
+       return "\001" .. (index-1) .. "\002"
+   end)
+
+   msg = msg:gsub("(|A.-|a)", function(code)
+      specialCodes[index] = code
+      index = index + 1
+      return "\001" .. (index-1) .. "\002"
+  end)
+
+   msg = msg:gsub("(|H.-|h%[.-%]|h)", function(code)
+       specialCodes[index] = code
+       index = index + 1
+       return "\001" .. (index-1) .. "\002"
+   end)
+
+   return msg, specialCodes
+end
+
+-- Function to restore special codes
+function RestoreWoWSpecialCodes(msg, specialCodes)
+   return msg:gsub("\002(%d+)\001", function(i)
+       return specialCodes[tonumber(i)]
+   end)
+end
 
 function WOW_ZmienKody(message, target)
    msg = message;
@@ -3027,6 +3152,7 @@ function WOW_ZmienKody(message, target)
    
    msg = string.gsub(msg, "NEW_LINE", "\n");
    if (target) then
+      msg = string.gsub(msg, "$target", WOWTR_AnsiReverse(target));
       msg = string.gsub(msg, "YOUR_NAME$", WOWTR_AnsiReverse(string.upper(target)));
       msg = string.gsub(msg, "YOUR_NAME", WOWTR_AnsiReverse(target));
    else
@@ -3239,7 +3365,7 @@ function WOW_ZmienKody(message, target)
          end
          nr_poz, nr_poz2 = string.find(msg, "{O");
       end
-   else
+   else        -- other languages, not AR
       -- obsługa kodu YOUR_GENDER(x;y)
       local nr_1, nr_2, nr_3 = 0;
       local QTR_forma = "";
@@ -3333,7 +3459,7 @@ function WOW_ZmienKody(message, target)
                   nr_3 = nr_3 + 1;
                end
                if (string.sub(msg, nr_3, nr_3) == ")") then
-                  if (QTR_PS["ownname"] == "1") then        -- forma narodowa: polska, czeska, ukraińska, węgierska, włoska, turecka, arabska
+                  if (QTR_PS["ownnames"] == "1") then        -- forma narodowa: polska, czeska, ukraińska, węgierska, włoska, turecka, arabska
                      QTR_forma = string.sub(msg,nr_2+1,nr_3-1);
                   else                                      -- forma angielska
                      QTR_forma = string.sub(msg,nr_1+1,nr_2-1);
@@ -3366,12 +3492,12 @@ function QTR_ExpandUnitInfo(msg, OnObjectives, AR_obj, AR_font, AR_corr)
       local _font = WOW_Font2;
       local AR_size = 13;
       if (AR_obj.GetFont) then
-         _font, AR_size, _3 = AR_obj:GetFont("P");             -- odczytaj aktualną czcionkę i rozmiar obiektu
+         _font, AR_size, _3 = AR_obj:GetFont("P");             -- read current font and size of the object
       else
-         local regions = { AR_obj:GetRegions() };              -- poszukiwanie obiektu FontString do odczytania czcionki
+         local regions = { AR_obj:GetRegions() };              -- search for FontString object to read the font
          for k, v in pairs(regions) do
             if (v:GetObjectType() == "FontString") then
-               _font, AR_size, _3 = v:GetFont();               -- odczytaj aktualną czcionkę i rozmiar obiektu
+               _font, AR_size, _3 = v:GetFont();               -- read current font and size of the object
             end
          end
       end
@@ -3379,52 +3505,40 @@ function QTR_ExpandUnitInfo(msg, OnObjectives, AR_obj, AR_font, AR_corr)
       if (AR_corr and (type(AR_corr)=="number")) then
          _corr = AR_corr;
       end
+
+      msg, specialCodes = HandleWoWSpecialCodes(msg)
+
       msg = string.gsub(msg, "{n}", "\n");
       msg = string.gsub(msg, "\n", "#");
       msg = string.gsub(msg, "{r}", "r|");
-      local nr_poz1, nr_poz2 = string.find(msg, "{c");    -- znajdź kod koloru {c , gdy nie znalazł, jest: nil
-      while (nr_poz1) do
-         local pomoc = string.sub(msg, nr_poz2+1, nr_poz2+8);  -- odczytaj składowe koloru
-         msg = string.gsub(msg, "{c"..pomoc.."}", string.reverse(pomoc).."c|");
-         nr_poz1, nr_poz2 = string.find(msg, "{c");       -- znajdź kod koloru {c , gdy nie znalazł, jest: nil
-      end
-      local nr_poz1 = string.find(msg, "{T");    -- znajdź kod {T , gdy nie znalazł, jest: nil
-      while (nr_poz1) do
-         local nr_poz2 = string.find(msg, "{t}");  -- koniec składowych kodu
-         if (nr_poz2) then
-            local pomoc = string.sub(msg, nr_poz1+2, nr_poz2-2);  -- odczytaj składowe
-            msg = string.gsub(msg, "{T"..pomoc.."}", string.reverse(pomoc).."T|");
-            nr_poz1 = string.find(msg, "{T");       -- znajdź kod {T , gdy nie znalazł, jest: nil
-         else
-            break;
+      
+      -- Handle {c}, {T}, {A}, {H} codes
+      local function handleCode(startCode, endCode)
+         local nr_poz1 = string.find(msg, startCode)
+         while (nr_poz1) do
+            local nr_poz2 = string.find(msg, endCode, nr_poz1)
+            if (nr_poz2) then
+               local pomoc = string.sub(msg, nr_poz1+2, nr_poz2-1)
+               msg = string.gsub(msg, startCode..pomoc..endCode, string.reverse(pomoc)..string.sub(startCode, 2, 2).."|")
+               nr_poz1 = string.find(msg, startCode, nr_poz2)
+            else
+               break
+            end
          end
       end
-      local nr_poz1 = string.find(msg, "{A");    -- znajdź kod {A , gdy nie znalazł, jest: nil
-      while (nr_poz1) do
-         local nr_poz2 = string.find(msg, "{a}");  -- koniec składowych kodu
-         if (nr_poz2) then
-            local pomoc = string.sub(msg, nr_poz1+2, nr_poz2-2);  -- odczytaj składowe
-            msg = string.gsub(msg, "{A"..pomoc.."}", string.reverse(pomoc).."A|");
-            nr_poz1 = string.find(msg, "{A");       -- znajdź kod {A , gdy nie znalazł, jest: nil
-         else
-            break;
-         end
-      end
-      local nr_poz1 = string.find(msg, "{H");    -- znajdź kod {H , gdy nie znalazł, jest: nil
-      while (nr_poz1) do
-         local nr_poz2 = string.find(msg, "{h}");  -- koniec składowych kodu
-         if (nr_poz2) then
-            local pomoc = string.sub(msg, nr_poz1+2, nr_poz2-2);  -- odczytaj składowe
-            msg = string.gsub(msg, "{H"..pomoc.."}", string.reverse(pomoc).."H|");
-            nr_poz1 = string.find(msg, "{H");       -- znajdź kod {H , gdy nie znalazł, jest: nil
-         else
-            break;
-         end
-      end
+
+      handleCode("{c", "}")
+      handleCode("{T", "{t}")
+      handleCode("{A", "{a}")
+      handleCode("{H", "{h}")
+
       msg = string.gsub(msg, "{t}", "t|");
       msg = string.gsub(msg, "{a}", "a|");
       msg = string.gsub(msg, "{h}", "h|");
+      
       msg = AS_ReverseAndPrepareLineText(msg, AR_obj:GetWidth()+_corr, AR_font, AR_size);
+
+      msg = RestoreWoWSpecialCodes(msg, specialCodes)
    end
    
    return msg;
@@ -3490,18 +3604,26 @@ end
 
 -------------------------------------------------------------------------------------------------------------------
 
-function WOWTR_DetectAndReplacePlayerName(txt,target)
+function WOWTR_DetectAndReplacePlayerName(txt,target,part)
    if (txt == nil) then return ""; end
    local text = string.gsub(txt, '\r', "");
-   text = string.gsub(text, '\n', "$B");
-   text = WOWTR_ReplaceOnlyWholeWords(text, WOWTR_player_name, "$N");
-   text = WOWTR_ReplaceOnlyWholeWords(text, string.upper(WOWTR_player_name), '$N$');
-   text = WOWTR_ReplaceOnlyWholeWords(text, WOWTR_player_race, '$R');
-   text = WOWTR_ReplaceOnlyWholeWords(text, string.lower(WOWTR_player_race), '$R');
-   text = WOWTR_ReplaceOnlyWholeWords(text, string.upper(WOWTR_player_race), '$R$');
-   text = WOWTR_ReplaceOnlyWholeWords(text, WOWTR_player_class, '$C');
-   text = WOWTR_ReplaceOnlyWholeWords(text, string.lower(WOWTR_player_class), '$C');
-   text = WOWTR_ReplaceOnlyWholeWords(text, string.upper(WOWTR_player_class), '$C$');
+   if (part==nil) or (part=='$B') then
+      text = string.gsub(text, '\n', "$B");
+   end
+   if (part==nil) or (part=='$N') then
+      text = WOWTR_ReplaceOnlyWholeWords(text, WOWTR_player_name, "$N");
+      text = WOWTR_ReplaceOnlyWholeWords(text, string.upper(WOWTR_player_name), '$N$');
+   end
+   if (part==nil) or (part=='$R') then
+      text = WOWTR_ReplaceOnlyWholeWords(text, WOWTR_player_race, '$R');
+      text = WOWTR_ReplaceOnlyWholeWords(text, string.lower(WOWTR_player_race), '$R');
+      text = WOWTR_ReplaceOnlyWholeWords(text, string.upper(WOWTR_player_race), '$R$');
+   end
+   if (part==nil) or (part=='$C') then
+      text = WOWTR_ReplaceOnlyWholeWords(text, WOWTR_player_class, '$C');
+      text = WOWTR_ReplaceOnlyWholeWords(text, string.lower(WOWTR_player_class), '$C');
+      text = WOWTR_ReplaceOnlyWholeWords(text, string.upper(WOWTR_player_class), '$C$');
+   end
    if (target) then
       text = WOWTR_ReplaceOnlyWholeWords(text, target, "$N");
    end
@@ -3510,14 +3632,47 @@ end
 
 -------------------------------------------------------------------------------------------------------------------
 
-function WOWTR_DeleteSpecialCodes(txt)
+function WOWTR_DeleteSpecialCodes(txt,part)
    if (txt == nil) then return ""; end
-   local text = string.gsub(txt, '$N$', '');
-   text = string.gsub(text, '$B', '');
-   text = string.gsub(text, '$N', '');
-   text = string.gsub(text, '$R$', '');
-   text = string.gsub(text, '$R', '');
-   text = string.gsub(text, '$C$', '');
-   text = string.gsub(text, '$C', '');
+   local text = txt;
+   if (part==nil) or (part=='$B') then
+      text = string.gsub(text, '$B', '');
+   end
+   if (part==nil) or (part=='$N') then
+      text = string.gsub(text, '$N$', '');
+      text = string.gsub(text, '$N', '');
+   end
+   if (part==nil) or (part=='$R') then
+      text = string.gsub(text, '$R$', '');
+      text = string.gsub(text, '$R', '');
+   end
+   if (part==nil) or (part=='$C') then
+      text = string.gsub(text, '$C$', '');
+      text = string.gsub(text, '$C', '');
+   end
    return text;
+end
+
+-------------------------------------------------------------------------------------------------------------------
+
+--ADVANTURE MAP QUEST
+function ST_AdvantureMapFrm()			-- https://imgur.com/a/uQElPgm
+   if (QTR_PS["active"] == "1") then
+	local AdvMapFrm01 = AdventureMapQuestChoiceDialog.Details.Child.TitleHeader;
+	ST_CheckAndReplaceTranslationTextUI(AdvMapFrm01, true, "Collections:Quest", WOWTR_Font1);
+	local AdvMapFrm02 = AdventureMapQuestChoiceDialog.Details.Child.DescriptionText;
+	ST_CheckAndReplaceTranslationTextUI(AdvMapFrm02, true, "Collections:Quest");
+	local AdvMapFrm04 = AdventureMapQuestChoiceDialog.Details.Child.ObjectivesText;
+	ST_CheckAndReplaceTranslationTextUI(AdvMapFrm04, true, "Collections:Quest");
+   end
+   if (TT_PS["ui1"] == "1") then
+	local AdvMapFrm03 = AdventureMapQuestChoiceDialog.Details.Child.ObjectivesHeader;
+	ST_CheckAndReplaceTranslationTextUI(AdvMapFrm03, false, "ui", WOWTR_Font1);
+	local AdvMapFrm05 = AdventureMapQuestChoiceDialog.RewardsHeader;
+	ST_CheckAndReplaceTranslationTextUI(AdvMapFrm05, false, "ui", WOWTR_Font1);
+	local AdvMapFrm06 = AdventureMapQuestChoiceDialog.AcceptButton.Text;
+	ST_CheckAndReplaceTranslationTextUI(AdvMapFrm06, false, "ui");
+	local AdvMapFrm07 = AdventureMapQuestChoiceDialog.DeclineButton.Text;
+	ST_CheckAndReplaceTranslationTextUI(AdvMapFrm07, false, "ui");
+   end
 end
