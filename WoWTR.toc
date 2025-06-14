@@ -1,9 +1,9 @@
-## Interface: 110002
-## Title: WoWTR |cff8080ff11.08|r
-## Version: 11.08
-## Notes: Oyun içindeki Görevleri Türkçe'ye tercüme eder.
-## Notes_en: AddOn displays the translated quest informations in Turkish.
-## Author: Platine & WoWTR team
+﻿## Interface: 110105, 110107
+## Title: WoWTR by |T135846:16:16:0:0|t |cff3FC7EBHKNYLMZ|r
+## Version: 25.0604
+## Notes: Görev, Diyalog, Sinematik ve Arayüz metinleri Türkçe olarak görüntülenir.
+## Notes_en: Translates the texts in the play into Turkish.
+## Author: Platine & Hakan YILMAZ
 ## E-mail: info@wowtr.com.tr
 ## WWW: https://www.wowtr.com.tr
 ## DefaultState: Enabled
@@ -34,7 +34,9 @@ WoW_Bubbles.lua
 WoW_MovieSubtitles.lua
 WoW_Tutorials.lua
 WoW_Books.lua
+WoW_Core.lua
+
 WoW_Tooltips.lua
 
-WoW_Core.lua
+
 WoW_Config.lua
