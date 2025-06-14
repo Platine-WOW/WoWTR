@@ -17,106 +17,106 @@ end
 
 -------------------------------------------------------------------------------------------------------
 
-function TT_onTutorialShow()          				-- main function called when tutorial text appears
-	local function MyRepeatingFunction(iteration) 	-- limited number of consecutive runs of the function
-	--print("Function executed! Iteration: " .. iteration);
-	   if (TT_PS["active"] == "1") then
-		  local obj,txt,id;
-		  obj = "TutorialMainFrame_Frame";
-		  if (_G[obj]) then
-			 if (tutMainFrameShow==0) then
-				_G[obj].ContainerFrame:SetScript("OnShow", TT_onTutorialShow);
-				tutMainFrameShow = 1;
-			 end
-		  end
-		  
-		  obj = "TutorialWalk_Frame";
-		  if (_G[obj]) then
-			 if (tutWalkShow==0) then
-				_G[obj]:SetScript("OnShow", TT_onTutorialShow);
-				tutWalkShow = 1;
-			 end
-		  end
-		  
-		  obj = "TutorialKeyboardMouseFrame_Frame";
-		  if (_G[obj]) then
-			 if (tutKeyboardMouseFrameShow==0) then
-			   _G[obj]:SetScript("OnShow", TT_onTutorialShow);
-				tutKeyboardMouseFrameShow = 1;
-			 end
-		  end
-		  
-		  obj = "TutorialSingleKey_Frame";
-		  if (_G[obj]) then
-			 if (tutSingleKeyShow==0) then
-				_G[obj]:SetScript("OnShow", TT_onTutorialShow);
-				tutSingleKeyShow = 1;
-			 end
-		  end
-		  TT_SprawdzFrames();
+function TT_onTutorialShow()                      -- main function called when tutorial text appears
+   local function MyRepeatingFunction(iteration)    -- limited number of consecutive runs of the function
+   --print("Function executed! Iteration: " .. iteration);
+      if (TT_PS["active"] == "1") then
+        local obj,txt,id;
+        obj = "TutorialMainFrame_Frame";
+        if (_G[obj]) then
+          if (tutMainFrameShow==0) then
+            _G[obj].ContainerFrame:SetScript("OnShow", TT_onTutorialShow);
+            tutMainFrameShow = 1;
+          end
+        end
+        
+        obj = "TutorialWalk_Frame";
+        if (_G[obj]) then
+          if (tutWalkShow==0) then
+            _G[obj]:SetScript("OnShow", TT_onTutorialShow);
+            tutWalkShow = 1;
+          end
+        end
+        
+        obj = "TutorialKeyboardMouseFrame_Frame";
+        if (_G[obj]) then
+          if (tutKeyboardMouseFrameShow==0) then
+            _G[obj]:SetScript("OnShow", TT_onTutorialShow);
+            tutKeyboardMouseFrameShow = 1;
+          end
+        end
+        
+        obj = "TutorialSingleKey_Frame";
+        if (_G[obj]) then
+          if (tutSingleKeyShow==0) then
+            _G[obj]:SetScript("OnShow", TT_onTutorialShow);
+            tutSingleKeyShow = 1;
+          end
+        end
+        TT_SprawdzFrames();
 
-		  for i=2,20,1 do
-			 obj = "TutorialPointerFrame_"..tostring(i).."Content";
-			 if (_G[obj]) then
-				if (aktShow[i]==0) then
-				   _G[obj]:SetScript("OnShow", TT_onTutorialShow);
-				   aktShow[i] = 1;
-				end
-				if ((_G[obj]:IsVisible()) and (_G[obj].Text)) then
-				   txt = _G[obj].Text:GetText();
-				   if ((txt) and (string.find(txt," ")==nil)) then         -- nie jest to tekst po turecku (nie ma twardej spacji)
-					  id = StringHash(txt);
-					  if (Tut_Data7[id]) then         -- jest tureckie tłumaczenie w bazie tłumaczeń
-						 local _font5, _size5, _35 = _G[obj].Text:GetFont();
-							if (WoWTR_Localization.lang == 'AR') then
-							   _G[obj].Text:SetText(QTR_ExpandUnitInfo(Tut_Data7[id],false,_G[obj].Text,WOWTR_Font2,-5).." ");  -- podmieniamy tekst na nasze tłumaczenie
-							   _G[obj].Text:SetFont(WOWTR_Font2, _size5);      -- na końcu dodajemy twardą spację, jako znacznik tekstu tureckiego
-							else
-							   _G[obj].Text:SetText(QTR_ReverseIfAR(WOW_ZmienKody(Tut_Data7[id])).." ");  -- podmieniamy tekst na nasze tłumaczenie
-							   _G[obj].Text:SetFont(WOWTR_Font2, _size5);      -- na końcu dodajemy twardą spację, jako znacznik tekstu tureckiego
-							end
-					  elseif (TT_PS["save"] == "1") then
-						 TT_TUTORIALS[tostring(id)] = txt;
-					  end
-				   end
-				end
-			 end
-		  end
-		  for i=1,1,1 do
-			 obj = "TutorialPointerFrame_"..tostring(i).."Content";
-			 if (_G[obj]) then
-				if (aktShow[i]==0) then
-				   _G[obj]:SetScript("OnShow", TT_onTutorialShow);
-				   aktShow[i] = 1;
-				end
-				if ((_G[obj]:IsVisible()) and (_G[obj].Text)) then
-				   txt = _G[obj].Text:GetText();
-				   if ((txt) and (string.find(txt," ")==nil)) then         -- nie jest to tekst po turecku (nie ma twardej spacji)
-					  id = StringHash(txt);
-					  if (Tut_Data7[id]) then         -- jest tureckie tłumaczenie w bazie tłumaczeń
-						 local _font5, _size5, _35 = _G[obj].Text:GetFont();
-							if (WoWTR_Localization.lang == 'AR') then
-							   _G[obj].Text:SetText(QTR_ExpandUnitInfo(Tut_Data7[id],false,_G[obj].Text,WOWTR_Font2,-30).." ");  -- podmieniamy tekst na nasze tłumaczenie
-							   _G[obj].Text:SetJustifyH("LEFT");
-							   _G[obj].Text:SetFont(WOWTR_Font2, _size5);      -- na końcu dodajemy twardą spację, jako znacznik tekstu tureckiego
-							else
-							   _G[obj].Text:SetText(QTR_ReverseIfAR(WOW_ZmienKody(Tut_Data7[id])).." ");  -- podmieniamy tekst na nasze tłumaczenie
-							   _G[obj].Text:SetFont(WOWTR_Font2, _size5);      -- na końcu dodajemy twardą spację, jako znacznik tekstu tureckiego
-							end
-					  elseif (TT_PS["save"] == "1") then
-						 TT_TUTORIALS[tostring(id)] = txt;
-					  end
-				   end
-				end
-			 end
-		  end
-	   end
+        for i=2,20,1 do
+          obj = "TutorialPointerFrame_"..tostring(i).."Content";
+          if (_G[obj]) then
+            if (aktShow[i]==0) then
+               _G[obj]:SetScript("OnShow", TT_onTutorialShow);
+               aktShow[i] = 1;
+            end
+            if ((_G[obj]:IsVisible()) and (_G[obj].Text)) then
+               txt = _G[obj].Text:GetText();
+               if ((txt) and (string.find(txt," ")==nil)) then         -- nie jest to tekst po turecku (nie ma twardej spacji)
+                 id = StringHash(txt);
+                 if (Tut_Data7[id]) then         -- jest tureckie tłumaczenie w bazie tłumaczeń
+                   local _font5, _size5, _35 = _G[obj].Text:GetFont();
+                     if (WoWTR_Localization.lang == 'AR') then
+                        _G[obj].Text:SetText(QTR_ExpandUnitInfo(Tut_Data7[id],false,_G[obj].Text,WOWTR_Font2,-5).." ");  -- podmieniamy tekst na nasze tłumaczenie
+                        _G[obj].Text:SetFont(WOWTR_Font2, _size5);      -- na końcu dodajemy twardą spację, jako znacznik tekstu tureckiego
+                     else
+                        _G[obj].Text:SetText(QTR_ReverseIfAR(WOW_ZmienKody(Tut_Data7[id])).." ");  -- podmieniamy tekst na nasze tłumaczenie
+                        _G[obj].Text:SetFont(WOWTR_Font2, _size5);      -- na końcu dodajemy twardą spację, jako znacznik tekstu tureckiego
+                     end
+                 elseif (TT_PS["save"] == "1") then
+                   TT_TUTORIALS[tostring(id)] = txt;
+                 end
+               end
+            end
+          end
+        end
+        for i=1,1,1 do
+          obj = "TutorialPointerFrame_"..tostring(i).."Content";
+          if (_G[obj]) then
+            if (aktShow[i]==0) then
+               _G[obj]:SetScript("OnShow", TT_onTutorialShow);
+               aktShow[i] = 1;
+            end
+            if ((_G[obj]:IsVisible()) and (_G[obj].Text)) then
+               txt = _G[obj].Text:GetText();
+               if ((txt) and (string.find(txt," ")==nil)) then         -- nie jest to tekst po turecku (nie ma twardej spacji)
+                 id = StringHash(txt);
+                 if (Tut_Data7[id]) then         -- jest tureckie tłumaczenie w bazie tłumaczeń
+                   local _font5, _size5, _35 = _G[obj].Text:GetFont();
+                     if (WoWTR_Localization.lang == 'AR') then
+                        _G[obj].Text:SetText(QTR_ExpandUnitInfo(Tut_Data7[id],false,_G[obj].Text,WOWTR_Font2,-30).." ");  -- podmieniamy tekst na nasze tłumaczenie
+                        _G[obj].Text:SetJustifyH("LEFT");
+                        _G[obj].Text:SetFont(WOWTR_Font2, _size5);      -- na końcu dodajemy twardą spację, jako znacznik tekstu tureckiego
+                     else
+                        _G[obj].Text:SetText(QTR_ReverseIfAR(WOW_ZmienKody(Tut_Data7[id])).." ");  -- podmieniamy tekst na nasze tłumaczenie
+                        _G[obj].Text:SetFont(WOWTR_Font2, _size5);      -- na końcu dodajemy twardą spację, jako znacznik tekstu tureckiego
+                     end
+                 elseif (TT_PS["save"] == "1") then
+                   TT_TUTORIALS[tostring(id)] = txt;
+                 end
+               end
+            end
+          end
+        end
+      end
 
-		if iteration < 10 then														-- If the current iteration is less than 10,
-			C_Timer.After(0.2, function() MyRepeatingFunction(iteration + 1) end); 	-- schedule the function to run again after 0.2 seconds.
-		end
-	end
-	MyRepeatingFunction(1);	-- Start the function with an initial iteration value of 1.
+      if iteration < 10 then                                          -- If the current iteration is less than 10,
+         C_Timer.After(0.2, function() MyRepeatingFunction(iteration + 1) end);    -- schedule the function to run again after 0.2 seconds.
+      end
+   end
+   MyRepeatingFunction(1);   -- Start the function with an initial iteration value of 1.
 end
 
 -------------------------------------------------------------------------------------------------------
@@ -391,7 +391,20 @@ function TT_CampaignOverview()
    local frame;
    local frames_tab = { };
    local height_tab = { };
-   for frame in QuestMapFrame.CampaignOverview.linePool:EnumerateActive() do
+   local linePool
+   local versionString = select(4, GetBuildInfo())
+   local versionNumber = tonumber(versionString)
+
+   if versionNumber then
+      if versionNumber <= 110007 then
+        linePool = QuestMapFrame.CampaignOverview.linePool
+      else
+        linePool = QuestMapFrame.QuestsFrame.CampaignOverview.linePool
+      end
+   else
+   end
+
+   for frame in linePool:EnumerateActive() do
       local txt = frame:GetText();
       local HashCode = StringHash(txt);
       local point, relativeTo, relativePoint, xOfs, yOfs = frame:GetPoint(1);

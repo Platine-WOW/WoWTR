@@ -1,0 +1,41 @@
+## Interface: 50500
+## Title: WoWTR by |cff3FC7EBHKNYLMZ |T135846:16:16:0:0|t 
+## Version: 25.0604
+## Notes: Oyun içindeki metinleri Türkçe tercüme eder.
+## Notes_en: Translates the texts in the play into Turkish.
+## Author: Platine & Hakan YILMAZ
+## X-Website: https://www.curseforge.com/wow/addons/wowtr
+## E-mail: info@wowtr.com.tr
+## WWW: https://www.wowtr.com.tr
+## DefaultState: Enabled
+## LoadOnDemand: 0
+## IconTexture: Interface\AddOns\WoWTR\Images\icon.png
+## SavedVariables: QTR_PS, QTR_SAVED, QTR_MISSING, QTR_GOSSIP, BB_PM, BB_PS, BB_TR, MF_PM, MF_PS, TT_PS, TT_TUTORIALS, BT_PM, BT_SAVED, ST_PM, ST_PS, ST_PH, WoWTR_minimapDB
+
+Libs\LibStub\LibStub.lua
+Libs\AceAddon-3.0\AceAddon-3.0.lua
+Libs\AceConsole-3.0\AceConsole-3.0.lua
+Libs\AceDB-3.0\AceDB-3.0.lua
+Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
+Libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
+Libs\LibDBIcon-1.0\LibDBIcon-1.0.lua
+
+Translations\QuestData_TR.lua
+Translations\Gossip_TR.lua
+Translations\TlumaczOnline_TR.lua
+Translations\Bubbles_TR.lua
+Translations\Subtitles_TR.lua
+Translations\TutorialsData7_TR.lua
+Translations\Books_TR.lua
+Translations\Tooltips_TR.lua
+
+WoW_Localization_TR.lua
+Source\Mists\WoW_Quests.lua
+WoW_Bubbles.lua
+WoW_MovieSubtitles.lua
+Source\Mists\WoW_Tutorials.lua
+WoW_Books.lua
+Source\Mists\WoW_Core.lua
+Source\Mists\WoW_Tooltips.lua
+
+WoW_Config.lua

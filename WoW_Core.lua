@@ -1,4 +1,4 @@
--- Description: The AddOn displays the translated text information in chosen language
+﻿-- Description: The AddOn displays the translated text information in chosen language
 -- Author: Platine [platine.wow@gmail.com]
 -- Co-Author: Dragonarab[WoWAR], Hakan YILMAZ[WoWTR]
 -------------------------------------------------------------------------------------------------------
@@ -10,6 +10,9 @@ WOWTR_player_class = UnitClass("player");
 WOWTR_player_sex = UnitSex("player");     -- 1:neutral,  2:male,  3:female
 WOWTR_waitTable = {};
 WOWTR_waitFrame = nil;
+WOWTR_time_ver = GetTime() - 15*60;
+WOWTR_lastNotificationTime = 0;      -- Son bildirim zamanını sakla
+WOWTR_notificationCooldown = 10800;  -- 3 saat (10800 saniye) cooldown süresi
 
 ---------------------------------------------------------------------------------------------------------
 
@@ -38,7 +41,7 @@ function WOWTR_wait(delay, func, ...)           -- można też użyć funkcji sy
    end
    if (WOWTR_waitFrame == nil) then
       WOWTR_waitFrame = CreateFrame("Frame", "WOWTR_WaitFrame", UIParent);
-      WOWTR_waitFrame:SetScript("onUpdate", function (self,elapse)
+      WOWTR_waitFrame:SetScript("OnUpdate", function (self,elapse)
          local count = #WOWTR_waitTable;
          local i = 1;
          while(i<=count) do
@@ -65,19 +68,22 @@ end
 
 local tickers = {}
 function StartTicker(frame, func, interval)
-    if not tickers[frame] then
-        --print("Ticker is activated: " .. tostring(frame:GetName()))
-        tickers[frame] = C_Timer.NewTicker(interval, function()
-            if frame:IsVisible() then
-                func()
-            else
-                --print("Ticker stopped: " .. tostring(frame:GetName()))
-                tickers[frame]:Cancel()
-                tickers[frame] = nil
-            end
-        end)
-    end
+   if not tickers[frame] then
+      -- Execute the function immediately for the first run
+      func()
+      -- Start the ticker for subsequent runs
+      tickers[frame] = C_Timer.NewTicker(interval, function()
+         if frame:IsVisible() then
+            func()
+         else
+            -- Stop the ticker if the frame is no longer visible
+            tickers[frame]:Cancel()
+            tickers[frame] = nil
+         end
+      end)
+   end
 end
+
 
 function StartDelayedFunction(func, delay)
     C_Timer.After(delay, func)
@@ -174,6 +180,10 @@ function WOWTR_CheckVars()
    if (not QTR_PS["dialogueui"] ) then
       QTR_PS["dialogueui"] = "1";   
    end
+   -- display EN text first on Quests and Gossip
+   if (not QTR_PS["en_first"] ) then
+      QTR_PS["en_first"] = "0";   
+   end
    -- current font file
    if (not QTR_PS["FontFile"] ) then
       QTR_PS["FontFile"] = WOWTR_Fonts[1];   
@@ -182,10 +192,18 @@ function WOWTR_CheckVars()
       WOWTR_Font2 = WoWTR_Localization.mainFolder.."\\Fonts\\"..QTR_PS["FontFile"];
    end
 
-   if (not QTR_PS.firstTimeLoaded) then   -- Automatic log cleaning (reset saved texts)
-      QTR_PS.firstTimeLoaded = true;
-      WOWTR_ResetVariables(1);
-   end
+if not QTR_PS.firstTimeLoaded4 then   -- Automatic log cleaning (reset saved texts)
+    QTR_PS.firstTimeLoaded4 = true
+
+    -- Diğer numaralandırılmış kayıtları sıfırlamak için bir döngü
+    for i = 1, 9 do
+        if i ~= 4 then  -- 4 numaralı kayıt hariç
+            QTR_PS["firstTimeLoaded" .. i] = nil
+        end
+    end
+
+    WOWTR_ResetVariables(1)
+end
 
    -- initialize check options
    if (not BB_PM["active"] ) then    -- dodatek aktywny
@@ -365,6 +383,18 @@ function WOWTR_CheckVars()
    if (not ST_PM["timer"] ) then        -- uaktywnij zmiany timera przywracania oryginalnego tekstu
       ST_PM["timer"] = "10";   
    end
+   
+   if (WoWTR_Localization.lang == 'AR') then
+      if not CH_PM then
+         CH_PM = {};
+      end
+      if (not CH_PM["active"] ) then   -- activate
+         CH_PM["active"] = "1";   
+      end
+      if not CH_PM["fontsize"] then
+         CH_PM["fontsize"] = "13";  -- Set a default value
+      end
+   end
 
    if (not WoWTR_minimapDB) then        -- inicjalizacja zmiennej globalnej na pozycję ikonki minimap
       WoWTR_minimapDB = {};
@@ -426,7 +456,7 @@ function WOWTR_onEvent(self, event, name, ...)
       BT_ToggleButton0:SetText("EN");
       BT_ToggleButton0:Show();
       BT_ToggleButton0:ClearAllPoints();
-      BT_ToggleButton0:SetPoint("BOTTOMRIGHT", ItemTextFrame, "BOTTOMRIGHT", -29, 5);
+      BT_ToggleButton0:SetPoint("BOTTOMRIGHT", ItemTextFrame, "BOTTOMRIGHT", 0, -16);
       BT_ToggleButton0:SetScript("OnClick", BT_ON_OFF);
       
       if (_G.ElvUI) then
@@ -437,45 +467,32 @@ function WOWTR_onEvent(self, event, name, ...)
             end
          end );
       end
-      
-      -- -- przycisk do przełączania wersji TR - EN dla talentów
-      -- WOWTR_ToggleButtonS = CreateFrame("Button", nil, SpellBookFrame, "UIPanelButtonTemplate");
-      -- WOWTR_ToggleButtonS:SetWidth(150);
-      -- WOWTR_ToggleButtonS:SetHeight(22);
-      -- WOWTR_ToggleButtonS:SetFrameStrata("HIGH")
-      -- if (ST_PM["spell"] == "1") then
-         -- WOWTR_ToggleButtonS:SetText(WoWTR_Localization.WoWTR_Spellbook_trDESC);
-      -- else
-         -- WOWTR_ToggleButtonS:SetText(WoWTR_Localization.WoWTR_Spellbook_enDESC);
-      -- end
-      -- WOWTR_ToggleButtonS:ClearAllPoints();
-      -- WOWTR_ToggleButtonS:SetPoint("TOPLEFT", SpellBookFrame, "TOPLEFT", 210, -1);
-      -- WOWTR_ToggleButtonS:SetScript("OnClick", STspell_ON_OFF);
 
-      -- SpellBookFrame:HookScript("OnShow", function()
-         -- if (ST_PM["active"] == "1") then
-            -- WOWTR_ToggleButtonS:Show();
-         -- else
-            -- WOWTR_ToggleButtonS:Hide();
-         -- end
-      -- end);
-
-      StaticPopup1:HookScript("OnShow", function() StartTicker(StaticPopup1, ST_StaticPopup1, 0.1) end);
-      StaticPopup2:HookScript("OnShow", function() StartTicker(StaticPopup1, ST_StaticPopup1, 0.1) end);
+      StaticPopup1:HookScript("OnUpdate", ST_StaticPopup1);
+      StaticPopup2:HookScript("OnShow", ST_StaticPopup1);
       GameMenuFrame:HookScript("OnShow", ST_GameMenuTranslate);
       MerchantFrame:HookScript("OnShow", ST_MerchantFrame);
-      PVEFrame:HookScript("OnShow", function() StartTicker(PVEFrame, ST_GroupFinder, 0.2) end);
-      WorldMapFrame:HookScript("OnShow", function() StartTicker(WorldMapFrame, ST_WorldMapFunc, 0.2) end);
-      CharacterFrame:HookScript("OnShow", function() StartTicker(CharacterFrame, ST_CharacterFrame, 0.2) end);
-      FriendsFrame:HookScript("OnShow", function() StartTicker(FriendsFrame, ST_FriendsFrame, 0.2) end);
-      HelpPlateTooltip:HookScript("OnShow", function() StartTicker(HelpPlateTooltip, ST_HelpPlateTooltip, 0.2) end);
+      PVEFrame:HookScript("OnShow", function() StartTicker(PVEFrame, ST_GroupFinder, 0) end);
+      WorldMapFrame:HookScript("OnShow", function() StartTicker(WorldMapFrame, ST_WorldMapFunc, 0.1) end);
+      QuestScrollFrame:HookScript("OnShow", function() StartTicker(QuestScrollFrame, QTR_Quest_Next, 0.02) end);
+      CharacterFrame:HookScript("OnShow", ST_CharacterFrame);
+      FriendsFrame:HookScript("OnShow", function() StartTicker(FriendsFrame, ST_FriendsFrame, 0.1) end);
+      HelpPlateTooltip:HookScript("OnShow", function() StartTicker(HelpPlateTooltip, ST_HelpPlateTooltip, 0.1) end);
       SplashFrame:HookScript("OnShow", function() StartTicker(SplashFrame, ST_SplashFrame, 0.1) end);
-      PingSystemTutorialTitleText:HookScript("OnShow", function() StartTicker(PingSystemTutorialTitleText, ST_PingSystemTutorial, 0.2) end);
-      BankFrame:HookScript("OnShow", function() StartTicker(BankFrame, ST_WarbandBankFrm, 0.2) end);
-      ItemRefTooltip:HookScript("OnShow", function() StartTicker(ItemRefTooltip, ST_ItemRefTooltip, 0.2) end);
-	  EventToastManagerFrame:HookScript("OnShow", function() StartTicker(EventToastManagerFrame, ST_EventToastManagerFrame, 0.2) end);
-	  RaidBossEmoteFrame:HookScript("OnShow", function() StartTicker(RaidBossEmoteFrame, ST_RaidBossEmoteFrame, 0.2) end);
+      PingSystemTutorialTitleText:HookScript("OnShow", function() StartTicker(PingSystemTutorialTitleText, ST_PingSystemTutorial, 0.1) end);
+      BankFrame:HookScript("OnShow", function() StartTicker(BankFrame, ST_WarbandBankFrm, 0.1) end);
+      ItemRefTooltip:HookScript("OnShow", function() StartTicker(ItemRefTooltip, ST_ItemRefTooltip, 0.02) end);
+      EventToastManagerFrame:HookScript("OnShow", function() StartTicker(EventToastManagerFrame, ST_EventToastManagerFrame, 0.1) end);
+      RaidBossEmoteFrame:HookScript("OnShow", function() StartTicker(RaidBossEmoteFrame, ST_RaidBossEmoteFrame, 0.1) end);
+      ReputationFrame.ReputationDetailFrame:HookScript("OnShow", function() StartTicker(ReputationFrame.ReputationDetailFrame, ST_CharacterFrame, 0.1) end);
+      PlayerChoiceFrame:HookScript("OnShow", function() StartTicker(PlayerChoiceFrame, TT_onChoiceShow, 0.1) end)
+	  hooksecurefunc(AddonList, "Show", function() StartTicker(AddonList, ST_AddonListFrame, 0.02) end);
       BB_OknoTRonline();
+      
+      WOWTR_ADDON_PREFIX = WoWTR_Localization.addonName .. "_ver";
+      WOWTR:RegisterEvent("CHAT_MSG_ADDON");      -- ukryty kanał addonu
+      C_ChatInfo.RegisterAddonMessagePrefix(WOWTR_ADDON_PREFIX);
+   
       DEFAULT_CHAT_FRAME:AddMessage("|cffffff00"..WoWTR_Localization.addonName.."  ver. "..WOWTR_version.." - "..WoWTR_Localization.started);
       if ((not QTR_PS["welcome"]) and (string.len(WoWTR_Config_Interface.welcomeText) > 1)) then
          WOWTR_WelcomePanel();
@@ -485,8 +502,10 @@ function WOWTR_onEvent(self, event, name, ...)
    elseif (event=="QUEST_DETAIL" or event=="QUEST_PROGRESS" or event=="QUEST_COMPLETE") then
       if (event=="QUEST_DETAIL" and QTR_quest_ID>0) then      -- zapisz przypisanie questu do krainy
          local QTR_mapID = C_Map.GetBestMapForUnit("player");
-         local QTR_mapINFO = C_Map.GetMapInfo(QTR_mapID);
-         QTR_SAVED[QTR_quest_ID.." MAPID"]=QTR_mapID.."@"..QTR_mapINFO.name.."@"..QTR_mapINFO.mapType.."@"..QTR_mapINFO.parentMapID;     -- save mapID to locale place of this quest
+         if (QTR_mapID) then
+            local QTR_mapINFO = C_Map.GetMapInfo(QTR_mapID);
+            QTR_SAVED[QTR_quest_ID .. " MAPID"] = QTR_mapID .. "@" .. QTR_mapINFO.name .. "@" .. QTR_mapINFO.mapType .. "@" .. QTR_mapINFO.parentMapID; -- save mapID to locale place of this quest
+         end
       end
       if ( QuestFrame:IsVisible() or isImmersion() or isDUIQuestFrame()) then
          QTR_QuestPrepare(event);
@@ -502,8 +521,8 @@ function WOWTR_onEvent(self, event, name, ...)
       if (QTR_PS["gossip"] == "1") then
          if (ElvUI and not isDUIQuestFrame()) then
             if (not isDUIQuestFrame()) then  
-               if (not WOWTR_wait(0.5, QTR_Gossip_Show)) then
-               -- opóźnienie 0.5 sek
+               if (not WOWTR_wait(0.02, QTR_Gossip_Show)) then
+               -- opóźnienie 0.02 sek
                end
             end
          else
@@ -523,6 +542,11 @@ function WOWTR_onEvent(self, event, name, ...)
       TT_onTutorialShow();
    elseif (isImmersion() and event=="QUEST_ACCEPTED") then
       QTR_delayed3();
+   elseif (event == "CHAT_MSG_ADDON") then        -- ukryty kanał addonu
+      local msg, method, who = select (1, ...);
+      if (name == WOWTR_ADDON_PREFIX) then 
+         WOWTR_onChatMsgAddon(who,msg);
+      end
    elseif (GameTooltip:IsShown() and (event=="MODIFIER_STATE_CHANGED") and (name == "LSHIFT" or name == "RSHIFT") and (ST_PM["active"]=="1")) then
       if (GameTooltip.processingInfo and GameTooltip.processingInfo.tooltipData.id and (ST_PM["item"] == "1")) then
          if (GameTooltip.processingInfo.tooltipData.type == 0) then           -- items
@@ -539,6 +563,41 @@ function WOWTR_onEvent(self, event, name, ...)
    end
    if (TT_onTutorialShow) then
       TT_onTutorialShow();
+   end
+   WOWTR_SendVersion();
+end
+
+-------------------------------------------------------------------------------------------------------
+
+function WOWTR_SendVersion()
+   local now = GetTime();
+   if (WOWTR_time_ver + 15*60 < now) then    -- every 15 minutes
+      if ( IsInGuild() ) then                -- the player is in the Guild
+         C_ChatInfo.SendAddonMessage(WOWTR_ADDON_PREFIX, WOWTR_version, "GUILD");
+      end
+      if ( IsInRaid() ) then                 -- the player is in the Raid
+         C_ChatInfo.SendAddonMessage(WOWTR_ADDON_PREFIX, WOWTR_version, "RAID");
+      end
+      WOWTR_time_ver = now;
+   end
+end
+
+-------------------------------------------------------------------------------------------------------
+
+function WOWTR_onChatMsgAddon(who,msg)       -- received message from hidden addon channel
+--print('QTR - MSG od '..who..': '..msg);
+   if (tonumber(msg) > tonumber(WOWTR_version)) then
+      local currentTime = GetTime();
+      if (currentTime - WOWTR_lastNotificationTime) > WOWTR_notificationCooldown then
+         print("|cffffff00"..WoWTR_Localization.addonName.."|r - "..WoWTR_Localization.newVersionAvailable.." |cffffff00"..msg.."|r");
+         UIErrorsFrame:SetTimeVisible(10);
+         if (WoWTR_Localization.lang == 'AR') then
+            UIErrorsFrame:AddMessage(QTR_ReverseIfAR(WoWTR_Localization.addonName .. " - " .. WoWTR_Localization.newVersionAvailable .. WOWTR_AnsiReverse(msg)), 1,0.5,1);
+         else
+            UIErrorsFrame:AddMessage(WoWTR_Localization.addonName .. " - " .. WoWTR_Localization.newVersionAvailable .. msg, 1,0.5,1);
+         end
+         WOWTR_lastNotificationTime = currentTime;    -- save current time
+      end
    end
 end
 

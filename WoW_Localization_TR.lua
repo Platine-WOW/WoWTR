@@ -5,7 +5,7 @@
 
 WoWTR_Localization = {
    lang = "TR",
-   started = "yüklendi",                                             -- addon was started
+   started = "başlatıldı",                                           -- addon was started
    mainFolder = "Interface\\AddOns\\WoWTR",                          -- main folder for addon files
    addonFolder = "WoWTR",                                            -- name of the folder where the addon was installed
    addonName = "WoWTR",                                              -- short name of the addon
@@ -27,8 +27,8 @@ WoWTR_Localization = {
    campaignquests = "Ana Hikaye Görevleri",                          -- Campaign Quests
    scenariodung = "Senaryo",                                         -- Scenario/Dungeon
    objectives = "Tüm Hedefler",                                      -- All Objectives
-   bonusobjective = "Bonus Hedef",								            -- Bonus Objective
-   travelerlog = "Gezgin Günlüğü",                                     -- Traveler's Log
+   bonusobjective = "Bonus Hedef",                                   -- Bonus Objective
+   travelerlog = "Gezgin Günlüğü",                                   -- Traveler's Log
    rewards = "Ödüller",                                              -- Rewards
    storyLineProgress = "Hikaye İlerlemesi",                          -- StoryLine Progress
    storyLineChapters = "Bölümler",                                   -- StoryLine Chapters
@@ -45,10 +45,10 @@ WoWTR_Localization = {
    sellPrice = "Satış fiyatı:",                                      -- Sell price:
    currentlyEquipped = "Şu anda Donanımlı",                          -- Currently Equipped
    additionalEquipped = "Ek Ekipmanla donatılmış",                   -- Equipped with additional Equipment
-   WoWTR_Talent_trDESC = "Yetenekler: Türkçe",                   		-- Talents: Turkish
-   WoWTR_Talent_enDESC = "Talents: English",                   		-- Talents: English
-   WoWTR_Spellbook_trDESC = "Türkçe",                   			      -- Spell Book: Turkish
-   WoWTR_Spellbook_enDESC = "English",                   			   -- Spell Book: English
+   WoWTR_trDESC = "Türkçe",                                          -- Turkish
+   WoWTR_enDESC = "English",                                         -- English
+   WoWTR_Spellbook_trDESC = "Türkçe",                                -- Spell Book: Turkish
+   WoWTR_Spellbook_enDESC = "English",                               -- Spell Book: English
    your_home = "eviniz",                                             -- 'your home' (if the Hearthstone location fails to be read)
    welcomeIconPos = 255,                                             -- position of welcome icon on the welcom panel; 0 = disabled to display
    resetButton1 = "WoWTR.lua dosyasındaki kayıtları temizle",        -- Clear saved untranslated texts (without turkish font)
@@ -62,6 +62,7 @@ WoWTR_Localization = {
    confirmationText1 = "Kaydedilmiş tüm kayıtları \nsilmek istiyor musunuz?",     -- Czy chcesz wyczyścić wszystkie zapisane, nieprzetłumaczone teksty?
    confirmationText2 = "Eklentiyi varsayılan ayarlarına \ngeri yüklemek istiyor musunuz?\n(Arayüz yeniden yüklenecek)",   -- Czy chcesz przywrócić ustawienia domyślne dodatku?
    moveFrameUpDown = "Pencereyi yukarı veya aşağı hareket ettirin",  -- Move the window up or down
+   newVersionAvailable = "eklentisinin yeni bir sürümü mevcut:",     -- new version of addon is available
 };
 
 ---------------------------------------------------------------------------------------------------------
@@ -134,6 +135,8 @@ WoWTR_Config_Interface = {
    translateDialogueUI = "Çevirileri DialogueUI eklentisinde göster",                                 -- Display translations in DialogueUI addon
    translateDialogueUIDESC = "Kapatıldığında, DialogueUI orjinal dilde görünecektir",                 -- If enabled, texts in DialogueUI addon will be translated
    sampleGossipText = "Gossip NPC Konuşma|nÖrnek Font Büyüklüğü",                                     -- Sample Gossip font size text
+   displayENfirst = "İlk önce İngilizce metni göster",                                                -- display EN text first on Quests and Gossip
+   displayENfirstDESC = "İşaretlenirse, önce İngilizce metin görüntülenecektir",                      -- If enabled, English text will display first on Quests and Gossip
 
    titleTab2 = "Baloncuklar",                                                                         -- Bubbles (TR:Baloncuklar)
    generalMainHeaderBB = "KONUŞMA BALONCUKLARI - Bubbles",                                            -- Bubbles translations (TR:KONUŞMA BALONCUKLARI)
@@ -154,7 +157,7 @@ WoWTR_Config_Interface = {
    setDungeonFrames = "Konuşma balonu pencerelerini ayarla",                                          -- Set up speech bubble frames
    setDungeonFramesDESC = "İşaretlendiğinde, zindanlardaki kabarcık pencerelerini dikey olarak hizalayabileceksiniz.",        -- When checked, you will be able to vertically align the bubble windows in dungeons
    savingUntranslatedBubbles = "KAYIT SEÇENEKLERİ",                                                   -- Saving untranslated bubbles (TR:KAYIT SEÇENEKLERİ)
-   saveUntranslatedBubbles = "Çevirisi olmayan konuşmaları kaydet",                          		  -- Save untranslated bubbles (TR:Çevirisi olmayan baloncuk konuşmaları kaydet)
+   saveUntranslatedBubbles = "Çevirisi olmayan konuşmaları kaydet",                                   -- Save untranslated bubbles (TR:Çevirisi olmayan baloncuk konuşmaları kaydet)
    saveUntranslatedBubblesDESC = "Kayıt dosyasına veri ekler",                                        -- If enabled, untranslated bubbles will be saved (TR:Kayıt dosyasına veri ekler)
    fontSizeHeader = "YAZI TİPİ",                                                                      -- Font size of texts (TR:YAZI TİPİ)
    setFontActivate = "Yazı tipi değişikliğini etkinleştir",                                           -- Activate font size changes (TR:Yazı tipi değişikliğini etkinleştir)
@@ -222,7 +225,7 @@ WoWTR_Config_Interface = {
    titleTab5 = "Kitaplar",                                                                            -- Books (TR:Kitaplar)
    generalMainHeaderBT = "KİTAP ÇEVİRİLERİ - Books",                                                  -- Books translations (TR:KİTAP ÇEVİRİLERİ)
    activateBooksTranslations = "Kitap çevirilerini etkinleştir",                                      -- Activate book translations (TR:Kitap çevirilerini etkinleştir)
-   activateBooksTranslationsDESC = "Etkinleştirilirse, orijinal metinlerin yerine kitap çevirileri görünecektir",   -- If enabled, book translations will appear in place of the original texts (TR:Etkinleştirilirse, orijinal metinlerin yerine kitap çevirileri görünecektir)
+   activateBooksTranslationsDESC = "Orijinal metinlerin yerine kitap çevirileri görünecektir",        -- If enabled, book translations will appear in place of the original texts (TR:Etkinleştirilirse, orijinal metinlerin yerine kitap çevirileri görünecektir)
    translateBookTitles = "Kitap adlarının çevirilerini göster",                                       -- Display translations of book TITLES (TR:Kitap adlarının çevirilerini göster)
    translateBookTitlesDESC = "Etkinleştirilirse, kitap başlıkları çevrilecek",                        -- If enabled, book titles will be translated (TR:Etkinleştirilirse, kitap başlıkları çevrilecek)
    showBookID = "Kitabın kimliğini göster",                                                           -- Show ID of book (TR:Kitabın kimliğini göster)
@@ -235,16 +238,16 @@ WoWTR_Config_Interface = {
    generalMainHeaderST = "ARAÇ İPUCU ÇEVİRİLERİ - Tooltips",                                          -- Tooltip translations (TR:ARAÇ İPUCU ÇEVİRİLERİ)
    activateTooltipTranslations = "Araç ipucu çevirilerini etkinleştir",                               -- Activate tooltip translations (TR:Araç ipucu çevirilerini etkinleştir)
    activateTooltipTranslationsDESC = "Kapatılırsa aşağıdaki özelliklerin hiçbiri çalışmayacaktır",    -- If enabled, translated tooltips will displayed (TR:Etkinleştirilirse, çevrilmiş araç ipuçları görüntülenecektir)
-   translateItems = "Item çevirilerini etkinleştir",					                                    -- Display translated tooltips for items (TR:Öğeler için çevrilmiş araç ipuçlarını göster)
-   translateItemsDESC = "Kıyafet, eşya, yiyecek, trinket gibi öğelerin çevirileri etkinleşir",   	   -- If enabled, translated tooltips for items will be displayed (TR:Etkinleştirilirse, öğeler için çevrilmiş araç ipuçları görüntülenecektir)
-   translateSpells = "Skill, Spell çevirilerini etkinleştir",                                 		   -- Display translated tooltips for spells (TR:Büyüler için çevrilmiş araç ipuçlarını göster)
-   translateSpellsDESC = "Karakterinizin büyü ve becerilerinin çevirileri etkinleşir", 			      -- If enabled, translated tooltips for spells will be displayed (TR:Etkinleştirilirse, büyüler için çevrilmiş araç ipuçları görüntülenecektir)
-   translateTalents = "Talent çevirilerini etkinleştir",                             				      -- Display translated tooltips for talents (TR:Yetenekler için çevrilmiş araç ipuçlarını göster)
-   translateTalentsDESC = "Karakterinizin talentlerinin çevirileri etkinleşir",   					      -- If enabled, translated tooltips for talents will be displayed (TR:Etkinleştirilirse, yetenekler için çevrilmiş araç ipuçları görüntülenecektir)
+   translateItems = "Item çevirilerini etkinleştir",                                                  -- Display translated tooltips for items (TR:Öğeler için çevrilmiş araç ipuçlarını göster)
+   translateItemsDESC = "Kıyafet, eşya, yiyecek, trinket gibi öğelerin çevirileri etkinleşir",        -- If enabled, translated tooltips for items will be displayed (TR:Etkinleştirilirse, öğeler için çevrilmiş araç ipuçları görüntülenecektir)
+   translateSpells = "Skill, Spell çevirilerini etkinleştir",                                         -- Display translated tooltips for spells (TR:Büyüler için çevrilmiş araç ipuçlarını göster)
+   translateSpellsDESC = "Karakterinizin büyü ve becerilerinin çevirileri etkinleşir",                -- If enabled, translated tooltips for spells will be displayed (TR:Etkinleştirilirse, büyüler için çevrilmiş araç ipuçları görüntülenecektir)
+   translateTalents = "Talent çevirilerini etkinleştir",                                              -- Display translated tooltips for talents (TR:Yetenekler için çevrilmiş araç ipuçlarını göster)
+   translateTalentsDESC = "Karakterinizin talentlerinin çevirileri etkinleşir",                       -- If enabled, translated tooltips for talents will be displayed (TR:Etkinleştirilirse, yetenekler için çevrilmiş araç ipuçları görüntülenecektir)
    translateTooltipTitle = "Araç ipuçlarının varsa çevrilmiş isimlerini göster",                      -- Display translated title of item, spell or talent
-   translateTooltipTitleDESC = "Etkinleştirilirse, öğenin, büyünün veya yeteneğin çevrilmiş başlığı görüntülenecektir",  -- If enabled, translated title of tooltips will be displayed
+   translateTooltipTitleDESC = "Öğenin, büyünün veya yeteneğin çevrilmiş başlığı görüntülenecektir",  -- If enabled, translated title of tooltips will be displayed
    showTooltipID = "Araç ipuçları kimliğini göster",                                                  -- Show tooltips ID (TR:Araç ipuçları kimliğini göster)
-   showTooltipIDDESC = "Etkinleştirilirse, araç penceresinde ID görüntülenir",   					      -- If enabled, display tooltips ID (TR:Etkinleştirilirse, araç ipuçları kimliğini göster)
+   showTooltipIDDESC = "Etkinleştirilirse, araç penceresinde ID görüntülenir",                        -- If enabled, display tooltips ID (TR:Etkinleştirilirse, araç ipuçları kimliğini göster)
    showTooltipHash = "Hash kodunu göster",                                                            -- Show tooltips Hash (TR:Hash kodunu göster)
    showTooltipHashDESC = "Etkinleştirilirse, araç ipuçlarının hash kodu görüntülenir",                -- If enabled, display tooltips Hash (TR:Etkinleştirilirse, araç ipuçlarının hash kodu görüntülenir)
    hideSellPrice = "Ürünlerin satış fiyatını gizle",                                                  -- Hide sell price of items (TR:Ürünlerin satış fiyatını gizle)
@@ -259,7 +262,7 @@ WoWTR_Config_Interface = {
    saveUntranslatedTooltipsDESC = "Etkinleştirilirse çevrilmemiş araç ipuçları kaydedilecek",         -- If enabled, untranslated tooltips will be saved (TR:Etkinleştirilirse çevrilmemiş araç ipuçları kaydedilecek)
 
    titleTab9 = "Hakkında",                                                                            -- About (TR:Hakkında)
-   generalText = "\nWoWTR: World of Warcraft Türkçe Yama Addonu\n\nBu addon, World of Warcraft oyununu Türkçe oynamak isteyen oyuncular için geliştirilmiştir. WoWTR, oyun içindeki metinleri, görev açıklamalarını, arayüz öğelerini ve daha fazlasını Türkçe\'ye çevirerek, Türk oyuncuların oyun deneyimini geliştirmeyi amaçlamaktadır.\n\n\nÖzellikler:\n - Oyun içi metinlerin Türkçe çevirisi\n - Görev açıklamalarının Türkçeleştirilmesi\n - Arayüz öğelerinin Türkçe gösterimi\n - NPC diyaloglarının çevirisi\n - Sürekli güncellenen çeviri veritabanı\n\n\nWoWTR, Türk WoW topluluğunun desteğiyle geliştirilmektedir.\nKeyifli oyunlar!\n\n\n|cffEAC408Kayıt Dosyası Yolu:|r \n...World of Warcraft\\_retail_\\WTF\\Account\\[XXX]\\SavedVariables\\|cffEAC408WoWTR.lua|r",
+   generalText = "\nWoWTR: World of Warcraft Türkçe Yama Addonu\n\nBu addon, World of Warcraft oyununu Türkçe oynamak isteyen oyuncular için geliştirilmiştir. WoWTR, oyun içindeki metinleri, görev açıklamalarını, arayüz öğelerini ve daha fazlasını Türkçe\'ye çevirerek, Türk oyuncuların oyun deneyimini geliştirmeyi amaçlamaktadır.\n\n\nÖzellikler:\n - Oyun içi metinlerin Türkçe çevirisi\n - Görev açıklamalarının Türkçeleştirilmesi\n - Arayüz öğelerinin Türkçe gösterimi\n - NPC diyaloglarının çevirisi\n - Sürekli güncellenen çeviri veritabanı\n\n\nWoWTR, Türk WoW topluluğunun desteğiyle geliştirilmektedir.\n\n\n|cffEAC408Kayıt Dosyası Yolu:|r \n...World of Warcraft\\_retail_\\WTF\\Account\\[XXX]\\SavedVariables\\|cffEAC408WoWTR.lua|r",
    welcomeText = "",
    welcomeButton = "Tamam - okundu",                                                                  -- Button: Close welcome panel
    showWelcome = "Karşılama panelini göster",                                                         -- Button: Show welcome panel
@@ -286,7 +289,7 @@ WoWTR_Config_Interface = {
    linkFBTitle = "",
    linkCloseFrame = "Çerçeveyi kapat",
    linkCopy = "Bağlantıyı panoya kopyalamak için |cff00ffffCtrl+C|r tuşlarına bas",      -- Press Ctrl+C to copy the address to the clipboard
-   betaTestersHeader = "",                                                       		  -- TRANSLATION TEAM
+   betaTestersHeader = "",                                                               -- TRANSLATION TEAM
    betaTestersHeaderDESC = "",    -- Translators and Beta testers:
 };
 
@@ -351,6 +354,9 @@ if (p_class[QTR_class]) then
 else
    player_class_table = { M1=QTR_class, D1=QTR_class, C1=QTR_class, B1=QTR_class, N1=QTR_class, K1=QTR_class, W1=QTR_class, M2=QTR_class, D2=QTR_class, C2=QTR_class, B2=QTR_class, N2=QTR_class, K2=QTR_class, W2=QTR_class };
 end
+
+local myFontPath = WoWTR_Localization.mainFolder.."\\Fonts\\"
+
 
 WOWTR_Font1 = WoWTR_Localization.mainFolder.."\\Fonts\\morpheus_tr.ttf";
 WOWTR_Font2 = WoWTR_Localization.mainFolder.."\\Fonts\\frizquadrata_tr.ttf";
