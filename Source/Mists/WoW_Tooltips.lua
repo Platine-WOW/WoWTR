@@ -1116,7 +1116,7 @@ function ST_updateSpellBookFrame()
          end
       end
       
-      if (SpellBookFrameTabButton3 and SpellBookFrameTabButton3:GetText()) then
+      if (SpellBookFrameTabButton3 and SpellBookFrameTabButton3Text:GetText()) then
          local str_ID = StringHash(ST_UsunZbedneZnaki(SpellBookFrameTabButton3:GetText()));
          if (ST_TooltipsHS[str_ID]) then
             local text1 = QTR_ReverseIfAR(ST_SetText(SpellBookFrameTabButton3:GetText()));
@@ -1130,6 +1130,40 @@ function ST_updateSpellBookFrame()
 
       local SBPageText = SpellBookPageText;
       ST_CheckAndReplaceTranslationText(SBPageText, true, "ui");
+
+      local SBPageText02 = SpellBookFrameTabButton3Text;
+      ST_CheckAndReplaceTranslationText(SBPageText02, true, "ui");
+
+      local SBPageText03 = SpellBookFrameTabButton4Text;
+      ST_CheckAndReplaceTranslationText(SBPageText03, true, "ui");
+
+      for i = 1, 6 do
+         local ability = SpellBookCoreAbilitiesFrame.Abilities[i]
+         if ability and ability.InfoText then
+            local text = ability.InfoText:GetText()
+            if text then
+               -- print("Ability " .. i .. " text: " .. text)
+               ST_CheckAndReplaceTranslationText(ability.InfoText, true, "spells")
+            end
+         end
+      end
+
+local children = {SpellBookWhatHasChanged:GetChildren()}
+for i, child in ipairs(children) do
+    local regions = {child:GetRegions()}
+    if #regions >= 5 then  -- En az 5 bölge olduğundan emin oluyoruz
+        local targetRegion = regions[5]  -- 5. bölgeyi hedefliyoruz (return:5)
+        if targetRegion:IsObjectType("FontString") then
+            local text = targetRegion:GetText()
+            if text then
+                -- print("Child " .. i .. ", Return:5 text: " .. text)
+                ST_CheckAndReplaceTranslationText(targetRegion, true, "WhatHasChanged")
+            end
+        end
+    end
+end
+
+
    end
 end
 

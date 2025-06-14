@@ -477,9 +477,27 @@ function TT_TutorialFrameText()
    end
 end
 
+function TT_AlertText()
+   if TT_PS["active"] == "1" then
+      local textObjects = {
+         TalentMicroButtonAlert.Text
+      }
+
+      for _, textObject in ipairs(textObjects) do
+         local txt = textObject:GetText()
+         if txt and not string.find(txt, " ") then
+            local hash = StringHash(txt)
+            ReplaceTextWithTranslation(textObject, hash)
+         end
+      end
+   end
+end
+
 local customFontPath = WoWTR_Localization.mainFolder.."\\Fonts\\frizquadrata_tr.ttf";
 TutorialFrameTitle:SetFont(customFontPath, 12)
 TutorialFrameText:SetFont(customFontPath, 12)
+TalentMicroButtonAlert.Text:SetFont(customFontPath, 11)
+TalentMicroButtonAlert.Text:SetFont(customFontPath, 11)
 -------------------------------------------------------------------------------------------------------
 -- if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
    -- hooksecurefunc(HelpTip,"Show", 

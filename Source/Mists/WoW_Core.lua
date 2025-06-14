@@ -486,7 +486,9 @@ function WOWTR_onEvent(self, event, name, ...)
       RaidBossEmoteFrame:HookScript("OnShow", function() StartTicker(RaidBossEmoteFrame, ST_RaidBossEmoteFrame, 0.1) end);
       ReputationDetailFrame:HookScript("OnShow", function() StartTicker(ReputationDetailFrame, ST_CharacterFrame, 0.1) end);
 	  TutorialFrame:HookScript("OnShow", function() StartTicker(TutorialFrame, TT_TutorialFrameText, 0.02) end);
+      TalentMicroButtonAlert:HookScript("OnShow", function() StartTicker(TalentMicroButtonAlert, TT_AlertText, 0.02) end);
       hooksecurefunc(AddonList, "Show", function() StartTicker(AddonList, ST_AddonListFrame, 0.02) end);
+	  SpellBookFrame:HookScript("OnShow", function() StartTicker(SpellBookFrame, ST_updateSpellBookFrame, 0.02) end)
       BB_OknoTRonline();
       
       WOWTR_ADDON_PREFIX = WoWTR_Localization.addonName .. "_ver";
