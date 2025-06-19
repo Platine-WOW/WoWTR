@@ -110,6 +110,7 @@ function TT_onTutorialShow()                      -- main function called when t
             end
           end
         end
+		TT_TranslateTokenFrameText()
       end
 
       if iteration < 10 then                                          -- If the current iteration is less than 10,
@@ -444,6 +445,41 @@ function TT_CampaignOverview()
 end
 
 -------------------------------------------------------------------------------------------------------
+function TT_TranslateTokenFrameText()
+    local children = {TokenFrame:GetChildren()}
+    local textObject = children[8].Text
+    if textObject then
+        local txt = textObject:GetText()
+		--print(txt);
+        if txt and not string.find(txt, " ") then
+            local id = StringHash(txt)
+
+
+            if Tut_Data7[id] then
+                local _font, _size, _ = textObject:GetFont()
+                if WoWTR_Localization.lang == 'AR' then
+                    textObject:SetText(QTR_ExpandUnitInfo(Tut_Data7[id], false, textObject, WOWTR_Font2).." ")
+                else
+                        local translatedText = QTR_ReverseIfAR(WOW_ZmienKody(Tut_Data7[id])).." "
+    print("SetText çağrılıyor, diğer diller için metin: " .. translatedText)
+textObject:SetText(translatedText)
+textObject:SetFont(WOWTR_Font2, _size)
+if textObject.parent then
+    textObject.parent:Invalidate()
+end
+-- Eğer üstteki işe yaramazsa, tüm UI'ı yenilemeyi deneyin
+if UIParent then
+    UIParent:Invalidate()
+end
+                end
+                textObject:SetFont(WOWTR_Font2, _size)
+            elseif TT_PS["save"] == "1" then
+                TT_TUTORIALS[tostring(id)] = txt
+            end
+        end
+    end
+end
+
 
 if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
    hooksecurefunc(HelpTip,"Show", 

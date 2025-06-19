@@ -1,11 +1,11 @@
 ## Interface: 50500
 ## Title: WoWTR by |cff3FC7EBHKNYLMZ |T135846:16:16:0:0|t 
-## Version: 25.0604
+## Version: 25.0620
 ## Notes: Oyun içindeki metinleri Türkçe tercüme eder.
 ## Notes_en: Translates the texts in the play into Turkish.
 ## Author: Platine & Hakan YILMAZ
 ## X-Website: https://www.curseforge.com/wow/addons/wowtr
-## E-mail: info@wowtr.com.tr
+## E-mail: hknylmz@gmail.com
 ## WWW: https://www.wowtr.com.tr
 ## DefaultState: Enabled
 ## LoadOnDemand: 0

@@ -192,17 +192,19 @@ function WOWTR_CheckVars()
       WOWTR_Font2 = WoWTR_Localization.mainFolder.."\\Fonts\\"..QTR_PS["FontFile"];
    end
 
-if not QTR_PS.firstTimeLoaded4 then   -- Automatic log cleaning (reset saved texts)
-    QTR_PS.firstTimeLoaded4 = true
+if not QTR_PS.firstTimeLoaded6 then   -- Automatic log cleaning (reset saved texts)
+    QTR_PS.firstTimeLoaded6 = true
 
     -- Diğer numaralandırılmış kayıtları sıfırlamak için bir döngü
     for i = 1, 9 do
-        if i ~= 4 then  -- 4 numaralı kayıt hariç
+        if i ~= 6 then  -- 6 numaralı kayıt hariç
             QTR_PS["firstTimeLoaded" .. i] = nil
         end
     end
 
     WOWTR_ResetVariables(1)
+    ST_PM["saveNW"] = "0";
+    TT_PS["saveui"] = "0";
 end
 
    -- initialize check options
@@ -372,7 +374,7 @@ end
       ST_PM["showHS"] = "0";   
    end
    if (not ST_PM["saveNW"] ) then    -- zapisz nieprzetłumaczone
-      ST_PM["saveNW"] = "1";   
+      ST_PM["saveNW"] = "0";   
    end
    if (not ST_PM["sellprice"] ) then    -- ukryj cene skupu itemu
       ST_PM["sellprice"] = "0";   
@@ -486,7 +488,9 @@ function WOWTR_onEvent(self, event, name, ...)
       RaidBossEmoteFrame:HookScript("OnShow", function() StartTicker(RaidBossEmoteFrame, ST_RaidBossEmoteFrame, 0.1) end);
       ReputationFrame.ReputationDetailFrame:HookScript("OnShow", function() StartTicker(ReputationFrame.ReputationDetailFrame, ST_CharacterFrame, 0.1) end);
       PlayerChoiceFrame:HookScript("OnShow", function() StartTicker(PlayerChoiceFrame, TT_onChoiceShow, 0.1) end)
-	  hooksecurefunc(AddonList, "Show", function() StartTicker(AddonList, ST_AddonListFrame, 0.02) end);
+      hooksecurefunc(AddonList, "OnShow", function() StartTicker(AddonList, ST_AddonListFrame, 0.02) end);
+      MailFrame:HookScript("OnShow", function() StartTicker(MailFrame, ST_MailFrame, 0.1) end);
+      CommunitiesFrame:HookScript("OnShow", function() StartTicker(CommunitiesFrame, ST_GuildFrame, 0.02) end)
       BB_OknoTRonline();
       
       WOWTR_ADDON_PREFIX = WoWTR_Localization.addonName .. "_ver";

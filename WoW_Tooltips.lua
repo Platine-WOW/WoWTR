@@ -953,9 +953,9 @@ function ST_UpdateFrameTitle(classTalentFrame)
       titleText = _G["TALENTS"];
    end
    classTalentFrame:SetTitle(ST_SetText(titleText));
-   local _font, _size, _ = classTalentFrame.TalentsTab.ApplyButton.Text:GetFont();    -- odczytaj aktualną czcionkę i rozmiar
-   classTalentFrame.TalentsTab.ApplyButton.Text:SetText(QTR_ReverseIfAR(ST_SetText(classTalentFrame.TalentsTab.ApplyButton.Text:GetText())));   -- Apply Changes
-   classTalentFrame.TalentsTab.ApplyButton.Text:SetFont(WOWTR_Font2, _size);
+   -- local _font, _size, _ = classTalentFrame.TalentsTab.ApplyButton.Text:GetFont();    -- odczytaj aktualną czcionkę i rozmiar
+   -- classTalentFrame.TalentsTab.ApplyButton.Text:SetText(QTR_ReverseIfAR(ST_SetText(classTalentFrame.TalentsTab.ApplyButton.Text:GetText())));   -- Apply Changes
+   -- classTalentFrame.TalentsTab.ApplyButton.Text:SetFont(WOWTR_Font2, _size);
 
 --   local _font, _size, _ = classTalentFrame:GetTalentsTabButton():GetFont();
    classTalentFrame:GetTalentsTabButton():SetText(ST_SetText(_G["TALENT_FRAME_TAB_LABEL_TALENTS"]));
@@ -2162,6 +2162,8 @@ function ST_GroupFinder()
       local GFobj59 = LFGListFrame.ApplicationViewer.RoleColumnHeader.Label;
       ST_CheckAndReplaceTranslationTextUI(GFobj59, true, "ui");
 
+      local GFobj60 = LFGListFrame.SearchPanel.SearchingSpinner.Label;
+      ST_CheckAndReplaceTranslationTextUI(GFobj60, true, "ui");
 
       -- Utility function for applying translations to UI elements with custom font
       local function ApplyTranslationToElement(element, alignment)
@@ -2598,14 +2600,27 @@ function ST_CharacterFrame() -- https://imgur.com/FV5MXvb
          --print("ChFrame7 text not found.");
       end
 
-      local ChFrame8 = ReputationDetailAtWarCheckBoxText;             -- Check Box Text - At War
+      local ChFrame8 = ReputationFrame.ReputationDetailFrame.AtWarCheckbox.Label;             -- Check Box Text - At War
       ST_CheckAndReplaceTranslationTextUI(ChFrame8, true, "ui");
 
-      local ChFrame9 = ReputationDetailInactiveCheckBoxText;          -- Check Box Text - Move to Inactive
+      local ChFrame9 = ReputationFrame.ReputationDetailFrame.MakeInactiveCheckbox.Label;          -- Check Box Text - Move to Inactive
       ST_CheckAndReplaceTranslationTextUI(ChFrame9, true, "ui");
 
-      local ChFrame10 = ReputationDetailMainScreenCheckBoxText;       -- Check Box Text - Show as Experience Bar
+      local ChFrame10 = ReputationFrame.ReputationDetailFrame.WatchFactionCheckbox.Label;       -- Check Box Text - Show as Experience Bar
       ST_CheckAndReplaceTranslationTextUI(ChFrame10, true, "ui");
+
+      local ChFrame11 = ReputationFrame.ReputationDetailFrame.ViewRenownButton;       -- View Renown Button Text - View Renown Button - ekleme yaptım
+      ST_CheckAndReplaceTranslationTextUI(ChFrame11, true, "ui");
+
+      local ChFrame12 = TokenFramePopup.Title;       -- TokenFramePopup header Text - ekleme yaptım
+      ST_CheckAndReplaceTranslationTextUI(ChFrame12, true, "ui");
+
+      local ChFrame13 = TokenFramePopup.InactiveCheckbox.Text;       -- TokenFramePopup Unused Text - ekleme yaptım
+      ST_CheckAndReplaceTranslationTextUI(ChFrame13, true, "ui");
+
+      local ChFrame14 = TokenFramePopup.BackpackCheckbox.Text;       -- TokenFramePopup Show on Backpack Text - ekleme yaptım
+      ST_CheckAndReplaceTranslationTextUI(ChFrame14, true, "ui");
+
    end
 
 end
@@ -2710,6 +2725,30 @@ function ST_FriendsFrame()
 
       local Friendsobj32 = RecruitAFriendFrame.RewardClaiming.EarnInfo;
       ST_CheckAndReplaceTranslationTextUI(Friendsobj32, false, "ui");
+
+      local Friendsobj33 = AddFriendEntryFrameTopTitle;
+      ST_CheckAndReplaceTranslationTextUI(Friendsobj33, true, "ui");
+
+      local Friendsobj34 = AddFriendEntryFrameAcceptButtonText;
+      ST_CheckAndReplaceTranslationTextUI(Friendsobj34, true, "ui");
+
+      local Friendsobj35 = AddFriendEntryFrameCancelButtonText;
+      ST_CheckAndReplaceTranslationTextUI(Friendsobj35, true, "ui");
+
+      local Friendsobj36 = select(7, AddFriendInfoFrame:GetRegions());
+      ST_CheckAndReplaceTranslationTextUI(Friendsobj36, true, "ui");
+
+      local Friendsobj37 = AddFriendInfoFrameContinueButtonText;
+      ST_CheckAndReplaceTranslationTextUI(Friendsobj37, true, "ui");
+
+      local Friendsobj38 = select(8, AddFriendInfoFrame:GetRegions());
+      ST_CheckAndReplaceTranslationTextUI(Friendsobj38, true, "ui");
+
+      local Friendsobj39 = select(6, AddFriendEntryFrame:GetRegions());
+      ST_CheckAndReplaceTranslationTextUI(Friendsobj39, true, "ui");
+
+      local Friendsobj40 = select(10, AddFriendEntryFrame:GetRegions())
+      ST_CheckAndReplaceTranslationTextUI(Friendsobj40, true, "ui");
    end
 end
 
@@ -2837,6 +2876,9 @@ function ST_WarbandBankFrm()
 
       local BANKFrame09 = BankItemSearchBox.Instructions;
       ST_CheckAndReplaceTranslationTextUI(BANKFrame09, false, "ui");
+
+      local BANKFrame10 = ReagentBankFrame.DespositButton.Text;
+      ST_CheckAndReplaceTranslationTextUI(BANKFrame10, true, "ui");
    end
 end
 
@@ -3106,6 +3148,168 @@ function ST_AddonListFrame()
                 end
             end
         end
+    end
+end
+
+-------------------------------------------------------------------------------------------------------
+-- Guild Frame
+function ST_GuildFrame()
+    if (TT_PS["ui1"] == "1") then
+        local function processRegion(frame)
+            ST_CheckAndReplaceTranslationTextUI(frame, true, "ui")
+        end
+
+        -- CommunitiesFrame
+        processRegion(select(1, CommunitiesFrame.TitleContainer:GetRegions()))
+
+        -- CommunitiesFrameGuildDetailsFrameNews
+        processRegion(select(3, CommunitiesFrameGuildDetailsFrameNews:GetRegions()))
+        processRegion(select(4, CommunitiesFrameGuildDetailsFrameNews:GetRegions()))
+        processRegion(select(5, CommunitiesFrameGuildDetailsFrameNews:GetRegions()))
+
+        -- CommunitiesFrameGuildDetailsFrameInfo
+        processRegion(select(1, CommunitiesFrameGuildDetailsFrameInfo:GetRegions()))
+        processRegion(select(11, CommunitiesFrameGuildDetailsFrameInfo:GetRegions()))
+        processRegion(select(12, CommunitiesFrameGuildDetailsFrameInfo:GetRegions()))
+        processRegion(select(13, CommunitiesFrameGuildDetailsFrameInfo:GetRegions()))
+
+        -- CommunitiesFrame.GuildBenefitsFrame
+        processRegion(select(2, CommunitiesFrame.GuildBenefitsFrame.Perks:GetRegions()))
+        processRegion(select(2, CommunitiesFrame.GuildBenefitsFrame.Rewards:GetRegions()))
+        processRegion(select(1, CommunitiesFrame.GuildBenefitsFrame.FactionFrame:GetRegions()))
+
+        -- CommunitiesGuildLogFrame
+        processRegion(select(10, CommunitiesGuildLogFrame:GetRegions()))
+
+        -- CommunitiesFrame.GuildMemberDetailFrame
+        processRegion(select(3, CommunitiesFrame.GuildMemberDetailFrame:GetRegions()))
+        processRegion(select(5, CommunitiesFrame.GuildMemberDetailFrame:GetRegions()))
+        processRegion(select(7, CommunitiesFrame.GuildMemberDetailFrame:GetRegions()))
+        processRegion(select(9, CommunitiesFrame.GuildMemberDetailFrame:GetRegions()))
+        processRegion(select(10, CommunitiesFrame.GuildMemberDetailFrame:GetRegions()))
+        processRegion(select(1, CommunitiesFrameGuildDetailsFrameNews.SetFiltersButton:GetRegions()))
+        processRegion(select(1, CommunitiesFrameGuildDetailsFrameInfo.EditMOTDButton:GetRegions()))
+        processRegion(select(1, CommunitiesFrameGuildDetailsFrameInfo.EditDetailsButton:GetRegions()))
+
+        -- Global strings and buttons
+        processRegion(CommunitiesGuildLogFrameCloseButtonText)
+        processRegion(CommunitiesFrame.GuildLogButton.Text)
+        processRegion(CommunitiesFrame.CommunitiesControlFrame.GuildRecruitmentButton.Text)
+        processRegion(CommunitiesFrame.InviteButton.Text)
+        processRegion(CommunitiesFrame.MemberList.ShowOfflineButton.Text)
+        processRegion(CommunitiesFrame.GuildMemberDetailFrame.RemoveButton.Text)
+        processRegion(CommunitiesFrame.GuildMemberDetailFrame.GroupInviteButton.Text)
+        processRegion(CommunitiesFrame.CommunitiesControlFrame.GuildControlButton.Text)
+        processRegion(CommunitiesGuildTextEditFrame.Title)
+        processRegion(CommunitiesGuildTextEditFrameAcceptButtonText)
+        processRegion(CommunitiesGuildTextEditFrameCloseButtonText)
+        processRegion(CommunitiesFrame.MemberList.ShowOfflineButton.Text)
+        processRegion(CommunitiesFrame.MemberList.MemberCount)
+        processRegion(CommunitiesGuildNewsFiltersFrame.Title)
+        processRegion(CommunitiesGuildNewsFiltersFrame.GuildAchievement.Text)
+        processRegion(CommunitiesGuildNewsFiltersFrame.Achievement.Text)
+        processRegion(CommunitiesGuildNewsFiltersFrame.DungeonEncounter.Text)
+        processRegion(CommunitiesGuildNewsFiltersFrame.EpicItemLooted.Text)
+        processRegion(CommunitiesGuildNewsFiltersFrame.EpicItemCrafted.Text)
+        processRegion(CommunitiesGuildNewsFiltersFrame.EpicItemPurchased.Text)
+        processRegion(CommunitiesGuildNewsFiltersFrame.LegendaryItemLooted.Text)
+        processRegion(CommunitiesFrameGuildDetailsFrameInfoChallenge1.label)
+        processRegion(CommunitiesFrameGuildDetailsFrameInfoChallenge2.label)
+        processRegion(CommunitiesFrameGuildDetailsFrameInfoChallenge3.label)
+        processRegion(CommunitiesFrameGuildDetailsFrameInfoChallenge4.label)
+
+        -- CommunitiesFrame.MemberList.ColumnDisplay children işle
+        local columnDisplay = CommunitiesFrame.MemberList.ColumnDisplay
+        if columnDisplay then
+            local children = {columnDisplay:GetChildren()}
+            for _, child in ipairs(children) do
+                if child:IsObjectType("Button") then
+                    local fontString = child:GetFontString()
+                    if fontString then
+                        ST_CheckAndReplaceTranslationTextUI(fontString, true, "ui")
+                    end
+                end
+            end
+        end
+
+    end
+end
+
+-------------------------------------------------------------------------------------------------------
+-- MAILBOX
+function ST_MailFrame()
+    if (TT_PS["ui1"] == "1") then
+        local Mailobj01 = MailFrameTab1.Text;
+        ST_CheckAndReplaceTranslationTextUI(Mailobj01, true, "ui");
+
+        local Mailobj02 = MailFrameTab2.Text;
+        ST_CheckAndReplaceTranslationTextUI(Mailobj02, true, "ui");
+
+        local Mailobj03 = OpenAllMailText;
+        ST_CheckAndReplaceTranslationTextUI(Mailobj03, true, "ui");
+
+        local Mailobj04 = SendMailMailButtonText;
+        ST_CheckAndReplaceTranslationTextUI(Mailobj04, true, "ui");
+
+        local Mailobj05 = SendMailCancelButtonText;
+        ST_CheckAndReplaceTranslationTextUI(Mailobj05, true, "ui");
+
+        local Mailobj06 = SendMailSendMoneyButtonText;
+        ST_CheckAndReplaceTranslationTextUI(Mailobj06, true, "ui");
+
+        local Mailobj07 = select(3, SendMailNameEditBox:GetRegions());
+        ST_CheckAndReplaceTranslationTextUI(Mailobj07, true, "ui");
+
+        local Mailobj08 = select(3, SendMailSubjectEditBox:GetRegions());
+        ST_CheckAndReplaceTranslationTextUI(Mailobj08, true, "ui");
+
+        local Mailobj09 = select(1, SendMailCostMoneyFrame:GetRegions());
+        ST_CheckAndReplaceTranslationTextUI(Mailobj09, true, "ui");
+
+        local Mailobj11 = select(3, OpenMailInvoiceFrame:GetRegions());
+        ST_CheckAndReplaceTranslationTextUI(Mailobj11, true, "ui");
+
+        local Mailobj12 = select(4, OpenMailInvoiceFrame:GetRegions());
+        ST_CheckAndReplaceTranslationTextUI(Mailobj12, true, "ui");
+
+        local Mailobj13 = select(5, OpenMailInvoiceFrame:GetRegions());
+        ST_CheckAndReplaceTranslationTextUI(Mailobj13, true, "ui");
+
+        local Mailobj14 = select(7, OpenMailInvoiceFrame:GetRegions());
+        ST_CheckAndReplaceTranslationTextUI(Mailobj14, true, "ui");
+
+        local Mailobj15 = OpenMailDeleteButtonText;
+        ST_CheckAndReplaceTranslationTextUI(Mailobj15, true, "ui");
+
+        local Mailobj16 = OpenMailReplyButtonText;
+        ST_CheckAndReplaceTranslationTextUI(Mailobj16, true, "ui");
+
+        local Mailobj17 = OpenMailCancelButtonText;
+        ST_CheckAndReplaceTranslationTextUI(Mailobj17, true, "ui");
+
+        local Mailobj18 = select(4, OpenMailFrame:GetRegions());
+        ST_CheckAndReplaceTranslationTextUI(Mailobj18, true, "ui");
+
+        local Mailobj19 = select(5, OpenMailFrame:GetRegions());
+        ST_CheckAndReplaceTranslationTextUI(Mailobj19, true, "ui");
+
+        local Mailobj20 = select(6, OpenMailFrame:GetRegions());
+        ST_CheckAndReplaceTranslationTextUI(Mailobj20, true, "ui");
+
+        local Mailobj21 = MailFrameTitleText
+        ST_CheckAndReplaceTranslationTextUI(Mailobj21, true, "ui");
+
+        local Mailobj22 = SendMailMoneyText
+        ST_CheckAndReplaceTranslationTextUI(Mailobj22, true, "ui");
+
+        local Mailobj23 = select(1, InboxNextPageButton:GetRegions());
+        ST_CheckAndReplaceTranslationTextUI(Mailobj23, true, "ui");
+
+        local Mailobj24 = select(1, InboxPrevPageButton:GetRegions());
+        ST_CheckAndReplaceTranslationTextUI(Mailobj24, true, "ui");
+
+        local Mailobj25 = OpenMailFrameTitleText
+        ST_CheckAndReplaceTranslationTextUI(Mailobj25, true, "ui");
     end
 end
 
