@@ -2,7 +2,7 @@
 -- for the addon WoWTR-Movies
 
 MF_lang = "TR";          -- translation language
-MF_date = "2025-06-14";  -- date of creation base
+MF_date = "2025-06-18";  -- date of creation base
 MF_base = "5219";        -- version (number of hash translations)
 
 -- intro translation table 

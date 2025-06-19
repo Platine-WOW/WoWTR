@@ -2,7 +2,7 @@
 -- for the addon WoWTR-Books
 
 BT_lang = "TR";         -- translation language
-BT_date = "2025-06-14"; -- date of creation base
+BT_date = "2025-06-18"; -- date of creation base
 BT_base = "5137";      -- version (number of translations)
 
 -- books translation table1: Title + ID 
@@ -4753,7 +4753,7 @@ BT_Books = {
 ["5233"]={["Title"]="Güzel Çizmeler", 
     ["1"]="Bu botlar yaşlarına göre şaşırtıcı derecede iyi durumda.$B$B Bunca yıldan sonra hala burada bırakılmaları garip.", }, 
 ["5245"]={["Title"]="Slaghammer\'ın Notları: Yeni Lider", 
-    ["1"]="Yeni lidere şükürler olsun! Bir zamanlar Alacakaranlık Babası\'nın eli olan Gölge Diyakoz, artık geçmişteki ihtişamımızı geri kazanma zamanının geldiğine karar verdi!\"$B$B Alacakaranlık Babası Ölümkanat\'a hizmet etmek için ayrılırken, Gölge Diyakoz Stormwind\'de bir piskopos olarak \"rolünü\" sürdürdü. Deathwing ve Alacakaranlık Babası\'nın düşüşüne kadar bir süre orada sızma ve adam toplama çabalarına devam etti. Daha sonra örgütümüzden geriye kalanlara sessiz kalmalarını ve düşmanlarımızın geçici zaferlerine izin vermelerini emretti.$B$B Ama sonra onu buldu ya da belki de o onu buldu. Kara Kılıç.", }, 
+    ["1"]="Yeni lidere şükürler olsun! Bir zamanlar Alacakaranlık Babası\'nın eli olan Gölge Diyakoz, artık geçmişteki ihtişamımızı geri kazanma zamanının geldiğine karar verdi!\"$B$B Alacakaranlık Babası Deathwing\'e hizmet etmek için ayrılırken, Gölge Diyakoz Stormwind\'de bir piskopos olarak \"rolünü\" sürdürdü. Deathwing ve Alacakaranlık Babası\'nın düşüşüne kadar bir süre orada sızma ve adam toplama çabalarına devam etti. Daha sonra örgütümüzden geriye kalanlara sessiz kalmalarını ve düşmanlarımızın geçici zaferlerine izin vermelerini emretti.$B$B Ama sonra onu buldu ya da belki de o onu buldu. Kara Kılıç.", }, 
 ["5246"]={["Title"]="Slaghammer\'ın Notları: Tyr\'ın Düşüşü", 
     ["1"]="Diyakoz\'un emirleri doğrultusunda küçük bir üs kurmayı bitirdik. Alacakaranlığın Çekici için doğru yolun bu olduğundan o kadar emin ki. Düşmanlarımız tarafından görülebileceğiz ama bu riske değeceğine inanıyor.$B$B Gölün altındaki bir komplekse giden bir çeşit kırık mühür var. Gölün kendisi binlerce yıl önce devasa bir patlamaya maruz kalmış gibi görünüyor. Gölge Diyakoz bir şekilde bu yeri biliyordu ve burada bir C\'Thraxxi\'nin öldüğünü biliyordu. Planı çok cesur. Bu kadim varlığı diriltmek ve Alacakaranlığın Çekici\'ni yeniden zirveye çıkarmak için Kara Kılıç\'ı kullanacak.$B$B Yarın üst bölgeyi tutan güçlere komuta etmeye gidiyorum. Çoktan koğuşları nemlendirdi ve alt bölgeye girmeye hazırlanıyor.", }, 
 ["5247"]={["Title"]="Slaghammer\'ın Notları: Xala\'tath, Kara İmparatorluğun Kılıcı", 
@@ -6941,7 +6941,7 @@ BT_Books = {
     ["3"]="Ama Reach\'in eğitim alanlarının dışında, kreşin sessizliğinde, başka bir çağrı hissediyorum.$B $B Şarkı söylemek istiyorum. Dans etmek. Kalbi benimki gibi atan bir başkasını sevmek!$B$B Yine de bu arzulardan bahsetmeye cesaret edemiyorum. Görevime odaklanmam emredildi.",
     ["4"]="Bir askerden daha fazlası olabilecek miyim? Yemek. Uyu. Uyan. Tren.$B$B Bu kıyıların ötesinde hangi dünya bekliyor? Ye. Uyu. Uyu. Uyan. Tren.$B$B Dünya Gardiyanı\'nın yaklaştığını söylediği savaştan sağ çıkabilirsem, içimi yakan soruların cevabını bulmalıyım.$B$B Yapmalıyım...", }, 
 ["204317"]={["Title"]="Wyrmslayer\'ın Sözleri", 
-    ["1"]="Fırtınalar geçti. Bize anlatılan ejderha, kudretli Fırtına Yiyen gitti.$B$B Ve onunla birlikte, bir zamanlar Ölümkanat\'a hizmet eden korkak ejderhalar da. Bu zayıf dracthyrler kurt yavruları gibi kaçtılar. Ha!",
+    ["1"]="Fırtınalar geçti. Bize anlatılan ejderha, kudretli Fırtına Yiyen gitti.$B$B Ve onunla birlikte, bir zamanlar Deathwing\'e hizmet eden korkak ejderhalar da. Bu zayıf dracthyrler kurt yavruları gibi kaçtılar. Ha!",
     ["2"]="Bu ada bizimdir. Geride kalan tüm hazineler bana ait! Ama çabuk hareket etmeliyiz. Ejderhalar açgözlü yaratıklardır. Yakında geri döneceklerdir. Benim hakkım olan bir şeyden mahrum kalmayacağım!",
     ["3"]="Ejderhalar gelsin! Adımın kazanıldığı gün yaptığım gibi, onları yere sereceğim. Çünkü ben Wyrmslayer\'ım! Sonsuz zafer benim olacak. Ve eğer düşersem, ejderhaların kafataslarını Cesaret Salonları\'na yanımda taşıyacağım. Odyn\'e şükürler olsun!", }, 
 ["204321"]={["Title"]="Kayıp Sefer Notları", 
@@ -7767,7 +7767,7 @@ BT_Books = {
 ["245788"]={["Title"]="Kürk Battaniye", 
     ["1"]="Çadırdaki yataklar uzun süredir bozulmamış.", }, 
 ["247332"]={["Title"]="Slaghammer\'ın Notları: Yeni Lider", 
-    ["1"]="Yeni lidere şükürler olsun! Bir zamanlar Alacakaranlık Babası\'nın eli olan Gölge Diyakoz, artık geçmişteki ihtişamımızı yeniden kazanma zamanının geldiğine karar verdi!\"$B$B Alacakaranlık Babası Ölümkanat\'a hizmet etmek için ayrılırken, Gölge Diyakoz Stormwind\'de bir piskopos olarak \"rolünü\" sürdürdü. Deathwing ve Alacakaranlık Babası\'nın düşüşüne kadar bir süre orada sızma ve adam toplama çabalarına devam etti. Daha sonra örgütümüzden geriye kalanlara sessiz kalmalarını ve düşmanlarımızın geçici zaferlerine izin vermelerini emretti.$B$B Ama sonra onu buldu ya da belki de o onu buldu. Kara Kılıç.", }, 
+    ["1"]="Yeni lidere şükürler olsun! Bir zamanlar Alacakaranlık Babası\'nın eli olan Gölge Diyakoz, artık geçmişteki ihtişamımızı yeniden kazanma zamanının geldiğine karar verdi!\"$B$B Alacakaranlık Babası Deathwing\'e hizmet etmek için ayrılırken, Gölge Diyakoz Stormwind\'de bir piskopos olarak \"rolünü\" sürdürdü. Deathwing ve Alacakaranlık Babası\'nın düşüşüne kadar bir süre orada sızma ve adam toplama çabalarına devam etti. Daha sonra örgütümüzden geriye kalanlara sessiz kalmalarını ve düşmanlarımızın geçici zaferlerine izin vermelerini emretti.$B$B Ama sonra onu buldu ya da belki de o onu buldu. Kara Kılıç.", }, 
 ["247334"]={["Title"]="Slaghammer\'ın Notları: Tyr\'ın Düşüşü", 
     ["1"]="Diyakoz\'un emirleri doğrultusunda küçük bir üs kurmayı bitirdik. Alacakaranlığın Çekici için doğru yolun bu olduğundan o kadar emin ki. Düşmanlarımız tarafından görülebileceğiz ama bu riske değeceğine inanıyor.$B$B Gölün altındaki bir komplekse giden bir çeşit kırık mühür var. Gölün kendisi binlerce yıl önce devasa bir patlamaya maruz kalmış gibi görünüyor. Gölge Diyakoz bir şekilde bu yeri biliyordu ve burada bir C\'Thraxxi\'nin öldüğünü biliyordu. Planı çok cesur. Bu kadim varlığı diriltmek ve Alacakaranlığın Çekici\'ni yeniden zirveye çıkarmak için Kara Kılıç\'ı kullanacak.$B$B Yarın üst bölgeyi tutan güçlere komuta etmeye gidiyorum. Çoktan koğuşları nemlendirdi ve alt bölgeye girmeye hazırlanıyor.", }, 
 ["247335"]={["Title"]="Slaghammer\'ın Notları: Xala\'tath, Kara İmparatorluğun Kılıcı", 
