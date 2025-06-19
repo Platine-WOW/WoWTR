@@ -1,3 +1,4 @@
+-- Addon: WoWTR (Version: 10.27.1) (Date: 2024-07-11)
 --@curseforge-project-slug: libdbicon-1-0@
 -----------------------------------------------------------------------
 -- LibDBIcon-1.0

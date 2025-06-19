@@ -1,3 +1,4 @@
+-- Addon: WoWTR (Version: 10.27.1) (Date: 2024-07-11)
 --- **AceAddon-3.0** provides a template for creating addon objects.
 -- It'll provide you with a set of callback functions that allow you to simplify the loading
 -- process of your addon.\\

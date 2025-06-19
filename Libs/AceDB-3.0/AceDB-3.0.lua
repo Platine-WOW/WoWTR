@@ -1,3 +1,4 @@
+-- Addon: WoWTR (Version: 10.27.1) (Date: 2024-07-11)
 --- **AceDB-3.0** manages the SavedVariables of your addon.
 -- It offers profile management, smart defaults and namespaces for modules.\\
 -- Data can be saved in different data-types, depending on its intended usage.
@@ -40,8 +41,8 @@
 -- end
 -- @class file
 -- @name AceDB-3.0.lua
--- @release $Id: AceDB-3.0.lua 1284 2022-09-25 09:15:30Z nevcairiel $
-local ACEDB_MAJOR, ACEDB_MINOR = "AceDB-3.0", 27
+-- @release $Id: AceDB-3.0.lua 1306 2023-06-23 14:55:09Z nevcairiel $
+local ACEDB_MAJOR, ACEDB_MINOR = "AceDB-3.0", 28
 local AceDB = LibStub:NewLibrary(ACEDB_MAJOR, ACEDB_MINOR)
 
 if not AceDB then return end -- No upgrade needed
@@ -260,7 +261,7 @@ local factionrealmKey = factionKey .. " - " .. realmKey
 local localeKey = GetLocale():lower()
 
 local regionTable = { "US", "KR", "EU", "TW", "CN" }
-local regionKey = regionTable[GetCurrentRegion()]
+local regionKey = regionTable[GetCurrentRegion()] or GetCurrentRegionName() or "TR"
 local factionrealmregionKey = factionrealmKey .. " - " .. regionKey
 
 -- Actual database initialization function
