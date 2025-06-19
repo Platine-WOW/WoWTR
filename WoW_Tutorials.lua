@@ -110,7 +110,6 @@ function TT_onTutorialShow()                      -- main function called when t
             end
           end
         end
-		TT_TranslateTokenFrameText()
       end
 
       if iteration < 10 then                                          -- If the current iteration is less than 10,
