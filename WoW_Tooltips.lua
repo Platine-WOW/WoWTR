@@ -1009,19 +1009,14 @@ function ST_TalentsTranslate()
    local FrameText01 = PlayerSpellsFrameTitleText
    ST_CheckAndReplaceTranslationText(FrameText01, true, "ui")
 
-   local FrameText02 = PlayerSpellsFrame.TalentsFrame.ApplyButton
+   local FrameText02 = PlayerSpellsFrame.TalentsFrame.ApplyButton.Text
    ST_CheckAndReplaceTranslationText(FrameText02, true, "ui")
 
    local FrameText03 = PlayerSpellsFrame.SpellBookFrame.PagedSpellsFrame.PagingControls.PageText
    ST_CheckAndReplaceTranslationText(FrameText03, true, "ui")
 
-   local FrameText04 = PlayerSpellsFrame.SpellBookFrame.HidePassivesCheckButton.Label
+   local FrameText04 = OverlayPlayerCastingBarFrame.Text
    ST_CheckAndReplaceTranslationText(FrameText04, true, "ui")
-
-   local FrameText05 = OverlayPlayerCastingBarFrame.Text
-   ST_CheckAndReplaceTranslationText(FrameText05, true, "ui")
-
-
 end
 
 
@@ -2609,8 +2604,8 @@ function ST_CharacterFrame() -- https://imgur.com/FV5MXvb
       local ChFrame10 = ReputationFrame.ReputationDetailFrame.WatchFactionCheckbox.Label;       -- Check Box Text - Show as Experience Bar
       ST_CheckAndReplaceTranslationTextUI(ChFrame10, true, "ui");
 
-      local ChFrame11 = ReputationFrame.ReputationDetailFrame.ViewRenownButton;       -- View Renown Button Text - View Renown Button - ekleme yaptım
-      ST_CheckAndReplaceTranslationTextUI(ChFrame11, true, "ui");
+      -- local ChFrame11 = ReputationFrame.ReputationDetailFrame.ViewRenownButton.Text;       -- View Renown Button Text - View Renown Button - ekleme yaptım
+      -- ST_CheckAndReplaceTranslationTextUI(ChFrame11, true, "ui");
 
       local ChFrame12 = TokenFramePopup.Title;       -- TokenFramePopup header Text - ekleme yaptım
       ST_CheckAndReplaceTranslationTextUI(ChFrame12, true, "ui");
