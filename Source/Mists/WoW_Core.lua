@@ -493,6 +493,7 @@ function WOWTR_onEvent(self, event, name, ...)
       SpellBookFrame:HookScript("OnShow", function() StartTicker(SpellBookFrame, ST_updateSpellBookFrame, 0.02) end)
       MailFrame:HookScript("OnShow", function() StartTicker(MailFrame, ST_MailFrame, 0.1) end);
       CommunitiesFrame:HookScript("OnShow", function() StartTicker(CommunitiesFrame, ST_GuildFrame, 0.02) end)
+      SettingsPanel:HookScript("OnShow", function() StartTicker(SettingsPanel, ST_SettingsPanel, 0.02) end)
       BB_OknoTRonline();
       
       WOWTR_ADDON_PREFIX = WoWTR_Localization.addonName .. "_ver";

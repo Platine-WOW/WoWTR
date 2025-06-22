@@ -488,9 +488,10 @@ function WOWTR_onEvent(self, event, name, ...)
       RaidBossEmoteFrame:HookScript("OnShow", function() StartTicker(RaidBossEmoteFrame, ST_RaidBossEmoteFrame, 0.1) end);
       ReputationFrame.ReputationDetailFrame:HookScript("OnShow", function() StartTicker(ReputationFrame.ReputationDetailFrame, ST_CharacterFrame, 0.1) end);
       PlayerChoiceFrame:HookScript("OnShow", function() StartTicker(PlayerChoiceFrame, TT_onChoiceShow, 0.1) end)
-      hooksecurefunc(AddonList, "OnShow", function() StartTicker(AddonList, ST_AddonListFrame, 0.02) end);
+      AddonList:HookScript("OnShow", function() StartTicker(AddonList, ST_AddonListFrame, 0.02) end)
       MailFrame:HookScript("OnShow", function() StartTicker(MailFrame, ST_MailFrame, 0.1) end);
       CommunitiesFrame:HookScript("OnShow", function() StartTicker(CommunitiesFrame, ST_GuildFrame, 0.02) end)
+      SettingsPanel:HookScript("OnShow", function() StartTicker(SettingsPanel, ST_SettingsPanel, 0.02) end)
       BB_OknoTRonline();
       
       WOWTR_ADDON_PREFIX = WoWTR_Localization.addonName .. "_ver";

@@ -1313,6 +1313,10 @@ function WOWSTR_onEvent(_, event, addonName)
       elseif (addonName == 'Blizzard_MacroUI') then
          --ST_load12 = true;
          MacroFrame:HookScript("OnShow", function() StartTicker(MacroFrame, ST_MacroFrame, 0.02) end)
+   
+      elseif (addonName == 'Blizzard_AuctionHouseUI') then
+         --ST_load12 = true;
+         AuctionHouseFrame:HookScript("OnShow", function() StartTicker(AuctionHouseFrame, ST_AuctionHouse, 0.02) end)
       end
    
       if (ST_load1 and ST_load2 and ST_load3 and ST_load4 and ST_load5 and ST_load6 and ST_load7 and ST_load8 and ST_load9 and ST_load10 and ST_load11) then    -- otworzono wszystkie dodatki Blizzarda
@@ -2604,18 +2608,33 @@ function ST_CharacterFrame() -- https://imgur.com/FV5MXvb
       local ChFrame10 = ReputationFrame.ReputationDetailFrame.WatchFactionCheckbox.Label;       -- Check Box Text - Show as Experience Bar
       ST_CheckAndReplaceTranslationTextUI(ChFrame10, true, "ui");
 
-      -- local ChFrame11 = ReputationFrame.ReputationDetailFrame.ViewRenownButton.Text;       -- View Renown Button Text - View Renown Button - ekleme yaptım
-      -- ST_CheckAndReplaceTranslationTextUI(ChFrame11, true, "ui");
+      local function processButtonText(button)
+         if button and button:IsObjectType("Button") then
+            local fontString = button:GetFontString()
+            if fontString then
+                  ST_CheckAndReplaceTranslationTextUI(fontString, true, "ui")
+            else
+                  -- Eğer fontString bulunamazsa, SetText metodunu kullanarak mevcut metni alıp işleyebiliriz
+                  local currentText = button:GetText()
+                  if currentText then
+                     local newText = ST_CheckAndReplaceTranslationTextUI(currentText, true, "ui")
+                     button:SetText(newText)
+                  end
+            end
+         end
+      end
 
-      local ChFrame12 = TokenFramePopup.Title;       -- TokenFramePopup header Text - ekleme yaptım
+      local ChFrame11 = ReputationFrame.ReputationDetailFrame.ViewRenownButton
+      processButtonText(ChFrame11)
+
+      local ChFrame12 = TokenFramePopup.Title;       -- TokenFramePopup header Text
       ST_CheckAndReplaceTranslationTextUI(ChFrame12, true, "ui");
 
-      local ChFrame13 = TokenFramePopup.InactiveCheckbox.Text;       -- TokenFramePopup Unused Text - ekleme yaptım
+      local ChFrame13 = TokenFramePopup.InactiveCheckbox.Text;       -- TokenFramePopup Unused Text
       ST_CheckAndReplaceTranslationTextUI(ChFrame13, true, "ui");
 
-      local ChFrame14 = TokenFramePopup.BackpackCheckbox.Text;       -- TokenFramePopup Show on Backpack Text - ekleme yaptım
+      local ChFrame14 = TokenFramePopup.BackpackCheckbox.Text;       -- TokenFramePopup Show on Backpack Text
       ST_CheckAndReplaceTranslationTextUI(ChFrame14, true, "ui");
-
    end
 
 end
@@ -3308,6 +3327,200 @@ function ST_MailFrame()
     end
 end
 
+-------------------------------------------------------------------------------------------------------
+-- Settings Panel
+function ST_SettingsPanel()
+    if (TT_PS["ui1"] == "1") then
+        local SetFrame01 = SettingsPanel.NineSlice.Text;
+        ST_CheckAndReplaceTranslationTextUI(SetFrame01, true, "ui");
+
+        local SetFrame02 = SettingsPanel.GameTab.Text;
+        ST_CheckAndReplaceTranslationTextUI(SetFrame02, true, "ui");
+
+        local SetFrame03 = SettingsPanel.AddOnsTab.Text;
+        ST_CheckAndReplaceTranslationTextUI(SetFrame03, true, "ui");
+
+        local SetFrame04 = SettingsPanel.CloseButton.Text;
+        ST_CheckAndReplaceTranslationTextUI(SetFrame04, true, "ui");
+
+        local SetFrame05 = SettingsPanel.ApplyButton.Text;
+        ST_CheckAndReplaceTranslationTextUI(SetFrame05, true, "ui");
+
+        local SetFrame06 = SettingsPanel.Container.SettingsList.Header.DefaultsButton.Text;
+        ST_CheckAndReplaceTranslationTextUI(SetFrame06, true, "ui");
+
+        local scrollBox = SettingsPanel and SettingsPanel.CategoryList and SettingsPanel.CategoryList.ScrollBox
+        if scrollBox and scrollBox:HasDataProvider() then
+            scrollBox:ForEachFrame(function(frame)
+                if frame.Label and frame.Label:GetText() then
+                    local SetFrame08 = frame.Label;
+                    ST_CheckAndReplaceTranslationTextUI(SetFrame08, false, "ui");
+                end
+            end)
+        end
+
+        local scrollBox = SettingsPanel.Container.SettingsList.ScrollBox
+        if scrollBox and scrollBox:HasDataProvider() then
+            scrollBox:ForEachFrame(function(frame)
+                if frame.Label and frame.Label:GetText() then
+                    local SetFrame10 = frame.Label;
+                    ST_CheckAndReplaceTranslationTextUI(SetFrame10, false, "ui");
+                elseif frame.Title and frame.Title:GetText() then
+                    local SetFrame12 = frame.Title;
+                    ST_CheckAndReplaceTranslationTextUI(SetFrame12, false, "ui");
+                end
+            end)
+        end
+
+        local scrollBox = SettingsPanel and SettingsPanel.Container and SettingsPanel.Container.SettingsList and SettingsPanel.Container.SettingsList.ScrollBox
+        if scrollBox and scrollBox:HasDataProvider() then
+            scrollBox:ForEachFrame(function(frame)
+                if frame.Text and frame.Text:GetText() then
+                    local SetFrame09 = frame.Text;
+                    ST_CheckAndReplaceTranslationTextUI(SetFrame09, false, "ui");
+                end
+            end)
+        end
+
+        local SetFrame07 = SettingsPanel.SearchBox.Instructions;
+        ST_CheckAndReplaceTranslationTextUI(SetFrame07, false, "ui");
+
+        local SetFrame11 = SettingsPanel.Container.SettingsList.Header.Title;
+        ST_CheckAndReplaceTranslationTextUI(SetFrame11, false, "ui");
+
+
+    end
+end
+
+-------------------------------------------------------------------------------------------------------
+-- Auction House
+function ST_AuctionHouse()
+    if (TT_PS["ui1"] == "1") then
+        local function CheckAndReplaceHeaderContainerTexts(headerContainers)
+            for _, headerContainer in ipairs(headerContainers) do
+                local children = {headerContainer:GetChildren()}
+                for _, child in ipairs(children) do
+                    if child:IsObjectType("Button") then
+                        local Text = child:GetFontString()
+                        if Text then
+                            ST_CheckAndReplaceTranslationTextUI(Text, true, "ui")
+                        end
+                    end
+                end
+            end
+        end
+
+            local containers = {
+                AuctionHouseFrameAuctionsFrame.BidsList.HeaderContainer,
+                AuctionHouseFrameAuctionsFrame.AllAuctionsList.HeaderContainer,
+                AuctionHouseFrame.ItemSellList.HeaderContainer,
+                AuctionHouseFrame.BrowseResultsFrame.ItemList.HeaderContainer
+            }
+            for _, container in ipairs(containers) do
+                if container then
+                    CheckAndReplaceHeaderContainerTexts({container})
+                end
+            end
+
+            local auctionFrameTexts = {
+                AuctionHouseFrameSellTab.Text,
+                AuctionHouseFrameBuyTab.Text,
+                AuctionHouseFrameAuctionsTab.Text,
+                AuctionHouseFrame.SearchBar.SearchButton.Text,
+                AuctionHouseFrame.ItemSellFrame.QuantityInput.Label,
+                AuctionHouseFrame.CommoditiesSellFrame.QuantityInput.Label,
+                AuctionHouseFrame.ItemSellFrame.PostButton.Text,
+                AuctionHouseFrame.CommoditiesSellFrame.PostButton.Text,
+                AuctionHouseFrameAuctionsFrame.CancelAuctionButton.Text,
+                AuctionHouseFrameAuctionsFrame.BidFrame.BidButton.Text,
+                AuctionHouseFrameAuctionsFrame.BuyoutFrame.BuyoutButton.Text,
+                AuctionHouseFrame.CommoditiesBuyFrame.BuyDisplay.BuyButton.Text,
+                AuctionHouseFrame.CommoditiesBuyFrame.BackButton.Text,
+                AuctionHouseFrame.BrowseResultsFrame.ItemList.ResultsText,
+                AuctionHouseFrameAuctionsFrame.BidsList.ResultsText,
+                AuctionHouseFrameAuctionsFrame.AllAuctionsList.ResultsText,
+                AuctionHouseFrame.ItemSellFrame.PriceInput.Label,
+                AuctionHouseFrame.CommoditiesSellFrame.PriceInput.Label,
+                AuctionHouseFrame.ItemSellFrame.BuyoutModeCheckButton.Text,
+                AuctionHouseFrame.ItemSellFrame.PriceInput.LabelTitle,
+                AuctionHouseFrame.ItemSellFrame.SecondaryPriceInput.Label,
+                AuctionHouseFrameAuctionsFrameAuctionsTab.Text,
+                AuctionHouseFrameAuctionsFrameBidsTab.Text,
+                AuctionHouseFrameTitleText
+            }
+            for _, text in ipairs(auctionFrameTexts) do
+                ST_CheckAndReplaceTranslationTextUI(text, true, "ui")
+            end
+
+
+            local scrollBox = AuctionHouseFrameAuctionsFrame.SummaryList.ScrollBox
+            if scrollBox and scrollBox:HasDataProvider() then
+                scrollBox:ForEachFrame(function(frame)
+                    if frame.Text and frame.Text:GetText() then
+                        ST_CheckAndReplaceTranslationTextUI(frame.Text, true, "ui")
+                    end
+                end)
+            end
+
+            local function ProcessRegion(frame)
+                ST_CheckAndReplaceTranslationTextUI(frame, true, "ui")
+            end
+
+            local regions = {
+                { AuctionHouseFrame.ItemSellFrame, 3 },
+                { AuctionHouseFrame.ItemSellFrame.PriceInput, 1, 2, 4 },
+                { AuctionHouseFrame.CommoditiesSellFrame.PriceInput, 1, 2, 4 },
+                { AuctionHouseFrame.CommoditiesSellFrame, 3 },
+                { AuctionHouseFrame.ItemSellFrame.Duration, 1, 2, 4 },
+                { AuctionHouseFrame.CommoditiesSellFrame.Duration, 1, 2, 4 },
+                { AuctionHouseFrame.ItemSellFrame.Deposit, 1, 2, 4 },
+                { AuctionHouseFrame.CommoditiesSellFrame.Deposit, 1, 2, 4 },
+                { AuctionHouseFrame.ItemSellFrame.TotalPrice, 1, 2, 4 },
+                { AuctionHouseFrame.CommoditiesSellFrame.TotalPrice, 1, 2, 4 }
+            }
+            for _, region in ipairs(regions) do
+                local frame = region[1]
+                for i = 2, #region do
+                    ProcessRegion(select(region[i], frame:GetRegions()))
+                end
+            end
+
+    end
+end
+
+-------------------------------------------------------------------------------------------------------
+-- Hata ve uyarılar "UI_ERROR_MESSAGE"
+local err = CreateFrame("Frame")
+err:RegisterEvent("UI_ERROR_MESSAGE")
+err:RegisterEvent("UI_INFO_MESSAGE")
+
+err:SetScript("OnEvent", function(self, event, message, messageType)
+    if type(message) == "number" and type(messageType) == "string" then
+        if message == 312 then -- 312 Görev metinleri pas geçildi.
+            --print("İşlem pas geçildi")
+        else
+            local hash = StringHash(messageType)
+            --print("Hash:", hash)
+            --print("Message ID:", message)
+            --print("Message Type:", messageType)
+            
+            local function ProcessRegion(frame)
+                ST_CheckAndReplaceTranslationTextUI(frame, true, "Collections:XErrorText")
+            end
+
+            -- UIErrorsFrame içindeki tüm bölgeleri al ve bir tabloya yerleştir
+            local regions = { UIErrorsFrame:GetRegions() }
+            
+            -- Metinlerin güncellenmesini beklemek için bir gecikme ekle
+            C_Timer.After(0.01, function()
+                -- Tüm bölgeleri işle
+                for _, region in ipairs(regions) do
+                    ProcessRegion(region)
+                end
+            end)
+        end
+    end
+end)
 -------------------------------------------------------------------------------------------------------
 
 if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
