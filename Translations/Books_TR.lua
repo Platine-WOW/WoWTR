@@ -2,7 +2,7 @@
 -- for the addon WoWTR-Books
 
 BT_lang = "TR";         -- translation language
-BT_date = "2025-06-18"; -- date of creation base
+BT_date = "2025-06-22"; -- date of creation base
 BT_base = "5137";      -- version (number of translations)
 
 -- books translation table1: Title + ID 

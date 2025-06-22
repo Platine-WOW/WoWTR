@@ -2,12 +2,11 @@
 -- for the addon WoWTR-Tutorials
 
 TT_lang = "TR";         -- translation language
-TT_date = "2025-06-19"; -- date of creation base
+TT_date = "2025-06-22"; -- date of creation base
 TT_base = "1661";      -- version (number of translations)
 
 -- tutorial translation table: [Hash] = "translation text" 
 Tut_Data7 = {  
-[395377380]="|cnHIGHLIGHT_FONT_COLOR:Bazı para birimleri|r|n|cnNORMAL_FONT_COLOR:Warbound arasında Aktarılabilir.|r|n|cnHIGHLIGHT_FONT_COLOR:Başka bir karakterden aktarım başlatmak için bir para birimine tıklayın.|r",
 [3891641]="Theotar\'ın eklektik tarakçıları harika çay partilerine ev sahipliği yapmalarıyla ünlüdür.|n|nBu sözleşmeyi kazanmak için Revendreth\'in Kor Koğuşu\'nda Tubbins ile konuşun.", 
 [4111365]="Mok\'gol Gözetleme Karakolu\'ndan çıkan Warsong akıncıları, yüksek bir duvarın arkasında olmayan her şeye ve her şeye terör estiriyor. Yolcuları tek başlarına dışarı çıkmamaları konusunda uyardık ama çoğu dinlemiyor.|n|nMok\'gol Gözetleme Karakolu\'na bir saldırı düzenleyecek olursak, Warsong\'u savunmaya geri çekerek atlılarının çoğunu Nagrand\'a hapsedeceğimiz neredeyse kesindir.", 
 [4992302]="Horde ve Grimtotem taurenleri kamplarımıza saldırırken Feralas topraklarına sinsi bir hastalık çöküyor.|n|nGrimtotem tehdidini bastırmak ve toprakları iyileştirmek için neler yapılabileceğini görün.", 
