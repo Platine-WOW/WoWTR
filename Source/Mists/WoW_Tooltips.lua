@@ -3477,7 +3477,7 @@ err:SetScript("OnEvent", function(self, event, message, messageType)
             --print(hash .. " | ID: " .. message .. " | Message: " .. messageType)
 
             local function ProcessRegion(frame)
-                ST_CheckAndReplaceTranslationTextUI(frame, true, "Collections:XErrorText:")
+                ST_CheckAndReplaceTranslationTextUI(frame, true, "Collections:XErrorText")
             end
 
             local regions = { UIErrorsFrame:GetRegions() }
