@@ -3465,24 +3465,24 @@ err:RegisterEvent("UI_INFO_MESSAGE")
 
 err:SetScript("OnEvent", function(self, event, message, messageType)
     if type(message) == "number" and type(messageType) == "string" then
-        if message == 312 then -- 312 Görev metinleri pas geçildi.
-            --print("İşlem pas geçildi")
+        local containsNumber = string.match(messageType, "%d")
+        local containsCompleted = string.find(messageType, "Completed")
+        local containsDiscovered = string.find(messageType, "Discovered:")
+        local containsMissingReagent = string.find(messageType, "Missing reagent:")
+        if containsNumber or containsCompleted or containsDiscovered or containsMissingReagent then
+            -- Pas geçilecek mesajlar
+            --print("SKIP >> Text: " .. messageType)
         else
             local hash = StringHash(messageType)
-            --print("Hash:", hash)
-            --print("Message ID:", message)
-            --print("Message Type:", messageType)
-            
+            --print(hash .. " | ID: " .. message .. " | Message: " .. messageType)
+
             local function ProcessRegion(frame)
-                ST_CheckAndReplaceTranslationTextUI(frame, true, "Collections:XErrorText")
+                ST_CheckAndReplaceTranslationTextUI(frame, true, "Collections:XErrorText:")
             end
 
-            -- UIErrorsFrame içindeki tüm bölgeleri al ve bir tabloya yerleştir
             local regions = { UIErrorsFrame:GetRegions() }
-            
-            -- Metinlerin güncellenmesini beklemek için bir gecikme ekle
-            C_Timer.After(0.0001, function()
-                -- Tüm bölgeleri işle
+
+            C_Timer.After(0.01, function()
                 for _, region in ipairs(regions) do
                     ProcessRegion(region)
                 end
