@@ -3403,7 +3403,7 @@ function ST_AuctionHouse()
                     if child:IsObjectType("Button") then
                         local Text = child:GetFontString()
                         if Text then
-                            ST_CheckAndReplaceTranslationTextUI(Text, true, "ui")
+                            ST_CheckAndReplaceTranslationTextUI(Text, false, "ui")
                         end
                     end
                 end
@@ -3414,7 +3414,8 @@ function ST_AuctionHouse()
                 AuctionHouseFrameAuctionsFrame.BidsList.HeaderContainer,
                 AuctionHouseFrameAuctionsFrame.AllAuctionsList.HeaderContainer,
                 AuctionHouseFrame.ItemSellList.HeaderContainer,
-                AuctionHouseFrame.BrowseResultsFrame.ItemList.HeaderContainer
+                AuctionHouseFrame.BrowseResultsFrame.ItemList.HeaderContainer,
+                AuctionHouseFrame.CommoditiesSellList.HeaderContainer
             }
             for _, container in ipairs(containers) do
                 if container then
@@ -3446,10 +3447,11 @@ function ST_AuctionHouse()
                 AuctionHouseFrame.ItemSellFrame.SecondaryPriceInput.Label,
                 AuctionHouseFrameAuctionsFrameAuctionsTab.Text,
                 AuctionHouseFrameAuctionsFrameBidsTab.Text,
-                AuctionHouseFrameTitleText
+                AuctionHouseFrameTitleText,
+				AuctionHouseFrame.CommoditiesSellList.RefreshFrame.TotalQuantity
             }
             for _, text in ipairs(auctionFrameTexts) do
-                ST_CheckAndReplaceTranslationTextUI(text, true, "ui")
+                ST_CheckAndReplaceTranslationTextUI(text, false, "ui")
             end
 
 
@@ -3457,13 +3459,13 @@ function ST_AuctionHouse()
             if scrollBox and scrollBox:HasDataProvider() then
                 scrollBox:ForEachFrame(function(frame)
                     if frame.Text and frame.Text:GetText() then
-                        ST_CheckAndReplaceTranslationTextUI(frame.Text, true, "ui")
+                        ST_CheckAndReplaceTranslationTextUI(frame.Text, false, "ui")
                     end
                 end)
             end
 
             local function ProcessRegion(frame)
-                ST_CheckAndReplaceTranslationTextUI(frame, true, "ui")
+                ST_CheckAndReplaceTranslationTextUI(frame, false, "ui")
             end
 
             local regions = {
@@ -3496,24 +3498,24 @@ err:RegisterEvent("UI_INFO_MESSAGE")
 
 err:SetScript("OnEvent", function(self, event, message, messageType)
     if type(message) == "number" and type(messageType) == "string" then
-        if message == 312 then -- 312 Görev metinleri pas geçildi.
-            --print("İşlem pas geçildi")
+        local containsNumber = string.match(messageType, "%d")
+        local containsCompleted = string.find(messageType, "Completed")
+        local containsDiscovered = string.find(messageType, "Discovered:")
+        local containsMissingReagent = string.find(messageType, "Missing reagent:")
+        if containsNumber or containsCompleted or containsDiscovered or containsMissingReagent then
+            -- Pas geçilecek mesajlar
+            --print("SKIP >> Text: " .. messageType)
         else
             local hash = StringHash(messageType)
-            --print("Hash:", hash)
-            --print("Message ID:", message)
-            --print("Message Type:", messageType)
-            
+            --print(hash .. " | ID: " .. message .. " | Message: " .. messageType)
+
             local function ProcessRegion(frame)
-                ST_CheckAndReplaceTranslationTextUI(frame, true, "Collections:XErrorText")
+                ST_CheckAndReplaceTranslationTextUI(frame, true, "Collections:XErrorText:")
             end
 
-            -- UIErrorsFrame içindeki tüm bölgeleri al ve bir tabloya yerleştir
             local regions = { UIErrorsFrame:GetRegions() }
-            
-            -- Metinlerin güncellenmesini beklemek için bir gecikme ekle
+
             C_Timer.After(0.01, function()
-                -- Tüm bölgeleri işle
                 for _, region in ipairs(regions) do
                     ProcessRegion(region)
                 end
