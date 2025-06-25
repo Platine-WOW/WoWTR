@@ -3464,11 +3464,12 @@ err:RegisterEvent("UI_ERROR_MESSAGE")
 err:RegisterEvent("UI_INFO_MESSAGE")
 
 err:SetScript("OnEvent", function(self, event, message, messageType)
-    if type(message) == "number" and type(messageType) == "string" then
+    if type(messageType) == "string" then
         local containsNumber = string.match(messageType, "%d")
-        local containsCompleted = string.find(messageType, "Completed")
-        local containsDiscovered = string.find(messageType, "Discovered:")
-        local containsMissingReagent = string.find(messageType, "Missing reagent:")
+        local containsCompleted = string.find(messageType:lower(), "completed")
+        local containsDiscovered = string.find(messageType:lower(), "discovered:")
+        local containsMissingReagent = string.find(messageType:lower(), "missing reagent:")
+        
         if containsNumber or containsCompleted or containsDiscovered or containsMissingReagent then
             -- Pas geçilecek mesajlar
             --print("SKIP >> Text: " .. messageType)
