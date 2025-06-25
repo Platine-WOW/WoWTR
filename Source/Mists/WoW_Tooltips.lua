@@ -103,13 +103,13 @@ end
 
 local ignoreSettings = {
     words = {
-        "Seller: |cffffffff",
-        "Sellers: |cffffffff",
-        "Equipment Sets: |cFFFFFFFF",
-        "|cff00ff00<Made by ",
-        "Leader: |cffffffff",
-        "Realm: |cffffffff",
-        "Waiting on: |cff",
+        "Seller: ",
+        "Sellers: ",
+        "Equipment Sets: ",
+        "|cff00ff00<Made ",
+        "Leader: ",
+        "Realm: ",
+        "Waiting on: ",
         "Reagents: |n",
         "  |A:raceicon128",
         "Achievement in progress by",
@@ -120,16 +120,36 @@ local ignoreSettings = {
         "|cff0070dd",
         "|Hachievement:",
         "  |T",
-        "   |c"
+        "   |c",
+        "|A:groupfinder-icon",
+        "|TInterface\\FriendsFrame\\UI-FriendsFrame-Note:",
+        "|cff00ff00+1|r",
+        "Dependencies: ",
+        "|TInterface\\ICONS\\Ability_Hunter_SurvivalInstincts.blp|t ",
+        "|TInterface\\ICONS\\INV_Eng_BombFire.BLP:20|t ",
+        "|TInterface\\ICONS\\Spell_Frost_FrozenCore.blp:20|t ",
+        "|TInterface\\ICONS\\Spell_Shadow_SoulGem.blp:20|t "
     },
     pattern = "[Яа-яĄ-Źą-źŻ-żЀ-ӿΑ-Ωα-ω]"
 }
+
+local function shouldIgnore(text)
+    for _, pattern in ipairs(ignoreSettings.words) do
+        if text:match("^" .. pattern) then  -- Başlangıç kontrolü için ^ eklendi
+            return true
+        end
+    end
+    if text:match(ignoreSettings.pattern) then
+        return true
+    end
+    return false
+end
 
 -- ST_CheckAndReplaceTranslationText(obj, sav, prefix, font1, onlyReverse, ST_corr)
 function ST_CheckAndReplaceTranslationText(obj, sav, prefix, font1, onlyReverse, ST_corr)
    if (obj and obj.GetText) then
       local txt = obj:GetText();
-      if (txt and string.find(txt," ")==nil) then
+      if (txt and string.find(txt," ") == nil and not shouldIgnore(txt)) then
          local ST_Hash = StringHash(ST_UsunZbedneZnaki(txt));
          
          if (ST_TooltipsHS[ST_Hash]) then
@@ -173,16 +193,6 @@ end
 function ST_CheckAndReplaceTranslationTextUI(obj, sav, prefix, font1)
    if (obj and obj.GetText) then
        local txt = obj:GetText();
-
-       local function shouldIgnore(text)
-           for _, pattern in ipairs(ignoreSettings.words) do
-               if text:find(pattern) then
-                   return true
-               end
-           end
-           return false
-       end
-       
        if (txt and string.find(txt, " ") == nil and not shouldIgnore(txt)) then
            local ST_Hash = StringHash(ST_UsunZbedneZnaki(txt));
            local destroyText = "Do you want to destroy";
@@ -810,7 +820,7 @@ function ST_CurrentEquipped(obj)
    
          for i = 3, numLines, 1 do
             ST_leftText = _G[obj:GetName().."TextLeft"..i]:GetText();
-            if (ST_leftText and (string.find(ST_leftText," ")==nil)) then                 -- nie jest to nasze tłumaczenie
+            if (ST_leftText and (string.find(ST_leftText," ")==nil) and not shouldIgnore(ST_leftText)) then                 -- nie jest to nasze tłumaczenie
                leftColR, leftColG, leftColB = _G[obj:GetName().."TextLeft"..i]:GetTextColor();
                ST_kodKoloru = OkreslKodKoloru(leftColR, leftColG, leftColB);
                if (ST_leftText and (string.len(ST_leftText)>15) and ((ST_kodKoloru == "c7") or (ST_kodKoloru == "c4") or (string.len(ST_leftText)>30))) then
@@ -872,7 +882,10 @@ function ST_CurrentEquipped(obj)
             for _, ST_origin in ipairs(ST_orygText) do   
                ST_hash = StringHash(ST_UsunZbedneZnaki(ST_origin));
                if ((not ST_TooltipsHS[ST_hash]) and (string.find(ST_origin," ")==nil)) then    -- i nie jest to tekst tłumaczenia (twarda spacja)
-                  ST_PH[ST_hash]=ST_prefix.."@"..ST_PrzedZapisem(ST_origin);
+                   local text = ST_PrzedZapisem(ST_origin)
+                   if not shouldIgnore(text) then
+                   ST_PH[ST_hash]=ST_prefix.."@"..ST_PrzedZapisem(ST_origin);
+                   end
                end
             end
          end
@@ -2861,31 +2874,18 @@ else
     -- For other languages, the ignore list empty.
 end
 
-local function shouldIgnore(text)
-    for _, ignoreText in ipairs(ignoreList) do
-        if text:find(ignoreText) then
-            return true
-        end
-    end
-    return false
-end
-
 function ST_ItemRefTooltip()         -- https://imgur.com/a/5Ooqnb2
     for i = 2, 30 do
         local itemRefLeft = _G["ItemRefTooltipTextLeft" .. i]
         if itemRefLeft and itemRefLeft:GetText() then
             local text = itemRefLeft:GetText()
-            if not shouldIgnore(text) then
-                ST_CheckAndReplaceTranslationTextUI(itemRefLeft, true, "other")
-            end
+            ST_CheckAndReplaceTranslationTextUI(itemRefLeft, true, "other")
         end
 
         local itemRefRight = _G["ItemRefTooltipTextRight" .. i]
         if itemRefRight and itemRefRight:GetText() then
             local text = itemRefRight:GetText()
-            if not shouldIgnore(text) then
-                ST_CheckAndReplaceTranslationTextUI(itemRefRight, true, "other")
-            end
+            ST_CheckAndReplaceTranslationTextUI(itemRefRight, true, "other")
         end
     end
 end
@@ -3491,6 +3491,7 @@ err:SetScript("OnEvent", function(self, event, message, messageType)
         end
     end
 end)
+
 -------------------------------------------------------------------------------------------------------
 
 if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
