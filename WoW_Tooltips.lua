@@ -3497,31 +3497,40 @@ err:RegisterEvent("UI_ERROR_MESSAGE")
 err:RegisterEvent("UI_INFO_MESSAGE")
 
 err:SetScript("OnEvent", function(self, event, message, messageType)
-    if type(messageType) == "string" then
-        local containsNumber = string.match(messageType, "%d")
-        local containsCompleted = string.find(messageType:lower(), "completed")
-        local containsDiscovered = string.find(messageType:lower(), "discovered:")
-        local containsMissingReagent = string.find(messageType:lower(), "missing reagent:")
-        
-        if containsNumber or containsCompleted or containsDiscovered or containsMissingReagent then
-            -- Pas geçilecek mesajlar
-            --print("SKIP >> Text: " .. messageType)
-        else
-            local hash = StringHash(messageType)
-            --print(hash .. " | ID: " .. message .. " | Message: " .. messageType)
+    local eventHash = StringHash(messageType) 
+    local function ProcessRegion(region)
+        local textToSave = ""
 
-            local function ProcessRegion(frame)
-                ST_CheckAndReplaceTranslationTextUI(frame, true, "Collections:XErrorText")
-            end
-
-            local regions = { UIErrorsFrame:GetRegions() }
-
-            C_Timer.After(0.01, function()
-                for _, region in ipairs(regions) do
-                    ProcessRegion(region)
-                end
-            end)
+        if region and region:IsObjectType("FontString") then
+            textToSave = region:GetText() or ""
         end
+
+        if textToSave == "" then
+            return
+        end
+        
+        local lowerTextToSave = textToSave:lower()
+        local shouldSkipFinal = string.find(lowerTextToSave, "%d") or
+                                string.find(lowerTextToSave, "completed") or
+                                string.find(lowerTextToSave, "discovered:") or
+                                string.find(lowerTextToSave, "missing reagent:")
+
+        if shouldSkipFinal then
+            --print("SKIP (Final Filter) >> Metin atlandı: " .. textToSave)
+        else
+            --print("KAYDEDİLDİ >> Hash: " .. eventHash .. " | ID: " .. message .. " | Metin: " .. textToSave)
+            ST_CheckAndReplaceTranslationTextUI(region, true, "Collections:XErrorText")
+        end
+    end
+
+    if UIErrorsFrame then
+        local regions = { UIErrorsFrame:GetRegions() }
+
+        C_Timer.After(0.01, function()
+            for _, region in ipairs(regions) do
+                ProcessRegion(region)
+            end
+        end)
     end
 end)
 
