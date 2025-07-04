@@ -822,11 +822,61 @@ end)
 
 
 ------------------------------------------------------------------------------------
-   --QuestInfoObjective1:HookScript("IsShown", QTR_PrepareReload)
-   --QuestLogDetailScrollFrameScrollBar:HookScript("OnUpdate", QTR_PrepareReload)
-   --QuestLogListScrollFrameButton6:HookScript("OnClick", QTR_PrepareReload)
-   
-   QuestLogFrame:HookScript("OnShow", QTR_PrepareReload)
+--Questie addonu aktif iken QTR_PrepareReload gecikmesi
+
+local lastQuestID = nil
+local ticker = nil
+
+-- Quest ID değişiklik kontrol fonksiyonu
+local function CheckQuestIDChange()
+    local q = GetQuestLogSelection()
+    local currentID = select(8, GetQuestLogTitle(q))
+    
+    if currentID and currentID ~= lastQuestID then
+        lastQuestID = currentID
+        --print("Quest ID changed to: "..currentID)
+        
+        if IsAddOnLoaded("Questie") and Questie then
+            C_Timer.After(0.02, function()
+                --print("Questie detected - Delayed QTR_PrepareReload for ID: "..currentID)
+                QTR_PrepareReload()
+            end)
+        else
+            --print("Questie not found - Immediate QTR_PrepareReload for ID: "..currentID)
+            QTR_PrepareReload()
+        end
+    end
+end
+
+-- QuestLogFrame açıldığında
+QuestLogFrame:HookScript("OnShow", function()
+    --print("QuestLogFrame opened")
+    
+    if IsAddOnLoaded("Questie") and Questie then
+        --print("Questie detected - Starting delayed operations")
+        C_Timer.After(0.02, function()
+            --print("Initial delayed QTR_PrepareReload")
+            QTR_PrepareReload()
+        end)
+        
+        -- Quest ID değişikliklerini kontrol etmek için ticker başlat
+        ticker = C_Timer.NewTicker(0.1, CheckQuestIDChange)
+    else
+        --print("Questie not found - Immediate QTR_PrepareReload")
+        QTR_PrepareReload()
+    end
+end)
+
+-- QuestLogFrame kapandığında
+QuestLogFrame:HookScript("OnHide", function()
+    --print("QuestLogFrame closed")
+    if ticker then
+        ticker:Cancel()
+        ticker = nil
+    end
+    lastQuestID = nil
+end)
+------------------------------------------------------------------------------------
 
    -- Function called on showing GreetingText in QuestFrame
    QuestFrame:HookScript("OnShow", GossipOnQuestFrame)
