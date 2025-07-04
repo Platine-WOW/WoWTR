@@ -1,7 +1,7 @@
 ## Interface: 50500
-## Title: WoWTR by |cff3FC7EBHKNYLMZ |T135846:16:16:0:0|t 
-## Version: 25.0622
-## Notes: Oyun içindeki metinleri Türkçe tercüme eder.
+## Title: |TInterface\AddOns\WoWTR\Images\icon.png:16:16|t WoWTR|cFF00FF00 v25.0704|r by hknylmz
+## Version: 25.0704
+## Notes: Görev, Diyalog, Sinematik ve Arayüz metinleri Türkçe olarak görüntülenir.
 ## Notes_en: Translates the texts in the play into Turkish.
 ## Author: Platine & Hakan YILMAZ
 ## X-Website: https://www.curseforge.com/wow/addons/wowtr
@@ -11,6 +11,7 @@
 ## LoadOnDemand: 0
 ## IconTexture: Interface\AddOns\WoWTR\Images\icon.png
 ## SavedVariables: QTR_PS, QTR_SAVED, QTR_MISSING, QTR_GOSSIP, BB_PM, BB_PS, BB_TR, MF_PM, MF_PS, TT_PS, TT_TUTORIALS, BT_PM, BT_SAVED, ST_PM, ST_PS, ST_PH, WoWTR_minimapDB
+
 
 Libs\LibStub\LibStub.lua
 Libs\AceAddon-3.0\AceAddon-3.0.lua
@@ -36,6 +37,7 @@ WoW_MovieSubtitles.lua
 Source\Mists\WoW_Tutorials.lua
 WoW_Books.lua
 Source\Mists\WoW_Core.lua
+
 Source\Mists\WoW_Tooltips.lua
 
 WoW_Config.lua
