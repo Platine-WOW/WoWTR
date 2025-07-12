@@ -128,7 +128,14 @@ local ignoreSettings = {
         "|TInterface\\ICONS\\Ability_Hunter_SurvivalInstincts.blp|t ",
         "|TInterface\\ICONS\\INV_Eng_BombFire.BLP:20|t ",
         "|TInterface\\ICONS\\Spell_Frost_FrozenCore.blp:20|t ",
-        "|TInterface\\ICONS\\Spell_Shadow_SoulGem.blp:20|t "
+        "|TInterface\\ICONS\\Spell_Shadow_SoulGem.blp:20|t ",
+        "|cFFC0C0C0%[",
+        "|cFF40C040%[",
+        "|cFFFFFF00%[",
+        "|cFFFF8040%[",
+        "|cFFFF1A1A%[",
+        "Requires ",
+        "Classes: "
     },
     pattern = "[Яа-яĄ-Źą-źŻ-żЀ-ӿΑ-Ωα-ω]"
 }
@@ -191,50 +198,70 @@ end
 -- ST_CheckAndReplaceTranslationTextUI(obj, sav, prefix, font1)
 
 function ST_CheckAndReplaceTranslationTextUI(obj, sav, prefix, font1)
-   if (obj and obj.GetText) then
-       local txt = obj:GetText();
-       if (txt and string.find(txt, " ") == nil and not shouldIgnore(txt)) then
-           local ST_Hash = StringHash(ST_UsunZbedneZnaki(txt));
-           local destroyText = "Do you want to destroy";
-           local deleteText = "DELETE";
-
-           if (string.sub(txt, 1, #destroyText) == destroyText) then
-               if (string.find(txt, deleteText)) then
-                   ST_Hash = 2437810493;
-               else
-                   ST_Hash = 219524473;
-               end
-           end
-           
-           if (ST_TooltipsHS[ST_Hash]) then
-               local a1, a2, a3 = obj:GetFont();
-               local new_trans = ST_TooltipsHS[ST_Hash];
-               if ((ST_Hash == 2437810493) or (ST_Hash == 219524473)) then
-                   local pos_end = string.find(txt, "?");
-                   if (pos_end) then
-                       local new_item = string.sub(txt, #destroyText + 2, pos_end - 1);
-                       new_trans = string.gsub(new_trans, "$I", new_item);
-                   end
-               end
-               obj:SetText(QTR_ReverseIfAR(ST_TranslatePrepare(txt, new_trans)).." ");
-               if (font1) then
-                   obj:SetFont(font1, a2);
-               else
-                   obj:SetFont(WOWTR_Font2, a2);
-               end
-
-           elseif (sav and (TT_PS["saveui"] == "1")) then
-               ST_PH[ST_Hash] = prefix.."@"..ST_PrzedZapisem(txt);
-
-           else
-               -- >>> Modified Part: No translation => revert to object's original font <<<
-               if obj.SetFont then
-                  local originalFont, originalSize, originalFlags = obj:GetFont();
-                  obj:SetFont(originalFont, originalSize, originalFlags);
-               end
-           end
-       end
-   end
+    if not (obj and obj.GetText) then return end
+    
+    local txt = obj:GetText()
+    if not (txt and string.find(txt, " ") == nil and not shouldIgnore(txt)) then return end
+    
+    local ST_Hash = StringHash(ST_UsunZbedneZnaki(txt))
+    local questName, zoneName
+    
+    -- 1. "Do you want to destroy" kontrolü
+    local destroyText = "Do you want to destroy"
+    local deleteText = "DELETE"
+    if string.sub(txt, 1, #destroyText) == destroyText then
+        if string.find(txt, deleteText) then
+            ST_Hash = 2437810493
+        else
+            ST_Hash = 219524473
+        end
+    end
+    
+    -- 2. "Continue the campaign" kontrolü
+    local questPattern = 'Continue the campaign by accepting the quest "'
+    if string.sub(txt, 1, #questPattern) == questPattern then
+        local questEnd = string.find(txt, '"', #questPattern + 1)
+        local zoneStart = string.find(txt, " in ", questEnd or 0)
+        local zoneEnd = string.find(txt, "%.", (zoneStart or 0) + 4)
+        
+        if questEnd and zoneStart and zoneEnd then
+            questName = string.sub(txt, #questPattern + 1, questEnd - 1)
+            zoneName = string.sub(txt, zoneStart + 4, zoneEnd - 1)
+            ST_Hash = 3981770549
+        end
+    end
+    
+    -- Çeviri işlemleri
+    if ST_TooltipsHS[ST_Hash] then
+        local a1, a2, a3 = obj:GetFont()
+        local new_trans = ST_TooltipsHS[ST_Hash]
+        
+        -- A. Destroy metinleri için işlem
+        if ST_Hash == 2437810493 or ST_Hash == 219524473 then
+            local pos_end = string.find(txt, "?")
+            if pos_end then
+                local new_item = string.sub(txt, #destroyText + 2, pos_end - 1)
+                new_trans = string.gsub(new_trans, "$I", new_item)
+            end
+        
+        -- B. Quest metinleri için işlem
+        elseif ST_Hash == 3981770549 and questName and zoneName then
+            new_trans = string.gsub(new_trans, "$QuestName", questName)
+            new_trans = string.gsub(new_trans, "$Zone", zoneName)
+        end
+        
+        obj:SetText(QTR_ReverseIfAR(ST_TranslatePrepare(txt, new_trans)).." ")
+        obj:SetFont(font1 or WOWTR_Font2, a2)
+    
+    -- Kaydetme işlemi
+    elseif sav and TT_PS["saveui"] == "1" then
+        ST_PH[ST_Hash] = prefix.."@"..ST_PrzedZapisem(txt)
+    
+    -- Orijinal fonta dönme
+    elseif obj.SetFont then
+        local originalFont, originalSize, originalFlags = obj:GetFont()
+        obj:SetFont(originalFont, originalSize, originalFlags)
+    end
 end
 
 -------------------------------------------------------------------------------------------------------
@@ -2357,71 +2384,31 @@ function ST_MerchantFrame()
 end
 
 -------------------------------------------------------------------------------------------------------
-
 --GAME MENU
 function ST_GameMenuTranslate()
-   if TT_PS["ui1"] ~= "1" then return end
+    if (TT_PS["ui1"] == "1") then
+        C_Timer.After(0.001, function()
 
-   local function SafeUpdateText(textObject)
-       if not textObject or not textObject.GetText then return end
-       local originalText = textObject:GetText()
-       if not originalText then return end
+            local children = {GameMenuFrame:GetChildren()}
+            for _, child in ipairs(children) do
 
-       local hash = StringHash(ST_UsunZbedneZnaki(originalText))
-       if ST_TooltipsHS[hash] then
-           local translatedText = QTR_ReverseIfAR(ST_TooltipsHS[hash]) .. " "
-           C_Timer.After(0.01, function()
-               if textObject:GetText() == originalText then
-                   textObject:SetText(translatedText)
-                   if textObject.SetFont then
-                       textObject:SetFont(WOWTR_Font2, select(2, textObject:GetFont()))
-                   end
-               end
-           end)
-       -- elseif ST_PM["saveNW"] == "1" then
-           -- ST_PH[hash] = "ui@" .. ST_PrzedZapisem(originalText)
-       end
-   end
+                if child:IsObjectType("Button") then
+                    local buttonText = child:GetFontString()
+                    if buttonText then
+                        ST_CheckAndReplaceTranslationTextUI(buttonText, false, "ui")
+                    end
+                end
+                
 
-   local function SafeUpdateButton(button)
-      SafeUpdateText(button)
-      
-      local fontStates = {
-          "Normal",
-          "Highlight",
-          "Disabled",
-          "Pushed"
-      }
-      
-      for _, state in ipairs(fontStates) do
-          local getFontObject = button["Get" .. state .. "FontObject"]
-          local setFontObject = button["Set" .. state .. "FontObject"]
-          
-          if getFontObject and setFontObject then
-              local fontObject = getFontObject(button)
-              if fontObject then
-                  fontObject:SetFont(WOWTR_Font2, select(2, fontObject:GetFont()))
-                  setFontObject(button, fontObject)
-              end
-          end
-      end
-  end
-
-   SafeUpdateText(GameMenuFrame.Header.Text)
-
-   local function SafeInitButtons()
-       C_Timer.After(0.01, function()
-           if GameMenuFrame.buttonPool then
-               for buttonFrame in GameMenuFrame.buttonPool:EnumerateActive() do
-                   SafeUpdateButton(buttonFrame)
-               end
-           end
-       end)
-   end
-
-   hooksecurefunc(GameMenuFrame, "InitButtons", SafeInitButtons)
-
-   SafeInitButtons()
+                local regions = {child:GetRegions()}
+                for _, region in ipairs(regions) do
+                    if region:IsObjectType("FontString") then
+                        ST_CheckAndReplaceTranslationTextUI(region, false, "ui")
+                    end
+                end
+            end
+        end)
+    end
 end
 
 -------------------------------------------------------------------------------------------------------
@@ -3016,6 +3003,8 @@ function ST_EventToastManagerFrame()
 end
 
 -------------------------------------------------------------------------------------------------------
+RaidBossEmoteFrame.timings.RAID_NOTICE_SCALE_UP_TIME = 0.05
+RaidBossEmoteFrame.timings.RAID_NOTICE_SCALE_DOWN_TIME = 0.05
 
 -- RAID BOSS EMOTE FRAME
 function ST_RaidBossEmoteFrame()
@@ -3492,43 +3481,32 @@ end
 
 -------------------------------------------------------------------------------------------------------
 -- Hata ve uyarılar "UI_ERROR_MESSAGE"
-local err = CreateFrame("Frame")
-err:RegisterEvent("UI_ERROR_MESSAGE")
-err:RegisterEvent("UI_INFO_MESSAGE")
+local errFrame = CreateFrame("Frame")
+errFrame:RegisterEvent("UI_ERROR_MESSAGE")
+errFrame:RegisterEvent("UI_INFO_MESSAGE")
 
-err:SetScript("OnEvent", function(self, event, message, messageType)
-    local eventHash = StringHash(messageType) 
-    local function ProcessRegion(region)
-        local textToSave = ""
-
-        if region and region:IsObjectType("FontString") then
-            textToSave = region:GetText() or ""
-        end
-
-        if textToSave == "" then
-            return
-        end
+errFrame:SetScript("OnEvent", function(self, event, message, messageType)
+    local function ShouldSkip(text)
+        if not text or text == "" then return true end
         
-        local lowerTextToSave = textToSave:lower()
-        local shouldSkipFinal = string.find(lowerTextToSave, "%d") or
-                                string.find(lowerTextToSave, "completed") or
-                                string.find(lowerTextToSave, "discovered:") or
-                                string.find(lowerTextToSave, "missing reagent:")
-
-        if shouldSkipFinal then
-            --print("SKIP (Final Filter) >> Metin atlandı: " .. textToSave)
-        else
-            --print("KAYDEDİLDİ >> Hash: " .. eventHash .. " | ID: " .. message .. " | Metin: " .. textToSave)
-            ST_CheckAndReplaceTranslationTextUI(region, true, "Collections:XErrorText")
-        end
+        local lowerText = text:lower()
+        return string.find(lowerText, "%d") or                     -- Contains numbers
+               string.find(lowerText, "completed") or              -- Quest completion messages
+               string.find(lowerText, "discovered:") or            -- Discovery messages
+               string.find(lowerText, "missing reagent:") or       -- Crafting errors
+               string.find(lowerText, "%(complete%)")              -- "(complete)" pattern
     end
 
     if UIErrorsFrame then
-        local regions = { UIErrorsFrame:GetRegions() }
-
-        C_Timer.After(0.01, function()
-            for _, region in ipairs(regions) do
-                ProcessRegion(region)
+        C_Timer.After(0.02, function()  -- Slightly longer delay for stability
+            for _, region in ipairs({UIErrorsFrame:GetRegions()}) do
+                if region and region:IsObjectType("FontString") then
+                    local text = region:GetText()
+                    if text and not ShouldSkip(text) then
+                        -- Only translate non-skipped text
+                        ST_CheckAndReplaceTranslationTextUI(region, true, "Collections:XErrorText")
+                    end
+                end
             end
         end)
     end
