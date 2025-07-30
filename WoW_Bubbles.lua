@@ -222,7 +222,8 @@ function BB_ChatFilter(self, event, arg1, arg2, arg3, _, arg5, ...)     -- wywo�
          Origin_Text = WOWTR_DetectAndReplacePlayerName(Origin_Text);
       end
       local Czysty_Text = WOWTR_DeleteSpecialCodes(Origin_Text);
-      if (string.sub(name_NPC,1,17) == "Bronze Timekeeper") then    -- wyścigi na smokach - wyjątek z sekundami
+      if (string.sub(name_NPC,1,17) == "Bronze Timekeeper") or
+		  string.sub(name_NPC,1,8) == "Om'torid" then    -- wyścigi na smokach - wyjątek z sekundami
          Czysty_Text = string.gsub(Czysty_Text, "0", "");
          Czysty_Text = string.gsub(Czysty_Text, "1", "");
          Czysty_Text = string.gsub(Czysty_Text, "2", "");
@@ -245,7 +246,8 @@ function BB_ChatFilter(self, event, arg1, arg2, arg3, _, arg5, ...)     -- wywo�
       if (BB_Bubbles[HashCode]) then         -- jest tłumaczenie tureckie
          newMessage = BB_Bubbles[HashCode];
          newMessage = WOW_ZmienKody(newMessage,arg5);
-         if (string.sub(name_NPC,1,17) == "Bronze Timekeeper") then       -- wyścigi na smokach - wyjątej z sekundami: $1.$2 oraz $3.$4
+         if (string.sub(name_NPC,1,17) == "Bronze Timekeeper") or
+		     string.sub(name_NPC,1,8) == "Om'torid" then       -- wyścigi na smokach - wyjątej z sekundami: $1.$2 oraz $3.$4
             local wartab = {0,0,0,0,0,0};                                 -- max. 6 liczb całkowitych w tekście
             local arg0 = 0;
             for w in string.gmatch(strtrim(arg1), "%d+") do
