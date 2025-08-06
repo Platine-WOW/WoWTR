@@ -2823,6 +2823,9 @@ function ST_SplashFrame()   -- https://imgur.com/80WLNbC       You can use FontF
 
       local SplashF09 = SplashFrame.RightFeature.Title;
       ST_CheckAndReplaceTranslationTextUI(SplashF09, true, "ui");
+
+      local SplashF10 = SplashFrame.RightFeature.StartQuestButton.Text;
+      ST_CheckAndReplaceTranslationTextUI(SplashF10, true, "ui");
    end
 end
 
@@ -2861,38 +2864,44 @@ end
 -------------------------------------------------------------------------------------------------------
 
 --BANK FRAME (Bank, Reagent, Warband Bank)
-function ST_WarbandBankFrm()
---print("ST_WarbandBankFrm")
+function ST_BankFrame()
+--print("ST_BankFrame")
    if (TT_PS["active"] == "1") then
-      local BANKFrame01 = AccountBankPanel.PurchasePrompt.Title;
+      local BANKFrame01 = BankFrameTitleText;
       ST_CheckAndReplaceTranslationTextUI(BANKFrame01, false, "ui");
 
-      local BANKFrame02 = AccountBankPanel.PurchasePrompt.PromptText;
+      local BANKFrame02 = BankCleanUpConfirmationPopup.Text;
       ST_CheckAndReplaceTranslationTextUI(BANKFrame02, false, "ui");
 
-      local BANKFrame03 = AccountBankPanel.PurchasePrompt.TabCostFrame.PurchaseButton.Text;
+      local BANKFrame03 = BankCleanUpConfirmationPopup.AcceptButton.Text;
       ST_CheckAndReplaceTranslationTextUI(BANKFrame03, false, "ui");
 
-      local BANKFrame04 = AccountBankPanel.PurchasePrompt.TabCostFrame.TabCost;
+      local BANKFrame04 = BankCleanUpConfirmationPopup.CancelButton.Text;
       ST_CheckAndReplaceTranslationTextUI(BANKFrame04, false, "ui");
 
-      local BANKFrame05 = AccountBankPanel.MoneyFrame.WithdrawButton.Text;
+      local BANKFrame05 = BankCleanUpConfirmationPopup.HidePopupCheckbox.Label;
       ST_CheckAndReplaceTranslationTextUI(BANKFrame05, false, "ui");
 
-      local BANKFrame06 = AccountBankPanel.MoneyFrame.DepositButton.Text;
+      local BANKFrame06 = BankPanel.PurchasePrompt.PromptText;
       ST_CheckAndReplaceTranslationTextUI(BANKFrame06, false, "ui");
 
-      local BANKFrame07 = AccountBankPanel.ItemDepositFrame.DepositButton.Text;
+      local BANKFrame07 = BankPanel.PurchasePrompt.TabCostFrame.PurchaseButton.Text;
       ST_CheckAndReplaceTranslationTextUI(BANKFrame07, false, "ui");
 
-      local BANKFrame08 = AccountBankPanel.ItemDepositFrame.IncludeReagentsCheckbox.Text;
+      local BANKFrame08 = BankPanel.PurchasePrompt.TabCostFrame.TabCost;
       ST_CheckAndReplaceTranslationTextUI(BANKFrame08, false, "ui");
 
-      local BANKFrame09 = BankItemSearchBox.Instructions;
-      ST_CheckAndReplaceTranslationTextUI(BANKFrame09, false, "ui");
+      local BANKFrame09 = BankPanel.AutoDepositFrame.DepositButton.Text;
+      ST_CheckAndReplaceTranslationTextUI(BANKFrame09, true, "ui");
 
-      local BANKFrame10 = ReagentBankFrame.DespositButton.Text;
+      local BANKFrame10 = BankPanel.AutoDepositFrame.IncludeReagentsCheckbox.Text;
       ST_CheckAndReplaceTranslationTextUI(BANKFrame10, true, "ui");
+
+      local BANKFrame11 = BankPanel.MoneyFrame.WithdrawButton.Text;
+      ST_CheckAndReplaceTranslationTextUI(BANKFrame11, false, "ui");
+
+      local BANKFrame12 = BankPanel.MoneyFrame.DepositButton.Text;
+      ST_CheckAndReplaceTranslationTextUI(BANKFrame12, false, "ui");
    end
 end
 
