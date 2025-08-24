@@ -1,6 +1,6 @@
 ## Interface: 50500
-## Title: |TInterface\AddOns\WoWTR\Images\icon.png:16:16|t WoWTR|cFF00FF00 v25.0821|r by hknylmz
-## Version: 25.0821
+## Title: |TInterface\AddOns\WoWTR\Images\icon.png:16:16|t WoWTR|cFF00FF00 v25.0824|r by hknylmz
+## Version: 25.0824
 ## Notes: Görev, Diyalog, Sinematik ve Arayüz metinleri Türkçe olarak görüntülenir.
 ## Notes_en: Translates the texts in the play into Turkish.
 ## Author: Platine & Hakan YILMAZ

@@ -128,7 +128,14 @@ local ignoreSettings = {
         "|TInterface\\ICONS\\Ability_Hunter_SurvivalInstincts.blp|t ",
         "|TInterface\\ICONS\\INV_Eng_BombFire.BLP:20|t ",
         "|TInterface\\ICONS\\Spell_Frost_FrozenCore.blp:20|t ",
-        "|TInterface\\ICONS\\Spell_Shadow_SoulGem.blp:20|t "
+        "|TInterface\\ICONS\\Spell_Shadow_SoulGem.blp:20|t ",
+        "|cFFC0C0C0%[",
+        "|cFF40C040%[",
+        "|cFFFFFF00%[",
+        "|cFFFF8040%[",
+        "|cFFFF1A1A%[",
+        "Requires ",
+        "Classes: "
     },
     pattern = "[Яа-яĄ-Źą-źŻ-żЀ-ӿΑ-Ωα-ω]"
 }
@@ -2374,8 +2381,8 @@ end
 
 --GAME MENU
 function ST_GameMenuTranslate() -- https://imgur.com/drHJ9Yn
---print("Game Menu");
    if (TT_PS["ui1"] == "1") then
+     C_Timer.After(0.001, function()
       local gamemenu1 = GameMenuButtonHelpText;
       ST_CheckAndReplaceTranslationTextUI(gamemenu1, false, "ui");
 
@@ -2413,7 +2420,7 @@ function ST_GameMenuTranslate() -- https://imgur.com/drHJ9Yn
                 break -- İstediğimiz metni bulduk ve değiştirdik, döngüden çıkabiliriz
             end
         end
-
+     end)
    end
 end
 
@@ -2969,6 +2976,8 @@ function ST_EventToastManagerFrame()
 end
 
 -------------------------------------------------------------------------------------------------------
+RaidBossEmoteFrame.timings.RAID_NOTICE_SCALE_UP_TIME = 0.05
+RaidBossEmoteFrame.timings.RAID_NOTICE_SCALE_DOWN_TIME = 0.05
 
 -- RAID BOSS EMOTE FRAME
 function ST_RaidBossEmoteFrame()
@@ -3459,45 +3468,126 @@ end
 
 -------------------------------------------------------------------------------------------------------
 -- Hata ve uyarılar "UI_ERROR_MESSAGE"
-local err = CreateFrame("Frame")
-err:RegisterEvent("UI_ERROR_MESSAGE")
-err:RegisterEvent("UI_INFO_MESSAGE")
+local errFrame = CreateFrame("Frame")
+errFrame:RegisterEvent("UI_ERROR_MESSAGE")
+errFrame:RegisterEvent("UI_INFO_MESSAGE")
 
-err:SetScript("OnEvent", function(self, event, message, messageType)
-    local eventHash = StringHash(messageType) 
-    local function ProcessRegion(region)
-        local textToSave = ""
-
-        if region and region:IsObjectType("FontString") then
-            textToSave = region:GetText() or ""
-        end
-
-        if textToSave == "" then
-            return
-        end
+errFrame:SetScript("OnEvent", function(self, event, message, messageType)
+    local function ShouldSkip(text)
+        if not text or text == "" then return true end
         
-        local lowerTextToSave = textToSave:lower()
-        local shouldSkipFinal = string.find(lowerTextToSave, "%d") or
-                                string.find(lowerTextToSave, "completed") or
-                                string.find(lowerTextToSave, "discovered:") or
-                                string.find(lowerTextToSave, "missing reagent:")
-
-        if shouldSkipFinal then
-            --print("SKIP (Final Filter) >> Metin atlandı: " .. textToSave)
-        else
-            --print("KAYDEDİLDİ >> Hash: " .. eventHash .. " | ID: " .. message .. " | Metin: " .. textToSave)
-            ST_CheckAndReplaceTranslationTextUI(region, true, "Collections:XErrorText")
-        end
+        local lowerText = text:lower()
+        return string.find(lowerText, "%d") or                     -- Contains numbers
+               string.find(lowerText, "completed") or              -- Quest completion messages
+               string.find(lowerText, "discovered:") or            -- Discovery messages
+               string.find(lowerText, "missing reagent:") or       -- Crafting errors
+               string.find(lowerText, "%(complete%)")              -- "(complete)" pattern
     end
 
     if UIErrorsFrame then
-        local regions = { UIErrorsFrame:GetRegions() }
-
-        C_Timer.After(0.01, function()
-            for _, region in ipairs(regions) do
-                ProcessRegion(region)
+        C_Timer.After(0.02, function()  -- Slightly longer delay for stability
+            for _, region in ipairs({UIErrorsFrame:GetRegions()}) do
+                if region and region:IsObjectType("FontString") then
+                    local text = region:GetText()
+                    if text and not ShouldSkip(text) then
+                        -- Only translate non-skipped text
+                        ST_CheckAndReplaceTranslationTextUI(region, true, "Collections:XErrorText")
+                    end
+                end
             end
         end)
+    end
+end)
+
+-------------------------------------------------------------------------------------------------------
+-- Achievement
+function ST_Achievements()
+  if (TT_PS["ui1"] == "1") then
+	for i = 1, 7 do
+		local description = _G["AchievementFrameAchievementsContainerButton" .. i .. "Description"]
+		if description then
+			ST_CheckAndReplaceTranslationTextUI(description, true, "Collections:Achievements")
+		end
+	end
+
+    local categoriesFrame = AchievementFrameSummaryCategories
+    if categoriesFrame then
+        local children = { categoriesFrame:GetChildren() }
+        
+        for _, child in ipairs(children) do
+            -- Her bir alt öğenin "Label" alt nesnesine erişiyoruz
+            local label = child.label
+            
+            if label and label:GetText() then
+                -- Eğer label nesnesi varsa ve içinde metin bulunuyorsa, işlemi yapıyoruz
+                ST_CheckAndReplaceTranslationTextUI(label, true, "Collections:Achievements")
+            end
+        end
+    end
+
+	local categoriesFrame = AchievementFrameCategories
+	if categoriesFrame then
+		local children = { categoriesFrame:GetChildren() }
+		
+		-- GetChildren'dan dönen ikinci değeri seçiyoruz (return2)
+		local buttonsTable = select(2, unpack(children))
+		
+		if buttonsTable and buttonsTable.buttons then
+			-- buttons altında 1'den 20'ye kadar olan tabloları dolaşıyoruz
+			for i = 1, 20 do
+				local button = buttonsTable.buttons[i]
+				if button and button.label and button.label:GetText() then
+					ST_CheckAndReplaceTranslationTextUI(button.label, true, "ui")
+				end
+			end
+		end
+	end
+	
+    local function processRegion(frame)
+        ST_CheckAndReplaceTranslationTextUI(frame, true, "ui")
+    end
+    --processRegion(select(2, AchievementFrameSummaryAchievementsHeader:GetRegions()))
+	processRegion(AchievementFrameTab1.text)
+	processRegion(AchievementFrameTab2.text)
+	processRegion(AchievementFrameTab3.text)
+	processRegion(select(2, AchievementFrameSummaryAchievementsHeader:GetRegions()))
+	processRegion(select(2, AchievementFrameSummaryCategoriesHeader:GetRegions()))
+	processRegion(select(4, AchievementFrameHeader:GetRegions()))
+	processRegion(AchievementFrameSummaryAchievement1.description)
+	processRegion(AchievementFrameSummaryAchievement2.description)
+	processRegion(AchievementFrameSummaryAchievement3.description)
+	processRegion(AchievementFrameSummaryAchievement4.description)
+	processRegion(AchievementFrameSummaryCategoriesStatusBarTitle)
+	processRegion(AchievementFrameSummaryCategoriesCategory1Button)
+    -- FeatOfStrengthText varsa işle
+    if AchievementFrameAchievementsFeatOfStrengthText then
+        processRegion(AchievementFrameAchievementsFeatOfStrengthText)
+    end
+
+
+    local statsContainer = AchievementFrameStatsContainer
+    if statsContainer and statsContainer.buttons then
+        -- 1'den 20'ye kadar olan tüm butonları döngüye alıyoruz.
+        for i = 1, 20 do
+            local button = statsContainer.buttons[i]
+            
+            -- Buton ve içindeki text ve title nesnesi nil değilse devam ediyoruz.
+            if button and button.text and button.text:GetText() then
+                ST_CheckAndReplaceTranslationTextUI(button.text, true, "Collections:Achievements-Stats")
+            end
+            if button and button.title and button.title:GetText() then
+                ST_CheckAndReplaceTranslationTextUI(button.title, true, "ui")
+            end
+        end
+    end	
+  end
+end
+
+local f = CreateFrame("Frame")
+f:RegisterEvent("ADDON_LOADED")
+f:SetScript("OnEvent", function(_, _, addonName)
+    if addonName == "Blizzard_AchievementUI" then
+        AchievementFrame:HookScript("OnShow", function() StartTicker(AchievementFrame, ST_Achievements, 0.01) end)
     end
 end)
 

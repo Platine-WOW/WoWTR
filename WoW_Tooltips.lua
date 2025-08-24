@@ -3527,102 +3527,101 @@ end)
 
 -------------------------------------------------------------------------------------------------------
 -- Achievement
-local function TranslateVisibleStats()
-    local scrollBox = AchievementFrameStats and AchievementFrameStats.ScrollBox
-    local scrollTarget = scrollBox and scrollBox.ScrollTarget
-    if scrollTarget then
-        local children = { scrollTarget:GetChildren() }
-        for _, child in ipairs(children) do
-            if child.Text and child.Text:GetText() then
-                ST_CheckAndReplaceTranslationTextUI(child.Text, false, "Collections:Achievements-Stats")
-            end
-        end
-    end
-end
+function ST_Achievement()
+  if (TT_PS["ui1"] == "1") then
+    local scrollBoxAchievements = AchievementFrameAchievements and AchievementFrameAchievements.ScrollBox
+    local scrollTargetAchievements = scrollBoxAchievements and scrollBoxAchievements.ScrollTarget
 
-local function TranslateAchievementsFromScrollTarget()
-    local scrollBox = AchievementFrameAchievements and AchievementFrameAchievements.ScrollBox
-    local scrollTarget = scrollBox and scrollBox.ScrollTarget
-    if scrollTarget then
-        local children = { scrollTarget:GetChildren() }
+    -- AchievementFrameAchievements ScrollBox içindeki öğeleri işle
+    if scrollTargetAchievements then
+        local children = { scrollTargetAchievements:GetChildren() }
         for _, child in ipairs(children) do
             if child.Description and child.Description:GetText() then
-                ST_CheckAndReplaceTranslationTextUI(child.Description, false, "Collections:Achievements")
+                ST_CheckAndReplaceTranslationTextUI(child.Description, true, "Collections:Achievements")
             end
             if child.HiddenDescription and child.HiddenDescription:GetText() then
-                ST_CheckAndReplaceTranslationTextUI(child.HiddenDescription, false, "Collections:Achievements")
+                ST_CheckAndReplaceTranslationTextUI(child.HiddenDescription, true, "Collections:Achievements")
+            end
+            if child.Reward and child.Reward:GetText() then
+                ST_CheckAndReplaceTranslationTextUI(child.Reward, true, "Collections:Achievements")
             end
         end
     end
-end
 
-local function TranslateAchievementsFromDataProvider()
-    local scrollBox = AchievementFrameAchievements and AchievementFrameAchievements.ScrollBox
-    local dataProvider = scrollBox and scrollBox:GetDataProvider()
-    if dataProvider then
-        for elementData in dataProvider:Enumerate() do
-    if type(elementData) == "table" then
-        if elementData.name then
-            ST_CheckAndReplaceTranslationString(elementData.name, "Collections:Achievements")
-        end
-        if elementData.description then
-            ST_CheckAndReplaceTranslationString(elementData.description, "Collections:Achievements")
+    -- Özet başarımlarının (Summary Achievements) açıklamalarını işle
+    for i = 1, 4 do
+        local achievement = _G["AchievementFrameSummaryAchievement" .. i]
+        if achievement and achievement.Description then
+            ST_CheckAndReplaceTranslationTextUI(achievement.Description, true, "Collections:Achievements")
         end
     end
-end
 
-end
-end
-
-local function HookAchievementTabs()
-    -- Stats sekmesi
-    if AchievementFrameTab3 and AchievementFrameStats and AchievementFrameStats.ScrollBox then
-        AchievementFrameTab3:HookScript("OnClick", function()
-            C_Timer.After(0.2, function()
-            local AchFrame3 = AchievementFrameTab3Text;
-        ST_CheckAndReplaceTranslationTextUI(AchFrame3, false, "ui");
-                TranslateVisibleStats()
-
-                local scrollBox = AchievementFrameStats.ScrollBox
-                if scrollBox and scrollBox.RegisterCallback then
-                    scrollBox:RegisterCallback("OnUpdate", function()
-                        C_Timer.After(0.05, function()
-                            TranslateVisibleStats()
-                        end)
-                    end, scrollBox)
-                end
-            end)
-        end)
+    -- Özet kategorilerinin (Summary Categories) etiketlerini işle
+    for i = 1, 11 do
+        local achievementc = _G["AchievementFrameSummaryCategoriesCategory" .. i]
+        if achievementc and achievementc.Label then
+            ST_CheckAndReplaceTranslationTextUI(achievementc.Label, true, "Collections:Achievements")
+        end
     end
 
-    -- Achievements sekmesi: ScrollTarget + DataProvider birlikte
-    if AchievementFrameTab1 and AchievementFrameAchievements and AchievementFrameAchievements.ScrollBox then
-        AchievementFrameTab1:HookScript("OnUpdate", function()
-            C_Timer.After(0.2, function()
-            local AchFrame1 = AchievementFrameTab1Text;
-        ST_CheckAndReplaceTranslationTextUI(AchFrame1, false, "ui");
-                TranslateAchievementsFromScrollTarget()
-                TranslateAchievementsFromDataProvider()
+    local categoriesScrollBox = AchievementFrameCategories and AchievementFrameCategories.ScrollBox
+    local categoriesScrollTarget = categoriesScrollBox and categoriesScrollBox.ScrollTarget
 
-                local scrollBox = AchievementFrameAchievements.ScrollBox
-                if scrollBox and scrollBox.RegisterCallback then
-                    scrollBox:RegisterCallback("OnUpdate", function()
-                        C_Timer.After(0.05, function()
-                            TranslateAchievementsFromScrollTarget()
-                            TranslateAchievementsFromDataProvider()
-                        end)
-                    end, scrollBox)
-                end
-            end)
-        end)
+    -- Kategori ScrollBox'ının altındaki buton etiketlerini işleme
+    if categoriesScrollTarget then
+        local categoryChildren = { categoriesScrollTarget:GetChildren() }
+        for _, categoryChild in ipairs(categoryChildren) do
+            if categoryChild.Button.Label and categoryChild.Button.Label:GetText() then
+                ST_CheckAndReplaceTranslationTextUI(categoryChild.Button.Label, true, "ui")
+            end
+        end
     end
+    
+    local function processRegion(frame)
+        ST_CheckAndReplaceTranslationTextUI(frame, true, "ui")
+    end
+
+    processRegion(select(2, AchievementFrameSummaryAchievementsHeader:GetRegions()))
+    processRegion(select(2, AchievementFrameSummaryCategoriesHeader:GetRegions()))
+    processRegion(AchievementFrame.Header.Title)
+    processRegion(AchievementFrame.SearchBox.Instructions)
+    processRegion(AchievementFrameSummaryCategoriesStatusBarTitle)
+    processRegion(AchievementFrameTab1Text)
+    processRegion(AchievementFrameTab2Text)
+    processRegion(AchievementFrameTab3Text)
+
+    -- FeatOfStrengthText varsa işle
+    if AchievementFrameAchievementsFeatOfStrengthText then
+        processRegion(AchievementFrameAchievementsFeatOfStrengthText)
+    end
+
+    local scrollBoxStats = AchievementFrameStats and AchievementFrameStats.ScrollBox
+    local scrollTargetStats = scrollBoxStats and scrollBoxStats.ScrollTarget
+    
+	-- İstatistikler (Stats) ScrollBox içindeki metinleri işle
+	if scrollTargetStats then
+		local children = { scrollTargetStats:GetChildren() }
+		for _, child in ipairs(children) do
+			-- Text değeri varsa al
+			if child.Text and child.Text:GetText() then
+				ST_CheckAndReplaceTranslationTextUI(child.Text, true, "Collections:Achievements-Stats")
+			end
+			
+			-- Title değeri varsa al
+			if child.Title and child.Title:GetText() then
+				ST_CheckAndReplaceTranslationTextUI(child.Title, true, "Collections:Achievements-Stats")
+			end
+		end
+	end
+  end
 end
+
 
 local f = CreateFrame("Frame")
 f:RegisterEvent("ADDON_LOADED")
 f:SetScript("OnEvent", function(_, _, addonName)
     if addonName == "Blizzard_AchievementUI" then
-        HookAchievementTabs()
+        AchievementFrame:HookScript("OnShow", function() StartTicker(AchievementFrame, ST_Achievement, 0.01) end)
     end
 end)
 
