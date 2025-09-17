@@ -837,7 +837,7 @@ local function CheckQuestIDChange()
         --print("Quest ID changed to: "..currentID)
         
         if IsAddOnLoaded("Questie") and Questie then
-            C_Timer.After(0.02, function()
+            C_Timer.After(0.05, function()
                 --print("Questie detected - Delayed QTR_PrepareReload for ID: "..currentID)
                 QTR_PrepareReload()
             end)
@@ -854,7 +854,7 @@ QuestLogFrame:HookScript("OnShow", function()
     
     if IsAddOnLoaded("Questie") and Questie then
         --print("Questie detected - Starting delayed operations")
-        C_Timer.After(0.02, function()
+        C_Timer.After(0.05, function()
             --print("Initial delayed QTR_PrepareReload")
             QTR_PrepareReload()
         end)
@@ -876,7 +876,7 @@ QuestLogFrame:HookScript("OnHide", function()
     end
     lastQuestID = nil
 end)
-------------------------------------------------------------------------------------
+
 
    -- Function called on showing GreetingText in QuestFrame
    QuestFrame:HookScript("OnShow", GossipOnQuestFrame)

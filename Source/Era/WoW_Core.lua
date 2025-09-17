@@ -487,6 +487,7 @@ function WOWTR_onEvent(self, event, name, ...)
       --EventToastManagerFrame:HookScript("OnShow", function() StartTicker(EventToastManagerFrame, ST_EventToastManagerFrame, 0.1) end);
       RaidBossEmoteFrame:HookScript("OnShow", function() StartTicker(RaidBossEmoteFrame, ST_RaidBossEmoteFrame, 0.1) end);
       ReputationDetailFrame:HookScript("OnShow", function() StartTicker(ReputationDetailFrame, ST_CharacterFrame, 0.1) end);
+      SkillDetailDescriptionText:HookScript("OnShow", function() StartTicker(SkillDetailDescriptionText, ST_CharacterFrame, 0.1) end);
       QuestLogFrame:HookScript("OnShow", function() StartTicker(QuestLogFrame, QTR_QuestLogFrameUI, 0.1) end);
       AddonList:HookScript("OnShow", function() StartTicker(AddonList, ST_AddonListFrame, 0.02) end);
       MailFrame:HookScript("OnShow", function() StartTicker(MailFrame, ST_MailFrame, 0.1) end);

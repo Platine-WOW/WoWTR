@@ -134,8 +134,10 @@ local ignoreSettings = {
         "|cFFFFFF00%[",
         "|cFFFF8040%[",
         "|cFFFF1A1A%[",
+		"|cFF21CCE7%[",
         "Requires ",
-        "Classes: "
+        "Classes: ",
+		"|r  "
     },
     pattern = "[Яа-яĄ-Źą-źŻ-żЀ-ӿΑ-Ωα-ω]"
 }
@@ -1349,7 +1351,11 @@ function WOWSTR_onEvent(_, event, addonName)
       elseif (addonName == 'Blizzard_AuctionUI') then
          --ST_load12 = true;
          AuctionFrame:HookScript("OnShow", function() StartTicker(AuctionFrame, ST_AuctionHouse, 0.02) end)
-      end
+
+	  elseif (addonName == 'Blizzard_TradeSkillUI') then
+         --ST_load1 = true;
+         TradeSkillFrame:HookScript("OnShow", function() StartTicker(TradeSkillFrame, ST_TradeSkillFrame, 0.02) end);  
+   end
    
       if (ST_load1 and ST_load2 and ST_load3 and ST_load4 and ST_load5 and ST_load6 and ST_load7 and ST_load8 and ST_load9 and ST_load10 and ST_load11) then    -- otworzono wszystkie dodatki Blizzarda
          WOWSTR:UnregisterEvent("ADDON_LOADED");      -- wyłącz  nasłuchiwanie
@@ -2387,31 +2393,39 @@ function ST_MerchantFrame()
 end
 
 -------------------------------------------------------------------------------------------------------
-
 --GAME MENU
 function ST_GameMenuTranslate()
-   if (TT_PS["ui1"] == "1") then
+    if (TT_PS["ui1"] == "1") then
+        C_Timer.After(0.001, function()
 
-       local gameMenuFrame = GameMenuFrame
-       if gameMenuFrame then
-           -- children elemanları işle
-           local children = {gameMenuFrame:GetChildren()}
-           for _, child in ipairs(children) do
-               local fontString = child:GetFontString()
-               if fontString then
-                   local text = fontString:GetText()
-                   ST_CheckAndReplaceTranslationTextUI(fontString, true, "ui")
-               end
-           end
+            local children = {GameMenuFrame:GetChildren()}
+            for _, child in ipairs(children) do
 
-           -- Başlık metnini işle
-           local titleRegion = select(2, gameMenuFrame:GetRegions())
-           if titleRegion and titleRegion:GetObjectType() == "FontString" then
-               local titleText = titleRegion:GetText()
-               ST_CheckAndReplaceTranslationTextUI(titleRegion, true, "ui")
-           end
-       end
-   end
+                if child:IsObjectType("Button") then
+                    local buttonText = child:GetFontString()
+                    if buttonText then
+                        ST_CheckAndReplaceTranslationTextUI(buttonText, false, "ui")
+                    end
+                end
+                
+
+                local regions = {child:GetRegions()}
+                for _, region in ipairs(regions) do
+                    if region:IsObjectType("FontString") then
+                        ST_CheckAndReplaceTranslationTextUI(region, true, "ui")
+                    end
+                end
+            end
+
+			local function processRegion(frame)
+				ST_CheckAndReplaceTranslationTextUI(frame, true, "ui")
+			end
+
+			-- Main Menu Text
+			processRegion(select(2, GameMenuFrame:GetRegions()))
+
+        end)
+    end
 end
 
 -------------------------------------------------------------------------------------------------------
@@ -2626,11 +2640,11 @@ function ST_CharacterFrame() -- https://imgur.com/FV5MXvb
       local ChFrame12 = ReputationFrameFactionLabel;
       ST_CheckAndReplaceTranslationTextUI(ChFrame12, true, "ui");
 
-      local ChFrame13 = ReputationFrameStandingLabel;       -- TokenFramePopup Unused Text
+      local ChFrame13 = ReputationFrameStandingLabel;
       ST_CheckAndReplaceTranslationTextUI(ChFrame13, true, "ui");
 
-      -- local ChFrame14 = TokenFramePopup.BackpackCheckbox.Text;       -- TokenFramePopup Show on Backpack Text
-      -- ST_CheckAndReplaceTranslationTextUI(ChFrame14, true, "ui");
+      local ChFrame14 = SkillDetailDescriptionText;
+      ST_CheckAndReplaceTranslationTextUI(ChFrame14, true, "ui");
    end
 
 end
@@ -2999,6 +3013,8 @@ function ST_EventToastManagerFrame()
 end
 
 -------------------------------------------------------------------------------------------------------
+RaidBossEmoteFrame.timings.RAID_NOTICE_SCALE_UP_TIME = 0.05
+RaidBossEmoteFrame.timings.RAID_NOTICE_SCALE_DOWN_TIME = 0.05
 
 -- RAID BOSS EMOTE FRAME
 function ST_RaidBossEmoteFrame()
@@ -3445,47 +3461,37 @@ end
 
 -------------------------------------------------------------------------------------------------------
 -- Hata ve uyarılar "UI_ERROR_MESSAGE"
-local err = CreateFrame("Frame")
-err:RegisterEvent("UI_ERROR_MESSAGE")
-err:RegisterEvent("UI_INFO_MESSAGE")
+local errFrame = CreateFrame("Frame")
+errFrame:RegisterEvent("UI_ERROR_MESSAGE")
+errFrame:RegisterEvent("UI_INFO_MESSAGE")
 
-err:SetScript("OnEvent", function(self, event, message, messageType)
-    local eventHash = StringHash(messageType) 
-    local function ProcessRegion(region)
-        local textToSave = ""
-
-        if region and region:IsObjectType("FontString") then
-            textToSave = region:GetText() or ""
-        end
-
-        if textToSave == "" then
-            return
-        end
+errFrame:SetScript("OnEvent", function(self, event, message, messageType)
+    local function ShouldSkip(text)
+        if not text or text == "" then return true end
         
-        local lowerTextToSave = textToSave:lower()
-        local shouldSkipFinal = string.find(lowerTextToSave, "%d") or
-                                string.find(lowerTextToSave, "completed") or
-                                string.find(lowerTextToSave, "discovered:") or
-                                string.find(lowerTextToSave, "missing reagent:")
-
-        if shouldSkipFinal then
-            --print("SKIP (Final Filter) >> Metin atlandı: " .. textToSave)
-        else
-            --print("KAYDEDİLDİ >> Hash: " .. eventHash .. " | ID: " .. message .. " | Metin: " .. textToSave)
-            ST_CheckAndReplaceTranslationTextUI(region, true, "Collections:XErrorText")
-        end
+        local lowerText = text:lower()
+        return string.find(lowerText, "%d") or                     -- Contains numbers
+               string.find(lowerText, "completed") or              -- Quest completion messages
+               string.find(lowerText, "discovered:") or            -- Discovery messages
+               string.find(lowerText, "missing reagent:") or       -- Crafting errors
+               string.find(lowerText, "%(complete%)")              -- "(complete)" pattern
     end
 
     if UIErrorsFrame then
-        local regions = { UIErrorsFrame:GetRegions() }
-
-        C_Timer.After(0.02, function()
-            for _, region in ipairs(regions) do
-                ProcessRegion(region)
+        C_Timer.After(0.02, function()  -- Slightly longer delay for stability
+            for _, region in ipairs({UIErrorsFrame:GetRegions()}) do
+                if region and region:IsObjectType("FontString") then
+                    local text = region:GetText()
+                    if text and not ShouldSkip(text) then
+                        -- Only translate non-skipped text
+                        ST_CheckAndReplaceTranslationTextUI(region, true, "Collections:XErrorText")
+                    end
+                end
             end
         end)
     end
 end)
+
 -------------------------------------------------------------------------------------------------------
 --Quest Log Frame
 function QTR_QuestLogFrameUI()
@@ -3511,7 +3517,6 @@ function QTR_QuestLogFrameUI()
 end
 -------------------------------------------------------------------------------------------------------
 -- Class Trainer Frame
-
 function ST_ClassTrainerPanel()
    if (TT_PS["ui1"] == "1") then
 
@@ -3532,9 +3537,23 @@ function ST_ClassTrainerPanel()
    end
 end
 
+------------------------------------------------------------------------------------------------------
+-- Class Trade skill Frame
+function ST_TradeSkillFrame()
+   if (TT_PS["ui1"] == "1") then
+            local TradeSkillFrameTexts = {
+                TradeSkillFrameTitleText,
+                TradeSkillCreateAllButtonText,
+                TradeSkillCreateButtonText,
+                TradeSkillCancelButtonText,
+            }
+            for _, text in ipairs(TradeSkillFrameTexts) do
+                ST_CheckAndReplaceTranslationTextUI(text, true, "ui")
+            end
+   end
+end
 -------------------------------------------------------------------------------------------------------
 -- Stable Frame
-
 function ST_PetStableFrame()
    if (TT_PS["ui1"] == "1") then
 
