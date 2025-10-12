@@ -139,7 +139,8 @@ local ignoreSettings = {
         "|cnIQ4:|",
         "Flame Leviathan pursues ",
         " summons reinforcements!",
-        " added to the time!"
+        " added to the time!",
+		"Talents - "
     },
     pattern = "[Яа-яĄ-Źą-źŻ-żЀ-ӿΑ-Ωα-ω]"
 }
@@ -2652,26 +2653,26 @@ function ST_FriendsFrame()
       local Friendsobj01 = FriendsFrameTitleText;
       ST_CheckAndReplaceTranslationTextUI(Friendsobj01, false, "ui");
 
-      local Friendsobj02 = FriendsTabHeaderTab1.Text;
-      ST_CheckAndReplaceTranslationTextUI(Friendsobj02, false, "ui");
+      -- local Friendsobj02 = FriendsTabHeaderTab1.Text;
+      -- ST_CheckAndReplaceTranslationTextUI(Friendsobj02, false, "ui");
 
-      local Friendsobj03 = FriendsTabHeaderTab2.Text;
-      ST_CheckAndReplaceTranslationTextUI(Friendsobj03, false, "ui");
+      -- local Friendsobj03 = FriendsTabHeaderTab2.Text;
+      -- ST_CheckAndReplaceTranslationTextUI(Friendsobj03, false, "ui");
 
-      local Friendsobj04 = FriendsTabHeaderTab3.Text;
-      ST_CheckAndReplaceTranslationTextUI(Friendsobj04, false, "ui");
+      -- local Friendsobj04 = FriendsTabHeaderTab3.Text;
+      -- ST_CheckAndReplaceTranslationTextUI(Friendsobj04, false, "ui");
 
       local Friendsobj05 = FriendsFrameTab1.Text;
-      ST_CheckAndReplaceTranslationTextUI(Friendsobj05, false, "ui");
+      ST_CheckAndReplaceTranslationTextUI(Friendsobj05, true, "ui");
 
       local Friendsobj06 = FriendsFrameTab2.Text;
-      ST_CheckAndReplaceTranslationTextUI(Friendsobj06, false, "ui");
+      ST_CheckAndReplaceTranslationTextUI(Friendsobj06, true, "ui");
 
       local Friendsobj07 = FriendsFrameTab3.Text;
-      ST_CheckAndReplaceTranslationTextUI(Friendsobj07, false, "ui");
+      ST_CheckAndReplaceTranslationTextUI(Friendsobj07, true, "ui");
 
       local Friendsobj08 = FriendsFrameTab4.Text;
-      ST_CheckAndReplaceTranslationTextUI(Friendsobj08, false, "ui");
+      ST_CheckAndReplaceTranslationTextUI(Friendsobj08, true, "ui");
 
       local Friendsobj09 = FriendsFrameAddFriendButtonText;
       ST_CheckAndReplaceTranslationTextUI(Friendsobj09, false, "ui");

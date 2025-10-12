@@ -3519,17 +3519,29 @@ local addon = LibStub("AceAddon-3.0"):NewAddon(WoWTR_Localization.addonName, "Ac
 
 
 -- Let's save the icon when our addon is loaded for the first time
-   function addon:OnInitialize()
--- Don't forget to add the SavedVariables line to your TOC file! (WoWTR_minimapDB)
-   WOWTR.db = LibStub("AceDB-3.0"):New("WoWTR_minimapDB", {
-      profile = {
-         minimap = {
-            hide = false,
-         minimapPos = 238,
-         },
-      },
-   });
-   WOWTR_icon:Register("WOWTR_LDB", WOWTR_minimapButton, WOWTR.db.profile.minimap);
-   end
+	function addon:OnInitialize()
+	  -- Don't forget to add the SavedVariables line to your TOC file! (WoWTR_minimapDB)
+	  WOWTR.db = LibStub("AceDB-3.0"):New("WoWTR_minimapDB", {
+		profile = {
+		  minimap = {
+			hide = false,
+			minimapPos = 238,
+		  },
+		},
+	  });
+	  
+	  -- LibDBIcon kaydı (Minimap çevresinde görünürlük için)
+	  WOWTR_icon:Register("WOWTR_LDB", WOWTR_minimapButton, WOWTR.db.profile.minimap);
+
+	  -- **YENİ KISIM: Addon Compartment Frame kaydı (Sağ üst açılır menü için)**
+	  AddonCompartmentFrame:RegisterAddon({
+		text = (WoWTR_Localization.addonName).." |cff8080ff"..WOWTR_version.."|r",
+		icon = WoWTR_Localization.mainFolder.."\\Images\\icon.png",
+		notCheckable = true,
+		func = function()
+		  Settings.OpenToCategory(WOWTR.CategoryID); -- Tıklandığında ayarlar penceresini açar
+		end,
+	  });
+	end
 
 end

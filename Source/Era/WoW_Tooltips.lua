@@ -3579,6 +3579,84 @@ end
 
 -------------------------------------------------------------------------------------------------------
 
+-- WoWTR Eklentisine Eklenecek Bölüm: WhatsTrainingTooltip için SON GÜVENLİ ÇÖZÜM
+-- 'GOTO' ve 'continue_loop' kullanılmadan temiz IF/ELSE mantığı ile yazıldı.
+
+-- WoWTR Eklentisine Eklenecek Bölüm: WhatsTrainingTooltip için GÜNCEL ÇÖZÜM
+-- Turuncu Metinler: Çevir ve Kaydet (Eski Mantık)
+-- Diğer Metinler: Çevir varsa göster, yoksa ASLA kaydetme (Yeni Mantık)
+
+if _G["WhatsTrainingTooltip"] then
+    local WhatsTrainingTooltip = _G["WhatsTrainingTooltip"]
+
+    local function ST_WhatsTrainingTooltipOnShow()
+        if (ST_PM["active"] ~= "1" or ST_PM["spell"] ~= "1") then
+            return
+        end
+        
+        -- Prefix hazırlığı (Yetenek Adını kullanma)
+        local talentNameText = _G[WhatsTrainingTooltip:GetName() .. "TextLeft1"]
+        local talentName = (talentNameText and talentNameText:GetText()) or "GenelSpell"
+        local cleanedName = ST_RenkKoduSil(talentName)
+        local ST_prefix = "s" .. cleanedName:gsub("[ %p]", "_"):gsub("_+", "_") 
+        
+        if #ST_prefix < 2 then
+             ST_prefix = "s"
+        end
+        
+        local numLines = WhatsTrainingTooltip:NumLines()
+
+        for i = 2, numLines do
+            local textLeft = _G[WhatsTrainingTooltip:GetName() .. "TextLeft" .. i]
+            local textRight = _G[WhatsTrainingTooltip:GetName() .. "TextRight" .. i]
+            
+            local text = nil
+            local textR = nil
+
+            if textLeft and textLeft:GetText() then
+                 text = textLeft:GetText()
+                 
+                 -- KONTROL: Metin 'Total Cost' içermiyorsa devam et:
+                 if not string.find(text, "Total Cost", 1, true) then
+                    
+                    local leftColR, leftColG, leftColB = textLeft:GetTextColor()
+                    local ST_kodKoloru = OkreslKodKoloru(leftColR, leftColG, leftColB)
+                    
+                    -- TURUNCU/SARI METİNLER (ANA MANTIK)
+                    if ST_kodKoloru == "c7" or ST_kodKoloru == "c4" then
+                        
+                        -- Turuncu: Çevir varsa göster, yoksa KAYDET
+                        ST_CheckAndReplaceTranslationText(textLeft, true, ST_prefix)
+
+                        -- Sağ metinleri de işle (aynı kuralı uygula)
+                        if textRight and textRight:GetText() then
+                             ST_CheckAndReplaceTranslationText(textRight, true, ST_prefix)
+                        end
+                        
+                    -- DİĞER (GRİ/BEYAZ) METİNLER (YENİ MANTIK)
+                    else
+                        -- Turuncu değil: Çevir varsa göster, çeviri yoksa KAYDETME!
+                        
+                        -- Sol Metin İşlemi: Kaydetmeyi devre dışı bırakmak için 'false' kullan
+                        ST_CheckAndReplaceTranslationText(textLeft, false, ST_prefix)
+
+                        -- Sağ Metin İşlemi: Kaydetmeyi devre dışı bırakmak için 'false' kullan
+                        if textRight and textRight:GetText() then
+                             ST_CheckAndReplaceTranslationText(textRight, false, ST_prefix)
+                        end
+                    end
+                 end 
+            end
+        end
+
+        WhatsTrainingTooltip:Show()
+    end
+
+    WhatsTrainingTooltip:HookScript('OnShow', ST_WhatsTrainingTooltipOnShow)
+    
+end
+
+-------------------------------------------------------------------------------------------------------
 if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
 -- Własne okno Tooltips - do wyświetlenia tłumaczenia Buff lub Debudd
    ST_MyGameTooltip = CreateFrame( "GameTooltip", "ST_MyGameTooltip", UIParent, "GameTooltipTemplate" );
