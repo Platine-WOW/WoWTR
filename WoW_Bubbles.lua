@@ -244,9 +244,10 @@ function BB_ChatFilter(self, event, arg1, arg2, arg3, _, arg5, ...)     -- wywo�
       else
          HashCode = StringHash(Czysty_Text);
       end
-      if (BB_Bubbles[HashCode]) then         -- jest tłumaczenie tureckie
-         newMessage = BB_Bubbles[HashCode];
-         newMessage = WOW_ZmienKody(newMessage,arg5);
+         local foundTranslation = BB_Bubbles[HashCode] or (MF_Hash and MF_Hash[HashCode]);
+
+         if (foundTranslation) then
+            newMessage = WOW_ZmienKody(foundTranslation, arg5);
          if (string.sub(name_NPC,1,17) == "Bronze Timekeeper") or
             (string.sub(name_NPC,1,16) == "Grimy Timekeeper") or
             (string.sub(name_NPC,1,8) == "Om'torid") then       -- wyścigi na smokach - wyjątej z sekundami: $1.$2 oraz $3.$4

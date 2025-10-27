@@ -1315,6 +1315,16 @@ function WOWSTR_onEvent(_, event, addonName)
          EncounterJournal:HookScript("OnShow", function() StartTicker(EncounterJournal, ST_SuggestTabClick, 0) end)
          EncounterJournal:HookScript("OnShow", ST_AdventureGuidebutton)
          EncounterJournalEncounterFrameInstanceFrame.LoreScrollingFont:HookScript("OnShow", ST_showLoreDescription)
+
+local _, _, _, uiVersion = GetBuildInfo()
+
+-- Sadece WoW 11.2.7 ve üzeri sürümlerde çalışsın
+if uiVersion and uiVersion >= 110207 and EncounterJournal and EncounterJournal.TutorialsFrame then
+    EncounterJournal.TutorialsFrame:HookScript("OnShow", function()
+        StartTicker(EncounterJournal.TutorialsFrame, ST_JournalTutorial, 0.02)
+    end)
+end
+
          
       elseif (addonName == 'Blizzard_Professions') then
          ST_load3 = true;
@@ -1362,6 +1372,11 @@ function WOWSTR_onEvent(_, event, addonName)
       elseif (addonName == 'Blizzard_AuctionHouseUI') then
          --ST_load12 = true;
          AuctionHouseFrame:HookScript("OnShow", function() StartTicker(AuctionHouseFrame, ST_AuctionHouse, 0.02) end)
+
+      elseif (addonName == 'Blizzard_HousingDashboard') then
+         --ST_load12 = true;
+         HousingDashboardFrame:HookScript("OnShow", function() StartTicker(HousingDashboardFrame, ST_HousingDashboard, 0.02) end)
+
       end
    
       if (ST_load1 and ST_load2 and ST_load3 and ST_load4 and ST_load5 and ST_load6 and ST_load7 and ST_load8 and ST_load9 and ST_load10 and ST_load11) then    -- otworzono wszystkie dodatki Blizzarda
@@ -1483,6 +1498,19 @@ function ST_SuggestTabClick()
       else
          ST_CheckAndReplaceTranslationText(obj18, true, "ui");
       end
+
+		local _, _, _, uiVersion = GetBuildInfo()
+		local obj19 = EncounterJournal and EncounterJournal.TutorialsTab and EncounterJournal.TutorialsTab.Text
+
+		-- Sadece WoW 11.2.7 ve üzeri sürümlerde çalışsın
+		if uiVersion and uiVersion >= 110207 and obj19 then
+			if (WoWTR_Localization.lang == 'AR') then
+				ST_CheckAndReplaceTranslationText(obj19, true, "ui", nil, true)
+			else
+				ST_CheckAndReplaceTranslationText(obj19, true, "ui")
+			end
+		end
+
    end
 end
 
@@ -3625,6 +3653,62 @@ f:SetScript("OnEvent", function(_, _, addonName)
         AchievementFrame:HookScript("OnShow", function() StartTicker(AchievementFrame, ST_Achievement, 0.01) end)
     end
 end)
+
+-------------------------------------------------------------------------------------------------------
+-- HousingDashboard
+function ST_HousingDashboard()
+  if (TT_PS["ui1"] == "1") then
+
+    local function processRegion(frame)
+        ST_CheckAndReplaceTranslationTextUI(frame, true, "ui")
+    end
+
+    --processRegion(select(2, AchievementFrameSummaryAchievementsHeader:GetRegions()))
+    --processRegion(select(2, AchievementFrameSummaryCategoriesHeader:GetRegions()))
+    processRegion(HousingDashboardFrame.HouseInfoContent.DashboardNoHousesFrame.TitleText)
+    processRegion(HousingDashboardFrame.HouseInfoContent.DashboardNoHousesFrame.SubtitleText)
+    processRegion(HousingDashboardFrame.HouseInfoContent.DashboardNoHousesFrame.NoHouseButton.Text)
+    processRegion(HousingDashboardFrameTitleText)
+
+	
+  end
+end
+
+-------------------------------------------------------------------------------------------------------
+-- Journal Tutorial
+function ST_JournalTutorial()
+  if (TT_PS["ui5"] == "1") then
+
+local function processRegion(frame)
+  if not frame then return end
+
+  -- Eğer bir Button ise, onun fontstring'ini al
+  if frame.GetFontString then
+    local fs = frame:GetFontString()
+    if fs and fs.GetText and fs:GetText() then
+      ST_CheckAndReplaceTranslationTextUI(fs, true, "ui")
+    end
+  elseif frame.GetText and frame:GetText() then
+    ST_CheckAndReplaceTranslationTextUI(frame, true, "ui")
+  end
+
+  if frame.GetChildren then
+    for _, child in ipairs({ frame:GetChildren() }) do
+      processRegion(child)
+    end
+  end
+end
+
+    -- Ana frame ve alt elemanlarını işle
+    local contents = EncounterJournal.TutorialsFrame.Contents
+    if contents then
+      processRegion(contents.Header)
+      processRegion(contents.Description)
+      processRegion(contents)
+    end
+
+  end
+end
 
 -------------------------------------------------------------------------------------------------------
 
