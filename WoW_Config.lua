@@ -3533,15 +3533,17 @@ local addon = LibStub("AceAddon-3.0"):NewAddon(WoWTR_Localization.addonName, "Ac
 	  -- LibDBIcon kaydı (Minimap çevresinde görünürlük için)
 	  WOWTR_icon:Register("WOWTR_LDB", WOWTR_minimapButton, WOWTR.db.profile.minimap);
 
-	  -- **YENİ KISIM: Addon Compartment Frame kaydı (Sağ üst açılır menü için)**
-	  AddonCompartmentFrame:RegisterAddon({
-		text = (WoWTR_Localization.addonName).." |cff8080ff"..WOWTR_version.."|r",
-		icon = WoWTR_Localization.mainFolder.."\\Images\\icon.png",
-		notCheckable = true,
-		func = function()
-		  Settings.OpenToCategory(WOWTR.CategoryID); -- Tıklandığında ayarlar penceresini açar
-		end,
-	  });
+		-- **YENİ KISIM: Addon Compartment Frame kaydı (11.2.7 ve üzeri)**
+		if AddonCompartmentFrame and AddonCompartmentFrame.RegisterAddon then
+		   AddonCompartmentFrame:RegisterAddon({
+			  text = (WoWTR_Localization.addonName).." |cff8080ff"..WOWTR_version.."|r",
+			  icon = WoWTR_Localization.mainFolder.."\\Images\\icon.png",
+			  notCheckable = true,
+			  func = function()
+				 Settings.OpenToCategory(WOWTR.CategoryID); -- Tıklandığında ayarlar penceresini açar
+			  end,
+		   });
+		end
 	end
 
 end
