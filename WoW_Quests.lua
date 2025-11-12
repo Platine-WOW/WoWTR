@@ -1822,7 +1822,7 @@ function QTR_Translate_On(typ,event)
             QuestProgressText:SetFont(WOWTR_Font2, C_AddOns.IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtext.size or 13)
             QuestInfoRewardText:SetFont(WOWTR_Font2, C_AddOns.IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtext.size or 13)
             QuestInfoDescriptionText:SetText(QTR_ExpandUnitInfo(QTR_quest_LG[QTR_quest_ID].details, false, QuestInfoDescriptionText, WOWTR_Font2, -5));
-        elseif qtrmajor == 11 then
+        elseif qtrmajor >= 11 then
          local WOW_width = 280;
 
          if (WoWTR_Localization.lang == 'AR') then
@@ -4035,3 +4035,4 @@ function QTR_Quest_Next() -- https://imgur.com/a/qamjwMN
       end
    end
 end
+

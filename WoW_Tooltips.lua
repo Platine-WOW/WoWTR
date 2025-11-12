@@ -1366,16 +1366,28 @@ end
          ProfessionsBookFrame:HookScript("OnShow", function() StartTicker(ProfessionsBookFrame, ST_ProfessionEmptyText, 0.02) end)
    
       elseif (addonName == 'Blizzard_MacroUI') then
-         --ST_load12 = true;
          MacroFrame:HookScript("OnShow", function() StartTicker(MacroFrame, ST_MacroFrame, 0.02) end)
    
       elseif (addonName == 'Blizzard_AuctionHouseUI') then
-         --ST_load12 = true;
          AuctionHouseFrame:HookScript("OnShow", function() StartTicker(AuctionHouseFrame, ST_AuctionHouse, 0.02) end)
 
       elseif (addonName == 'Blizzard_HousingDashboard') then
-         --ST_load12 = true;
          HousingDashboardFrame:HookScript("OnShow", function() StartTicker(HousingDashboardFrame, ST_HousingDashboard, 0.02) end)
+
+      elseif (addonName == 'Blizzard_ChromieTimeUI') then
+		local _, _, _, uiVersion = GetBuildInfo()
+		-- Sadece WoW 12.0.0 ve üzeri sürümlerde çalışsın
+		if uiVersion and uiVersion >= 120000 and ChromieTimeFrame then
+			ChromieTimeFrame:HookScript("OnShow", function() StartTicker(ChromieTimeFrame, ST_ChromieTimeFrame, 0.02) end)
+		end
+
+      elseif (addonName == 'Blizzard_AlliedRacesUI') then
+		local _, _, _, uiVersion = GetBuildInfo()
+		-- Sadece WoW 12.0.0 ve üzeri sürümlerde çalışsın
+		if uiVersion and uiVersion >= 120000 and AlliedRacesFrame then
+			AlliedRacesFrame:HookScript("OnShow", function() StartTicker(AlliedRacesFrame, ST_AlliedRacesFrame, 0.02) end)
+		end
+
 
       end
    
@@ -3707,6 +3719,44 @@ end
       processRegion(contents)
     end
 
+  end
+end
+
+-------------------------------------------------------------------------------------------------------
+-- ChromieTimeFrame
+function ST_ChromieTimeFrame()
+  if (TT_PS["ui1"] == "1") then
+
+    local function processRegion(frame)
+        ST_CheckAndReplaceTranslationTextUI(frame, true, "ui")
+    end
+
+    --processRegion(select(2, AchievementFrameSummaryAchievementsHeader:GetRegions()))
+    --processRegion(select(2, AchievementFrameSummaryCategoriesHeader:GetRegions()))
+    processRegion(ChromieTimeFrame.Title.Text)
+    processRegion(ChromieTimeFrame.CurrentlySelectedExpansionInfoFrame.Description)
+    processRegion(ChromieTimeFrame.SelectButton.Text)
+
+	
+  end
+end
+
+-------------------------------------------------------------------------------------------------------
+-- AlliedRacesFrame
+function ST_AlliedRacesFrame()
+  if (TT_PS["ui1"] == "1") then
+
+    local function processRegion(frame)
+        ST_CheckAndReplaceTranslationTextUI(frame, true, "ui")
+    end
+
+    --processRegion(select(2, AchievementFrameSummaryAchievementsHeader:GetRegions()))
+    --processRegion(select(2, AchievementFrameSummaryCategoriesHeader:GetRegions()))
+    processRegion(AlliedRacesFrame.RaceInfoFrame.ScrollFrame.Child.ObjectivesFrame.Title)
+    processRegion(AlliedRacesFrame.RaceInfoFrame.ScrollFrame.Child.RaceDescriptionText)
+    processRegion(AlliedRacesFrame.RaceInfoFrame.ScrollFrame.Child.RacialTraitsLabel)
+
+	
   end
 end
 
