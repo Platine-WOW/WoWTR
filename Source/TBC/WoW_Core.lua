@@ -409,9 +409,6 @@ end
 end
 
 ----------------------------------------------------------------------------------------------------------------------------------------
--- WoW sürüm kontrolü - en başa ekleyin
-local _, _, _, uiVersion = GetBuildInfo()
-local WOWTR_Is1200OrNewer = uiVersion and uiVersion >= 120000
 
 function WOWTR_onEvent(self, event, name, ...)
    if (event=="ADDON_LOADED" and name==WoWTR_Localization.addonFolder) then
@@ -428,11 +425,28 @@ function WOWTR_onEvent(self, event, name, ...)
       self:RegisterEvent("PLAYER_ENTERING_WORLD");
       self:RegisterEvent("MODIFIER_STATE_CHANGED");
 
-      ChatFrame_AddMessageEventFilter("CHAT_MSG_MONSTER_SAY", BB_ChatFilter)
-      ChatFrame_AddMessageEventFilter("CHAT_MSG_MONSTER_PARTY", BB_ChatFilter)
-      ChatFrame_AddMessageEventFilter("CHAT_MSG_MONSTER_YELL", BB_ChatFilter)
-      ChatFrame_AddMessageEventFilter("CHAT_MSG_MONSTER_WHISPER", BB_ChatFilter)
-      ChatFrame_AddMessageEventFilter("CHAT_MSG_MONSTER_EMOTE", BB_ChatFilter)
+      -- ChatFrame_AddMessageEventFilter("CHAT_MSG_MONSTER_SAY", BB_ChatFilter)
+      -- ChatFrame_AddMessageEventFilter("CHAT_MSG_MONSTER_PARTY", BB_ChatFilter)
+      -- ChatFrame_AddMessageEventFilter("CHAT_MSG_MONSTER_YELL", BB_ChatFilter)
+      -- ChatFrame_AddMessageEventFilter("CHAT_MSG_MONSTER_WHISPER", BB_ChatFilter)
+      -- ChatFrame_AddMessageEventFilter("CHAT_MSG_MONSTER_EMOTE", BB_ChatFilter)
+
+-- local f = CreateFrame("Frame")
+
+-- f:RegisterEvent("CHAT_MSG_MONSTER_SAY")
+-- f:RegisterEvent("CHAT_MSG_MONSTER_PARTY")
+-- f:RegisterEvent("CHAT_MSG_MONSTER_YELL")
+-- f:RegisterEvent("CHAT_MSG_MONSTER_WHISPER")
+-- f:RegisterEvent("CHAT_MSG_MONSTER_EMOTE")
+
+-- -- Event handler olarak BB_ChatFilter'i bağla
+-- f:SetScript("OnEvent", function(self, event, msg, sender, ...)
+    -- BB_ChatFilter(self, event, msg, sender, ...);
+	-- --print("Event:", event, "Sender:", sender, "Message:", msg);
+-- end)
+
+-- -- Test için manuel çağrı
+-- f:GetScript("OnEvent")(f, "CHAT_MSG_MONSTER_SAY", "Have pity...", "TestNPC")
 
       SlashCmdList["WOWTR"] = function(msg) WOWTR_SlashCommand(msg); end
       SLASH_WOWTR_BUBBLES1 = "/wowtr";
@@ -448,10 +462,10 @@ function WOWTR_onEvent(self, event, name, ...)
          CHAT_START();
       end
       TutorialFrame:HookScript("OnShow", TT_onTutorialShow);
-      if (not PlayerChoiceFrame) then
-         PlayerChoice_LoadUI();
-      end
-      PlayerChoiceFrame:HookScript("OnShow", TT_onChoiceDelay);      -- tablica z zadaniami
+      -- if (not PlayerChoiceFrame) then
+         -- PlayerChoice_LoadUI();
+      -- end
+      -- PlayerChoiceFrame:HookScript("OnShow", TT_onChoiceDelay);      -- tablica z zadaniami
       ItemTextFrame:HookScript("OnShow", function() BookTranslator_ShowTranslation() end);
       ItemTextNextPageButton:HookScript("OnClick", function() BookTranslator_ShowTranslation() end);
       ItemTextPrevPageButton:HookScript("OnClick", function() BookTranslator_ShowTranslation() end);
@@ -461,7 +475,7 @@ function WOWTR_onEvent(self, event, name, ...)
       BT_ToggleButton0:SetText("EN");
       BT_ToggleButton0:Show();
       BT_ToggleButton0:ClearAllPoints();
-      BT_ToggleButton0:SetPoint("BOTTOMRIGHT", ItemTextFrame, "BOTTOMRIGHT", 0, -16);
+      BT_ToggleButton0:SetPoint("TOP", ItemTextFrame, "TOP", 5, -45);
       BT_ToggleButton0:SetScript("OnClick", BT_ON_OFF);
       
       if (_G.ElvUI) then
@@ -476,27 +490,39 @@ function WOWTR_onEvent(self, event, name, ...)
       StaticPopup1:HookScript("OnUpdate", ST_StaticPopup1);
       StaticPopup2:HookScript("OnShow", ST_StaticPopup1);
       GameMenuFrame:HookScript("OnShow", ST_GameMenuTranslate);
-      MerchantFrame:HookScript("OnShow", ST_MerchantFrame);
-      PVEFrame:HookScript("OnShow", function() StartTicker(PVEFrame, ST_GroupFinder, 0) end);
+      MerchantFrame:HookScript("OnShow", function() StartTicker(MerchantFrame, ST_MerchantFrame, 0.02) end);
+      --PVEFrame:HookScript("OnShow", function() StartTicker(PVEFrame, ST_GroupFinder, 0) end);
       WorldMapFrame:HookScript("OnShow", function() StartTicker(WorldMapFrame, ST_WorldMapFunc, 0.1) end);
-      QuestScrollFrame:HookScript("OnShow", function() StartTicker(QuestScrollFrame, QTR_Quest_Next, 0.02) end);
+      --QuestScrollFrame:HookScript("OnShow", function() StartTicker(QuestScrollFrame, QTR_Quest_Next, 0.02) end);
       CharacterFrame:HookScript("OnShow", ST_CharacterFrame);
       FriendsFrame:HookScript("OnShow", function() StartTicker(FriendsFrame, ST_FriendsFrame, 0.1) end);
       HelpPlateTooltip:HookScript("OnShow", function() StartTicker(HelpPlateTooltip, ST_HelpPlateTooltip, 0.1) end);
-      SplashFrame:HookScript("OnShow", function() StartTicker(SplashFrame, ST_SplashFrame, 0.1) end);
-      PingSystemTutorialTitleText:HookScript("OnShow", function() StartTicker(PingSystemTutorialTitleText, ST_PingSystemTutorial, 0.1) end);
-      BankFrame:HookScript("OnShow", function() StartTicker(BankFrame, ST_BankFrame, 0.1) end);
+      --SplashFrame:HookScript("OnShow", function() StartTicker(SplashFrame, ST_SplashFrame, 0.1) end);
+      --PingSystemTutorialTitleText:HookScript("OnShow", function() StartTicker(PingSystemTutorialTitleText, ST_PingSystemTutorial, 0.1) end);
+      BankFrame:HookScript("OnShow", function() StartTicker(BankFrame, ST_WarbandBankFrm, 0.1) end);
       ItemRefTooltip:HookScript("OnShow", function() StartTicker(ItemRefTooltip, ST_ItemRefTooltip, 0.02) end);
-      EventToastManagerFrame:HookScript("OnShow", function() StartTicker(EventToastManagerFrame, ST_EventToastManagerFrame, 0.1) end);
+      --EventToastManagerFrame:HookScript("OnShow", function() StartTicker(EventToastManagerFrame, ST_EventToastManagerFrame, 0.1) end);
       RaidBossEmoteFrame:HookScript("OnShow", function() StartTicker(RaidBossEmoteFrame, ST_RaidBossEmoteFrame, 0.1) end);
-      ReputationFrame.ReputationDetailFrame:HookScript("OnShow", function() StartTicker(ReputationFrame.ReputationDetailFrame, ST_CharacterFrame, 0.1) end);
-      PlayerChoiceFrame:HookScript("OnShow", function() StartTicker(PlayerChoiceFrame, TT_onChoiceShow, 0.1) end);
+      ReputationDetailFrame:HookScript("OnShow", function() StartTicker(ReputationDetailFrame, ST_CharacterFrame, 0.1) end);
+      SkillDetailDescriptionText:HookScript("OnShow", function() StartTicker(SkillDetailDescriptionText, ST_CharacterFrame, 0.1) end);
+      QuestLogFrame:HookScript("OnShow", function() StartTicker(QuestLogFrame, QTR_QuestLogFrameUI, 0.1) end);
       AddonList:HookScript("OnShow", function() StartTicker(AddonList, ST_AddonListFrame, 0.02) end);
       MailFrame:HookScript("OnShow", function() StartTicker(MailFrame, ST_MailFrame, 0.1) end);
-      CommunitiesFrame:HookScript("OnShow", function() StartTicker(CommunitiesFrame, ST_GuildFrame, 0.02) end);
+      GuildFrame:HookScript("OnShow", function() StartTicker(GuildFrame, ST_GuildFrame, 0.02) end);
       SettingsPanel:HookScript("OnShow", function() StartTicker(SettingsPanel, ST_SettingsPanel, 0.02) end);
+      PetStableFrame:HookScript("OnShow", function() StartTicker(PetStableFrame, ST_PetStableFrame, 0.02) end);
       BB_OknoTRonline();
-      
+
+      hooksecurefunc("QuestLog_Update", function()
+         if (QuestLogFrame:IsVisible()) then
+            QTR_QuestPrepare("QUEST_DETAIL");
+         end
+      end);
+
+      -- QuestLogFrame için güncelleme hook'u
+      QuestLogFrame:HookScript("OnShow", QTR_QuestLogPopupShow)
+      hooksecurefunc("QuestLog_Update", QTR_QuestLogPopupShow)
+
       WOWTR_ADDON_PREFIX = WoWTR_Localization.addonName .. "_ver";
       WOWTR:RegisterEvent("CHAT_MSG_ADDON");      -- ukryty kanał addonu
       C_ChatInfo.RegisterAddonMessagePrefix(WOWTR_ADDON_PREFIX);
@@ -556,45 +582,19 @@ function WOWTR_onEvent(self, event, name, ...)
          WOWTR_onChatMsgAddon(who,msg);
       end
    elseif (GameTooltip:IsShown() and (event=="MODIFIER_STATE_CHANGED") and (name == "LSHIFT" or name == "RSHIFT") and (ST_PM["active"]=="1")) then
-      -- 12.0.0+ için secret value hatalarını sessizce handle et
-      if WOWTR_Is1200OrNewer then
-         local success = pcall(function()
-            -- Tüm işlemleri pcall içinde yap
-            if GameTooltip.processingInfo and 
-               GameTooltip.processingInfo.tooltipData and 
-               GameTooltip.processingInfo.tooltipData.id and 
-               (ST_PM["item"] == "1") then
-               
-               if GameTooltip.processingInfo.tooltipData.type == 0 then           -- items
-                  if (ShoppingTooltip1 and ShoppingTooltip1:IsVisible()) then
-                     ShoppingTooltip1:Hide();
-                     if (ShoppingTooltip2 and ShoppingTooltip2:IsVisible()) then
-                         ShoppingTooltip2:Hide();
-                     end
-                  else
-                     GameTooltip_ShowCompareItem();
-                  end
+      if (GameTooltip.processingInfo and GameTooltip.processingInfo.tooltipData.id and (ST_PM["item"] == "1")) then
+         if (GameTooltip.processingInfo.tooltipData.type == 0) then           -- items
+            if (ShoppingTooltip1 and ShoppingTooltip1:IsVisible()) then
+               ShoppingTooltip1:Hide();
+               if (ShoppingTooltip2 and ShoppingTooltip2:IsVisible()) then
+                   ShoppingTooltip2:Hide();
                end
-            end
-         end)
-         -- Hata oluştuysa sessizce çık, başarılıysa zaten çalışmıştır
-      else
-         -- 12.0.0 altı için orijinal kod
-         if (GameTooltip.processingInfo and GameTooltip.processingInfo.tooltipData.id and (ST_PM["item"] == "1")) then
-            if (GameTooltip.processingInfo.tooltipData.type == 0) then           -- items
-               if (ShoppingTooltip1 and ShoppingTooltip1:IsVisible()) then
-                  ShoppingTooltip1:Hide();
-                  if (ShoppingTooltip2 and ShoppingTooltip2:IsVisible()) then
-                      ShoppingTooltip2:Hide();
-                  end
-               else
-                  GameTooltip_ShowCompareItem();
-               end
+            else
+               GameTooltip_ShowCompareItem();
             end
          end
       end
    end
-   
    if (TT_onTutorialShow) then
       TT_onTutorialShow();
    end

@@ -25,6 +25,12 @@ local ST_firstBoss = true;
 local ST_nameBoss = { };
 local ST_navBar1, ST_navBar2, ST_navBar3, ST_navBar4, ST_navBar5 = false;
 
+-- WOWTR_SafeFunctions tablosunu tanımla
+WOWTR_SafeFunctions = WOWTR_SafeFunctions or {
+    secretErrorCount = 0,
+    lastSecretErrorTime = 0
+}
+
 ------------------------------------------------------------------------------------
 
 --The plugin name and version number temporarily appear at the bottom left of the Chat Panel. WOWTR_Font1 and WOWTR_Font2 are triggered.
@@ -49,6 +55,8 @@ local function OnLogin()
 end
 firstloginframe:RegisterEvent("PLAYER_LOGIN");
 firstloginframe:SetScript("OnEvent", OnLogin);
+
+-------------------------------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------------------------------
 
@@ -155,6 +163,26 @@ local function shouldIgnore(text)
         return true
     end
     return false
+end
+
+-------------------------------------------------------------------------------------------------------
+-- GÜVENLİ TEXT ALMA FONKSİYONU
+-------------------------------------------------------------------------------------------------------
+-- safeGetText fonksiyonunu daha güvenli hale getir
+local function safeGetText(textWidget, suppressSecrets)
+    if not textWidget or type(textWidget.GetText) ~= "function" then
+        return nil
+    end
+    
+    local success, text = pcall(function() 
+        return textWidget:GetText() 
+    end)
+    
+    if success and text and type(text) == "string" then
+        return text
+    end
+    
+    return nil
 end
 
 -- ST_CheckAndReplaceTranslationText(obj, sav, prefix, font1, onlyReverse, ST_corr)
@@ -397,6 +425,35 @@ function OkreslKodKoloru(k1,k2,k3)
 end
 
 -------------------------------------------------------------------------------------------------------
+-- GameTooltip:SetPadding CRASH FIX v11 (Vignette & Delve Koruması)
+-- Haritada Vignette ve Delve ikonlarına gelince oluşan hatayı kesin engeller.
+if GameTooltip.SetPadding then
+    if not GameTooltip.__SetPadding_Orig then
+        -- Orijinal fonksiyonu yedeğe al
+        GameTooltip.__SetPadding_Orig = GameTooltip.SetPadding
+        
+        -- Yeni güvenli fonksiyonu tanımla
+        GameTooltip.SetPadding = function(self, right, bottom, left, top)
+            -- Debug için stack trace al (isteğe bağlı, sonra kaldırılabilir)
+            local stack = debugstack(2, 3, 2)
+            
+            -- Sadece VignetteDataProvider ve AreaPoiUtil'dan gelen çağrıları engelle
+            if string.find(stack, "VignetteDataProvider") or string.find(stack, "AreaPoiUtil") then
+                return -- Bu kaynaklardan gelen çağrıları engelle
+            end
+            
+            -- Diğer tüm çağrıları normal şekilde işle
+            -- Parametrelerin doğru şekilde iletildiğinden emin ol
+            if left and top then
+                return self:__SetPadding_Orig(right, bottom, left, top)
+            elseif left then
+                return self:__SetPadding_Orig(right, bottom, left)
+            else
+                return self:__SetPadding_Orig(right, bottom)
+            end
+        end
+    end
+end
 
 if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
 
@@ -415,23 +472,110 @@ if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
    end );
 
 -------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------
+-- TÜM PROTECTED FUNCTION HATALARI İÇİN KAPSAMLI KORUMA
 
--- funkcja wywoływana po wyświetleniu się oryginalnego okienka Tooltip
-   GameTooltip:HookScript('OnUpdate', function(self, ...)
-      if ((ST_PM["active"]=="1") and (ST_lastNumLines > 0)) then                        -- dodatek aktywny
-         if ((ST_PM["constantly"] == "1") and (UnitLevel("player") > 10)) then
-            if ((ST_PM["showID"] == "1") or (ST_PM["showHS"] == "1")) then
-               if (ST_lastNumLines ~= self:NumLines()) then
-                  ST_GameTooltipOnShow();
-               end
-            elseif (_G["GameTooltipTextLeft1"] and _G["GameTooltipTextLeft1"]:GetText() and (string.find(_G["GameTooltipTextLeft1"]:GetText()," ")==nil)) then
-               ST_GameTooltipOnShow();
+-- ADDON_ACTION_BLOCKED event'ını yakala ve sessizce yoksay
+local passThroughErrorFrame = CreateFrame("Frame")
+passThroughErrorFrame:RegisterEvent("ADDON_ACTION_BLOCKED")
+
+local passThroughErrorCount = 0
+local lastPassThroughErrorTime = 0
+
+passThroughErrorFrame:SetScript("OnEvent", function(self, event, addonName, functionName)
+    if addonName == "WoWTR" then
+        -- Engellenecek metod pattern'leri (tam eşleşme ve kısmi eşleşme)
+        local blockedMethodPatterns = {
+            "SetPassThroughButtons", -- Tam eşleşme
+            "SetPropagateMouseClicks", -- Tam eşleşme
+            "Button:SetPassThroughButtons", -- Tam eşleşme
+            "Frame:SetPropagateMouseClicks", -- Tam eşleşme
+        }
+        
+        -- Kısmi eşleşme için pattern'ler
+        local blockedPartialPatterns = {
+            "SetPassThrough",
+            "SetPropagate",
+            "PassThrough",
+        }
+        
+        local shouldBlock = false
+        local matchedMethod = ""
+        
+        -- Tam eşleşme kontrolü
+        for _, method in ipairs(blockedMethodPatterns) do
+            if functionName == method then
+                shouldBlock = true
+                matchedMethod = method
+                break
             end
-         elseif ((ST_PM["constantly"] == "1") and (self.updateTooltipTimer > 1)) then
-            self.updateTooltipTimer = 2;
-         end
-      end
-   end );
+        end
+        
+        -- Kısmi eşleşme kontrolü (tam eşleşme bulunamazsa)
+        if not shouldBlock then
+            for _, pattern in ipairs(blockedPartialPatterns) do
+                if string.find(functionName, pattern) then
+                    shouldBlock = true
+                    matchedMethod = functionName
+                    break
+                end
+            end
+        end
+        
+        if shouldBlock then
+            passThroughErrorCount = passThroughErrorCount + 1
+            local currentTime = GetTime()
+            
+            -- Spam'i önlemek için 60 saniyede bir bildirim göster
+            if currentTime - lastPassThroughErrorTime > 60 then
+              --  print("|cFFFF0000WoWTR:|r "..matchedMethod.." engellendi (Toplam: "..passThroughErrorCount.." kez)")
+                lastPassThroughErrorTime = currentTime
+            end
+            
+            -- Bu hatayı sessizce yoksay
+            return true
+        end
+    end
+end)
+
+-- Hata bilgisi komutu
+SLASH_WOWTRPASSTHROUGH1 = "/wowtrpassthrough"
+SlashCmdList["WOWTRPASSTHROUGH"] = function(msg)
+  --  print("|cFFFF0000WoWTR:|r Protected function engellenme sayısı: "..passThroughErrorCount)
+    if msg == "reset" then
+        passThroughErrorCount = 0
+      --  print("|cFFFF0000WoWTR:|r Engellenme sayacı sıfırlandı")
+    end
+end
+-------------------------------------------------------------------------------------------------------
+
+	-- GameTooltip OnUpdate hook'unu güncelle
+		GameTooltip:HookScript("OnUpdate", function(self, ...)
+		   -- Quest Map Frame açıksa TAMAMEN ATLA
+		   if (ST_PM["active"] == "1") and (ST_lastNumLines > 0) then
+		  if (ST_PM["constantly"] == "1") and (UnitLevel("player") > 10) then
+			 if (ST_PM["showID"] == "1") or (ST_PM["showHS"] == "1") then
+				if (ST_lastNumLines ~= self:NumLines()) then
+				   ST_GameTooltipOnShow()
+				end
+			 else
+				local text = safeGetText and safeGetText(_G["GameTooltipTextLeft1"], true)  -- true = secret hatalarını gizle
+				if text then
+				   -- string.find işlemini de güvenli hale getir
+				   local success, result = pcall(function() 
+					  return string.find(text, " ") == nil 
+				   end)
+				   
+				   if success and result then
+					  ST_GameTooltipOnShow()
+				   end
+				end
+			 end
+		  elseif (ST_PM["constantly"] == "1") and (self.updateTooltipTimer > 1) then
+			 self.updateTooltipTimer = 2
+		  end
+	   end
+	end)
    
 end
 
@@ -551,225 +695,392 @@ function ST_BuffOrDebuff()
 end
 
 -------------------------------------------------------------------------------------------------------
+-- SAFE FRAME & MAP CHECK LOGIC (FIXED)
+-------------------------------------------------------------------------------------------------------
 
+-- Harita veya Görev pencereleri açık mı?
+local function IsMapPanelOpen()
+    if WorldMapFrame and WorldMapFrame:IsVisible() then return true end
+    if QuestMapFrame and QuestMapFrame:IsVisible() then return true end
+    if FlightMapFrame and FlightMapFrame:IsVisible() then return true end
+    return false
+end
+
+-- Güvenli Frame Kontrolü (Action Bar, Spellbook, Talent, Character vb.)
+local function IsSafeFrame()
+    local owner = GameTooltip:GetOwner()
+    if not owner then return false end
+    
+    -- 1. Action Button İsim Kontrolü
+    if owner:GetObjectType() == "CheckButton" then
+        local buttonName = owner:GetName() or ""
+        local actionBarKeywords = {
+            "ActionButton", "MultiBar", "StanceButton", "PetActionButton", 
+            "ExtraActionButton", "OverrideActionButton", "VehicleMenuBar",
+            "PossessButton", "MultiCast", "BonusActionButton"
+        }
+        for _, keyword in ipairs(actionBarKeywords) do
+            if string.find(buttonName, keyword) then return true end
+        end
+        -- Eklenti action bar'ları
+        local addonKeywords = {"ElvUI", "Bartender", "Dominos", "LUI", "Tukui", "ConsolePort"}
+        for _, keyword in ipairs(addonKeywords) do
+            if string.find(buttonName, keyword) then return true end
+        end
+    end
+
+    -- 2. Ana UI Pencereleri Kontrolü (The War Within 11.0+ Uyumlu)
+    -- Tooltip sahibi bu pencerelerin içindeyse GÜVENLİDİR.
+    
+    -- PlayerSpellsFrame (Yeni Spellbook ve Talent penceresi)
+    if PlayerSpellsFrame and PlayerSpellsFrame:IsVisible() and owner.IsDescendantOf and owner:IsDescendantOf(PlayerSpellsFrame) then
+        return true
+    end
+
+    -- Hero Talents (Kahraman Yetenekleri)
+    if HeroTalentsSelectionDialog and HeroTalentsSelectionDialog:IsVisible() and owner.IsDescendantOf and owner:IsDescendantOf(HeroTalentsSelectionDialog) then
+        return true
+    end
+
+    -- ProfessionsFrame (Meslekler)
+    if ProfessionsFrame and ProfessionsFrame:IsVisible() and owner.IsDescendantOf and owner:IsDescendantOf(ProfessionsFrame) then
+        return true
+    end
+
+    -- CharacterFrame (Karakter Ekranı - Gear vb.)
+    if CharacterFrame and CharacterFrame:IsVisible() and owner.IsDescendantOf and owner:IsDescendantOf(CharacterFrame) then
+        return true
+    end
+
+    -- InspectFrame (İnceleme Ekranı)
+    if InspectFrame and InspectFrame:IsVisible() and owner.IsDescendantOf and owner:IsDescendantOf(InspectFrame) then
+        return true
+    end
+
+    -- Eski Frame'ler (Yedek olarak kalsın)
+    if SpellBookFrame and SpellBookFrame:IsVisible() and owner.IsDescendantOf and owner:IsDescendantOf(SpellBookFrame) then
+        return true
+    end
+    if ClassTalentFrame and ClassTalentFrame:IsVisible() and owner.IsDescendantOf and owner:IsDescendantOf(ClassTalentFrame) then
+        return true
+    end
+    
+    -- Buff/Debuff frame'leri
+    local ST_BFisOver = BuffFrame:IsMouseOver() or (ElvUIPlayerBuffs and ElvUIPlayerBuffs:IsMouseOver())
+    local ST_DFisOver = DebuffFrame:IsMouseOver() or (ElvUIPlayerDebuffs and ElvUIPlayerDebuffs:IsMouseOver())
+    if ST_BFisOver or ST_DFisOver then
+        return true
+    end
+    
+    return false
+end
+
+-- ST_GameTooltipOnShow (Ana Wrapper - COMBAT & MAP SECURITY)
 function ST_GameTooltipOnShow()
---print("Jestem w OnShow");
-   if (ST_PM["active"]=="1") then                        -- dodatek aktywny
+   -- [KRİTİK] ITEM UPGRADE KORUMASI
+   if (ItemUpgradeFrame and ItemUpgradeFrame:IsShown()) then 
+       return 
+   end
+
+   -- 1. Widget, Harita İğneleri ve Container Koruması
+   if (GameTooltip.GetWidgetSetID and GameTooltip:GetWidgetSetID()) or 
+      (GameTooltip.widgetContainer and GameTooltip.widgetContainer:IsShown()) then
+       return 
+   end
    
-      ST_lastNumLines = 0;
-      -- tu jeszcze obsługa buffów i debuffów - tłumaczenie w oddzielnej ramce pod oryginałem
-      local ST_BFisOver = BuffFrame:IsMouseOver() or (ElvUIPlayerBuffs and ElvUIPlayerBuffs:IsMouseOver());
-      local ST_DFisOver = DebuffFrame:IsMouseOver() or (ElvUIPlayerDebuffs and ElvUIPlayerDebuffs:IsMouseOver());
-      if (ST_BFisOver or ST_DFisOver) then               -- Buffy i Debuffy
-         ST_BuffOrDebuff();
+   if GameTooltip.insertedFrames and #GameTooltip.insertedFrames > 0 then
+       return
+   end
+
+   -- 2. Tooltip Sahibi (Owner) Analizi
+   -- Bu kısım Harita açık olsun veya olmasın her zaman çalışmalı.
+   local owner = GameTooltip:GetOwner()
+   if owner then
+       -- Yasaklı frame (Forbidden) kontrolü
+       if owner.IsForbidden and owner:IsForbidden() then 
+           return 
+       end
+
+       -- [HATA KAYNAĞI BURASI] DataProvider / AreaPOI Kontrolü
+       -- SetPropagateMouseClicks hatası genelde "dataProvider" kullanan pinlerden gelir.
+       if owner.dataProvider or (owner.GetMap and type(owner.GetMap) == "function") then
+           return
+       end
+       
+       -- AreaPOI Doku Kontrolü
+       if owner.GetTexture and owner:GetTexture() then
+           local texture = owner:GetTexture()
+           if type(texture) == "string" and (string.find(texture, "AreaPOI") or string.find(texture, "MapMarker")) then
+               return
+           end
+       end
+
+       -- İsim bazlı kontroller (Pin, Map, Vignette, AreaPOI)
+       local ownerName = owner:GetName() or ""
+       if string.find(ownerName, "Pin") or string.find(ownerName, "Map") or string.find(ownerName, "Vignette") or string.find(ownerName, "AreaPOI") then
+           -- Eğer güvenli bir pencere (Spellbook vb.) değilse kesinlikle engelle
+           if not IsSafeFrame() then
+               return
+           end
+       end
+       
+       -- Parent kontrolü (MapCanvas içindeyse)
+       local parent = owner:GetParent()
+       if parent then
+           local parentName = parent:GetName() or ""
+           if string.find(parentName, "MapCanvas") or string.find(parentName, "WorldMap") or string.find(parentName, "Minimap") or string.find(parentName, "ScrollContainer") then
+               return
+           end
+       end
+   end
+
+   -- 3. Harita Açıksa Ekstra Güvenlik
+   if IsMapPanelOpen() then
+       if not IsSafeFrame() then
+           return
+       end
+   end
+   
+   -- Güvenli bir şekilde asıl fonksiyonu çağır
+   local success, result = pcall(function()
+         ST_GameTooltipOnShow_Original_Safe()
+   end)
+   
+   if not success then return end
+end
+
+-- Asıl Çeviri Fonksiyonu (Temizlenmiş)
+function ST_GameTooltipOnShow_Original_Safe()
+   if (ST_PM["active"]~="1") then return end
+
+   ST_lastNumLines = 0;
+   
+   -- Buff/Debuff Kontrolü
+   local ST_BFisOver = BuffFrame:IsMouseOver() or (ElvUIPlayerBuffs and ElvUIPlayerBuffs:IsMouseOver());
+   local ST_DFisOver = DebuffFrame:IsMouseOver() or (ElvUIPlayerDebuffs and ElvUIPlayerDebuffs:IsMouseOver());
+   
+   if (ST_BFisOver or ST_DFisOver) then               
+      ST_BuffOrDebuff();
+      return;
+   end
+   
+   -- Harita kontrolünü Wrapper (üstteki fonksiyon) yaptığı için burada tekrar yapmıyoruz.
+   -- Böylece çift kontrol ve hata riskini ortadan kaldırıyoruz.
+
+   GameTooltip.updateTooltipTimer = tonumber(ST_PM["timer"]); 
+
+   -- Güvenli metin alma ve Türkçe karakter kontrolü
+   local left1Text = safeGetText(_G["GameTooltipTextLeft1"], true)
+   if left1Text then
+      if (string.find(left1Text," ")) then -- Zaten çevrilmişse (twarda spacja) çık
          return;
       end
-      
-      GameTooltip.updateTooltipTimer = tonumber(ST_PM["timer"]);   -- X sekund zatrzymania uaktualnienia GameTooltip
-      if (_G["GameTooltipTextLeft1"] and _G["GameTooltipTextLeft1"]:GetText()) then
-         if (string.find(_G["GameTooltipTextLeft1"]:GetText()," ")) then
-             return;
+      _G["GameTooltipTextLeft1"]:SetText(QTR_ExpandUnitInfo(left1Text,WOWTR_Font2).." ");
+   else
+      return;
+   end
+   
+   -- ID Prefix Belirleme (Item, Spell, Talent)
+   local ST_prefix = "h";
+   if (GameTooltip.processingInfo and GameTooltip.processingInfo.tooltipData.id) then
+      if (GameTooltip.processingInfo.tooltipData.type == 0) then           -- items
+         ST_prefix = "i" .. GameTooltip.processingInfo.tooltipData.id;
+         if (ST_PM["item"] == "0") then return; end -- item çevirisi kapalı
+      elseif (GameTooltip.processingInfo.tooltipData.type == 1) then       -- spell or talent
+         -- Talent Frame kontrolü (Eski ve Yeni sistem uyumlu)
+         local isTalentOpen = (ClassTalentFrame and ClassTalentFrame:IsVisible()) or (PlayerSpellsFrame and PlayerSpellsFrame:IsVisible())
+         
+         if isTalentOpen then
+               ST_prefix = "t" .. GameTooltip.processingInfo.tooltipData.id;
+               if (ST_PM["talent"] == "0") then return; end -- talent çevirisi kapalı
+         else
+            ST_prefix = "s" .. GameTooltip.processingInfo.tooltipData.id;
+            if (ST_PM["spell"] == "0") then return; end -- spell çevirisi kapalı
          end
-         _G["GameTooltipTextLeft1"]:SetText(QTR_ExpandUnitInfo(_G["GameTooltipTextLeft1"]:GetText(),WOWTR_Font2).." ");   -- znacznik twardej spacji do tytułu
+      else
+         ST_prefix = "s" .. GameTooltip.processingInfo.tooltipData.id;
+         if (ST_PM["spell"] == "0") and (GameTooltip.processingInfo.tooltipData.id == 9) then return; end
       end
+   end
+
+   local numLines = GameTooltip:NumLines();
+   if ((numLines == 1) and (ST_prefix ~= "h")) then return; end
+   
+   -- DEĞİŞKENLER
+   local ST_kodKoloru;
+   local ST_leftText, ST_tlumaczenie, ST_hash, ST_hash2;
+   local _font1, _size1, _1;
+   local ST_odstep = true;
+   local ST_orygText = {};
+   local ST_nh = 0;   -- yeni Hash?
+   
+	   -- Money Frame (Satış Fiyatı) Gizleme/Çevirme - CRASH FIX
+	   -- LootFrame (Ganimet) veya MerchantFrame (Satıcı) açıkken dikkatli ol
+	   local owner = GameTooltip:GetOwner()
+	   local isLooting = (LootFrame and LootFrame:IsVisible())
+	   -- Eğer sahibi LootFrame ise veya LootFrame'in içindeyse
+	   local isOwnerLoot = owner and (owner == LootFrame or (owner.GetParent and owner:GetParent() == LootFrame))
+	   
+	   -- Sadece Looting işlemi YOKSA para birimiyle oyna.
+	   if (GameTooltip.shownMoneyFrames) and not isLooting and not isOwnerLoot then
+		  C_Timer.After(0.05, function()
+			  if not GameTooltip or not GameTooltip:IsVisible() then return end
+			  
+			  local success = pcall(function()
+				  for i = 1, GameTooltip.shownMoneyFrames, 1 do
+					 local moneyFrameName = GameTooltip:GetName().."MoneyFrame"..i;
+					 local prefixText = _G[moneyFrameName.."PrefixText"]
+					 
+					 if prefixText then
+						 prefixText:SetText(QTR_ReverseIfAR(WoWTR_Localization.sellPrice));
+						 local _font1, _size1, _1 = prefixText:GetFont();
+						 prefixText:SetFont(WOWTR_Font2, _size1);
+						 
+						 if (ST_PM["sellprice"] == "1") then
+							local mFrame = _G[moneyFrameName]
+							if mFrame then 
+								mFrame:Hide(); 
+							end
+						 end
+					 end
+				  end
+			  end)
+		  end)
+	   end
+
+   local ST_fromLine = 2;
+   if (ST_prefix == "h") then ST_fromLine = 1; end
+   
+   -- Başlık Çevirisi (Varsa)
+   if (ST_TooltipsID and (ST_PM["transtitle"]=="1") and ST_TooltipsID[ST_prefix]) then
+      _G["GameTooltipTextLeft1"]:SetText(QTR_ExpandUnitInfo(ST_TooltipsID[ST_prefix],WOWTR_Font2).." ");
+      _font1, _size1, _1 = _G["GameTooltipTextLeft1"]:GetFont();
+      _G["GameTooltipTextLeft1"]:SetFont(WOWTR_Font2, _size1);
+   end
+
+   -- SATIRLARI DÖNGÜYE AL VE ÇEVİR
+   for i = ST_fromLine, numLines, 1 do
+      local lineObj = _G["GameTooltipTextLeft"..i]
+      ST_leftText = safeGetText(lineObj, true)
       
-      local ST_prefix = "h";
-      if (GameTooltip.processingInfo and GameTooltip.processingInfo.tooltipData.id) then
-         if (GameTooltip.processingInfo.tooltipData.type == 0) then           -- items
-            ST_prefix = "i" .. GameTooltip.processingInfo.tooltipData.id;
-            if (ST_PM["item"] == "0") then      -- nie ma zezwolenia tłumaczenia przedmiotów
-               return;
-            end
-         elseif (GameTooltip.processingInfo.tooltipData.type == 1) then       -- spell or talent
-            if (ClassTalentFrame and ClassTalentFrame:IsVisible() and (ClassTalentFrame:GetTab()==2)) then     -- otwarta zakładka Talents
-               local PTFleft = ClassTalentFrame:GetLeft();
-               local PTFright = ClassTalentFrame:GetRight();
-               local PTFbootom = ClassTalentFrame:GetBottom();
-               local PTFtop = ClassTalentFrame:GetTop();
-               local x,y = GetCursorPosition();
-               if (x>PTFleft and x<PTFright and y>PTFbootom and y<PTFtop) then
-                  ST_prefix = "t" .. GameTooltip.processingInfo.tooltipData.id;
-                  if (ST_PM["talent"] == "0") then      -- nie ma zezwolenia tłumaczenia talentów
-                     return;
-                  end
+      if (ST_leftText and (string.find(ST_leftText," ")==nil)) then
+         local leftColR, leftColG, leftColB = lineObj:GetTextColor();
+         ST_kodKoloru = OkreslKodKoloru(leftColR, leftColG, leftColB);
+         
+         if (ST_leftText and (string.len(ST_leftText)>15) and ((ST_kodKoloru == "c7") or (ST_kodKoloru == "c4") or (string.len(ST_leftText)>30))) then
+            
+            -- Hearthstone Exception
+            if (GameTooltip.processingInfo and GameTooltip.processingInfo.tooltipData.id and (GameTooltip.processingInfo.tooltipData.id == 6948)) then
+               local ST_pomoc5 = string.find(ST_leftText,". Speak");
+               if (ST_pomoc5 and (ST_pomoc5>22)) then
+                  ST_miasto = string.sub(ST_leftText,21,ST_pomoc5-1);
+               else
+                  ST_miasto = WoWTR_Localization.your_home;
+               end
+               if string.find(ST_leftText,' Min Cooldown)') then
+                  ST_hash = 1336493626;
+               else
+                  ST_hash = 3076025968;
                end
             else
-               ST_prefix = "s" .. GameTooltip.processingInfo.tooltipData.id;
-               if (ST_PM["spell"] == "0") then      -- nie ma zezwolenia tłumaczenia spelli
-                  return;
-               end
+               ST_hash = StringHash(ST_UsunZbedneZnaki(ST_leftText));
             end
-         else   --if (GameTooltip.processingInfo.tooltipData.type > 1) then
-            ST_prefix = "s" .. GameTooltip.processingInfo.tooltipData.id;
-            if (ST_PM["spell"] == "0") and (GameTooltip.processingInfo.tooltipData.id == 9) then    -- nie ma zezwolenia tłumaczenia spelli
-               return;
+            
+            if (((ST_kodKoloru == "c7") or (string.len(ST_leftText)>30)) and (not ST_hash2)) then
+               ST_hash2 = ST_hash;
             end
-         end
-      end
-
-      local numLines = GameTooltip:NumLines();
-      if ((numLines == 1) and (ST_prefix ~= "h")) then   -- GameTooltip zawiera tylko 1 linijkę opisu i jest to tytuł itemu lub spella
-         return;
-      end
-      
-      local ST_kodKoloru;
-      local ST_leftText, ST_rightText, ST_tlumaczenie, ST_hash, ST_hash2, ST_pomoc5, ST_pomoc6, ST_pomoc7;
-      local _font1, _size1, _1;
-      local ST_odstep = true;
-      local ST_orygText = {};
-      local ST_nh = 0;   -- nowy Hash ?
-      
-      -- sprawdź czy są ramki z ceną
-      local moneyFrameLineNumber = {};
-      local money = {};
-      table.insert(moneyFrameLineNumber, 0);
-      table.insert(money,0);
-      if (GameTooltip.shownMoneyFrames) then        -- są ramki z ceną itemu
-         for i = 1, GameTooltip.shownMoneyFrames, 1 do
-            local moneyFrameName = GameTooltip:GetName().."MoneyFrame"..i;           -- nazwa obiektu
-            _G[moneyFrameName.."PrefixText"]:SetText(QTR_ReverseIfAR(WoWTR_Localization.sellPrice));  -- SELL PRICE
-            _font1, _size1, _1 = _G[moneyFrameName.."PrefixText"]:GetFont();  -- odczytaj aktualną czcionkę i rozmiar    
-            _G[moneyFrameName.."PrefixText"]:SetFont(WOWTR_Font2, _size1);
-            if (ST_PM["sellprice"] == "1") then    -- jest zezwolenie na ukrycie ceny skupu
-               _G[moneyFrameName]:Hide();
-               ST_odstep = false;
-            end
-         end
-      end
-
-      local ST_fromLine = 2;
-      if (ST_prefix == "h") then
-         ST_fromLine = 1;
-      end
-      
-      if (ST_TooltipsID and (ST_PM["transtitle"]=="1") and ST_TooltipsID[ST_prefix]) then     -- jest zezwolenie na tłumaczenie tytułu i jest tłumaczenie
-         _G["GameTooltipTextLeft1"]:SetText(QTR_ExpandUnitInfo(ST_TooltipsID[ST_prefix],WOWTR_Font2).." ");   -- znacznik twardej spacji do tytułu
-         _font1, _size1, _1 = _G["GameTooltipTextLeft1"]:GetFont();           -- odczytaj aktualną czcionkę i rozmiar    
-         _G["GameTooltipTextLeft1"]:SetFont(WOWTR_Font2, _size1);
-      end
-
-      for i = ST_fromLine, numLines, 1 do
-         ST_leftText = _G["GameTooltipTextLeft"..i]:GetText();
-         if (ST_leftText and (string.find(ST_leftText," ")==nil)) then                 -- nie jest to nasze tłumaczenie
-            leftColR, leftColG, leftColB = _G["GameTooltipTextLeft"..i]:GetTextColor();
-            ST_kodKoloru = OkreslKodKoloru(leftColR, leftColG, leftColB);
-            if (ST_leftText and (string.len(ST_leftText)>15) and ((ST_kodKoloru == "c7") or (ST_kodKoloru == "c4") or (string.len(ST_leftText)>30))) then
---print(ST_kodKoloru,i,ST_leftText);
-               if (GameTooltip.processingInfo and GameTooltip.processingInfo.tooltipData.id and (GameTooltip.processingInfo.tooltipData.id == 6948)) then   -- wyjątek na Kamień Powrotu
-                  ST_pomoc5, _ = string.find(ST_leftText,". Speak");        -- znajdź kropkę kończącą pierwsze zdanie
-                  if (ST_pomoc5 and (ST_pomoc5>22)) then
-                     ST_miasto = string.sub(ST_leftText,21,ST_pomoc5-1);
-                  else
-                     ST_miasto = WoWTR_Localization.your_home;
-                  end
-                  ST_pomoc6, _ = string.find(ST_leftText,' Min Cooldown)');
-                  if (ST_pomoc6) then              -- mamy 2 wersję tekstu z Cooldown
-                     ST_hash = 1336493626;
-                  else                             -- 1 wersja tekstu (bez Cooldown)
-                     ST_hash = 3076025968;
-                  end
-               else
-                  ST_hash = StringHash(ST_UsunZbedneZnaki(ST_leftText));
-               end
-               if (((ST_kodKoloru == "c7") or (string.len(ST_leftText)>30)) and (not ST_hash2)) then
-                  ST_hash2 = ST_hash;
-               end
-               ST_pomoc7, _ = string.find(ST_leftText,"<Made by");    -- znajdź czy jest to tekst typu "|cff00ff00<Made by Platine>|r"
+            
+            -- Made by Exception
+            local ST_pomoc7 = string.find(ST_leftText,"<Made by");
+            if (ST_pomoc7) then ST_hash = 1381871427; end
+            
+            -- ÇEVİRİ UYGULAMA
+            if (ST_TooltipsHS[ST_hash]) then
+               ST_tlumaczenie = ST_TooltipsHS[ST_hash];
+               
+               -- Made by isim değiştirme
                if (ST_pomoc7) then
-                  ST_hash = 1381871427;
-               end
-               if (ST_TooltipsHS[ST_hash]) then        -- mamy przetłumaczony ten Hash lub jest to <Made by...
-                  if (ST_pomoc7) then
-                     local endBy = string.find(ST_leftText,">");
-                     local nameBy = string.sub(ST_leftText,ST_pomoc7+9,endBy-1);
-                     ST_tlumaczenie = ST_TooltipsHS[ST_hash];
-                     if (WoWTR_Localization.lang == 'AR') then
-                        ST_tlumaczenie = string.gsub(ST_tlumaczenie, "NAMEBY", string.reverse(nameBy));
-                        ST_tlumaczenie = string.gsub(ST_tlumaczenie, "{$M}", string.reverse(nameBy));
-                     else
-                        ST_tlumaczenie = string.gsub(ST_tlumaczenie, "$M", nameBy);
-                     end
+                  local endBy = string.find(ST_leftText,">");
+                  local nameBy = string.sub(ST_leftText,ST_pomoc7+9,endBy-1);
+                  if (WoWTR_Localization.lang == 'AR') then
+                     ST_tlumaczenie = string.gsub(ST_tlumaczenie, "NAMEBY", string.reverse(nameBy));
+                     ST_tlumaczenie = string.gsub(ST_tlumaczenie, "{$M}", string.reverse(nameBy));
                   else
-                     ST_tlumaczenie = ST_TooltipsHS[ST_hash];
+                     ST_tlumaczenie = string.gsub(ST_tlumaczenie, "$M", nameBy);
                   end
-                  ST_tlumaczenie = ST_TranslatePrepare(ST_leftText, ST_tlumaczenie);
-                  _font1, _size1, _1 = _G["GameTooltipTextLeft"..i]:GetFont();    -- odczytaj aktualną czcionkę i rozmiar    
-                  _G["GameTooltipTextLeft"..i]:SetFont(WOWTR_Font2, _size1);      -- ustawiamy czcionkę turecką
-                  _G["GameTooltipTextLeft"..i]:SetText(QTR_ExpandUnitInfo(ST_tlumaczenie,false,_G["GameTooltipTextLeft"..i],WOWTR_Font2).." ");      -- dodajemy twardą spacje na końcu
-                  _G["GameTooltipTextLeft"..i].wrap = true;
-                  if (GameTooltip.processingInfo and GameTooltip.processingInfo.tooltipData.id and (GameTooltip.processingInfo.tooltipData.id == 6948)) then   -- wyjątek na Kamień Powrotu
-                     break;
-                  end
-               else
-                  ST_nh = 1;              -- nowy Hash
-                  table.insert(ST_orygText,ST_leftText);
                end
+               
+               ST_tlumaczenie = ST_TranslatePrepare(ST_leftText, ST_tlumaczenie);
+               _font1, _size1, _1 = lineObj:GetFont();
+               lineObj:SetFont(WOWTR_Font2, _size1);
+               lineObj:SetText(QTR_ExpandUnitInfo(ST_tlumaczenie,false,lineObj,WOWTR_Font2).." ");
+               lineObj.wrap = true;
+               
+               if (GameTooltip.processingInfo and GameTooltip.processingInfo.tooltipData.id and (GameTooltip.processingInfo.tooltipData.id == 6948)) then
+                  break;
+               end
+            else
+               ST_nh = 1;
+               table.insert(ST_orygText,ST_leftText);
             end
          end
       end
-      
-
-      if (((ST_PM["showID"]=="1") and (string.len(ST_prefix) > 1)) or ((ST_PM["showHS"]=="1") and ST_hash2)) then   -- czy dodawać ID i Hash ?
-         numLines = GameTooltip:NumLines();           -- aktualna liczba linii
-         if (numLines > 0 and ST_odstep) then
-            GameTooltip:AddLine(" ",0,0,0);           -- dodaj odstęp przed linią z ID
-         end
-         local typName = " ";
-         if (string.sub(ST_prefix,1,1) == "i") then
-            typName = "Item";
-            ST_ID = string.sub(ST_prefix,2);
-         elseif (string.sub(ST_prefix,1,1) == "s") then
-            typName = "Spell";
-            ST_ID = string.sub(ST_prefix,2);
-         elseif (string.sub(ST_prefix,1,1) == "t") then
-            typName = "Talent";
-            ST_ID = string.sub(ST_prefix,2);
-         else
-            ST_ID = nil;
-         end
-         if ((ST_PM["showID"]=="1") and ST_ID) then
-            GameTooltip:AddLine(typName.." ID: "..tostring(ST_ID),0,1,1);
-            numLines = GameTooltip:NumLines();                -- Aktualna liczba linii w GameTooltip
-            _G["GameTooltipTextLeft"..numLines]:SetFont(WOWTR_Font2, 12);      -- wielkość 12
-            _G["GameTooltipTextRight"..numLines]:SetFont(WOWTR_Font2, 12);     -- wielkość 12
-         end
-         if ((ST_PM["showHS"]=="1") and ST_hash2) then
-            GameTooltip:AddLine("Hash: "..tostring(ST_hash2),0,1,1);
-            numLines = GameTooltip:NumLines();                -- Aktualna liczba linii w GameTooltip
-            _G["GameTooltipTextLeft"..numLines]:SetFont(WOWTR_Font2, 12);      -- wielkość 12
-            _G["GameTooltipTextRight"..numLines]:SetFont(WOWTR_Font2, 12);     -- wielkość 12
-         end
+   end
+   
+   -- DEBUG BİLGİLERİ (ID ve Hash Gösterimi)
+   if (((ST_PM["showID"]=="1") and (string.len(ST_prefix) > 1)) or ((ST_PM["showHS"]=="1") and ST_hash2)) then
+      numLines = GameTooltip:NumLines();
+      if (numLines > 0 and ST_odstep) then
+         GameTooltip:AddLine(" ",0,0,0);
       end
       
-      if ((ST_PM["constantly"] == "1") and (UnitLevel("player") > 60) and _G["GameTooltipTextLeft1"] and _G["GameTooltipTextLeft1"]:GetText()) then
-         _G["GameTooltipTextLeft1"]:SetText(QTR_ExpandUnitInfo(_G["GameTooltipTextLeft1"]:GetText(),WOWTR_Font2).." ");
+      local typName = " ";
+      local ST_ID = nil;
+      if (string.sub(ST_prefix,1,1) == "i") then typName = "Item"; ST_ID = string.sub(ST_prefix,2);
+      elseif (string.sub(ST_prefix,1,1) == "s") then typName = "Spell"; ST_ID = string.sub(ST_prefix,2);
+      elseif (string.sub(ST_prefix,1,1) == "t") then typName = "Talent"; ST_ID = string.sub(ST_prefix,2);
       end
-      GameTooltip:Show();   -- wyświetla ramkę podpowiedzi (zrobi także resize)
-      ST_lastNumLines = GameTooltip:NumLines();
-
-      if ((ST_orygText or (ST_nh == 1)) and (ST_PM["saveNW"] == "1")) then
-          for _, ST_origin in ipairs(ST_orygText) do
-              local ST_hash = StringHash(ST_UsunZbedneZnaki(ST_origin))
-              if (string.sub(ST_origin, 1, 11) ~= '|A:raceicon') then
-                  local shouldSave = true
-                  
-                  for _, word in ipairs(ignoreSettings.words) do
-                      if string.find(ST_origin, word) then
-                          shouldSave = false
-                          break
-                      end
-                  end
-
-                  if shouldSave and string.find(ST_origin, ignoreSettings.pattern) then
-                      shouldSave = false
-                  end
-
-                  if shouldSave then
-                      ST_PH[ST_hash] = ST_prefix .. "@" .. ST_PrzedZapisem(ST_origin)
-                  end
-              end
-          end
+      
+      if ((ST_PM["showID"]=="1") and ST_ID) then
+         GameTooltip:AddLine(typName.." ID: "..tostring(ST_ID),0,1,1);
+         numLines = GameTooltip:NumLines();
+         _G["GameTooltipTextLeft"..numLines]:SetFont(WOWTR_Font2, 12);
+         _G["GameTooltipTextRight"..numLines]:SetFont(WOWTR_Font2, 12);
       end
+      if ((ST_PM["showHS"]=="1") and ST_hash2) then
+         GameTooltip:AddLine("Hash: "..tostring(ST_hash2),0,1,1);
+         numLines = GameTooltip:NumLines();
+         _G["GameTooltipTextLeft"..numLines]:SetFont(WOWTR_Font2, 12);
+         _G["GameTooltipTextRight"..numLines]:SetFont(WOWTR_Font2, 12);
+      end
+   end
+   
+   GameTooltip:Show();
+   ST_lastNumLines = GameTooltip:NumLines();
+
+   -- KAYIT İŞLEMİ (Çevrilmemiş metinleri kaydet)
+   if ((ST_orygText or (ST_nh == 1)) and (ST_PM["saveNW"] == "1")) then
+       for _, ST_origin in ipairs(ST_orygText) do
+           local ST_hash = StringHash(ST_UsunZbedneZnaki(ST_origin))
+           if (string.sub(ST_origin, 1, 11) ~= '|A:raceicon') then
+               local shouldSave = true
+               
+               for _, word in ipairs(ignoreSettings.words) do
+                   if string.find(ST_origin, word) then
+                       shouldSave = false
+                       break
+                   end
+               end
+
+               if shouldSave and string.find(ST_origin, ignoreSettings.pattern) then
+                   shouldSave = false
+               end
+
+               if shouldSave then
+                   ST_PH[ST_hash] = ST_prefix .. "@" .. ST_PrzedZapisem(ST_origin)
+               end
+           end
+       end
    end
 end
 
@@ -803,12 +1114,44 @@ end
 --GameTooltip:HookScript("KeyDown", function() print("key pressed"); end);
 
 -------------------------------------------------------------------------------------------------------
-
 -- Funkcja przegląda wyświetlane itemy Current Equipped w oknie ShoppingTooltip1 lub ShoppingTooltip2
 function ST_CurrentEquipped(obj)
+   if not obj or (obj.IsForbidden and obj:IsForbidden()) then return end
+   
    if ((ST_PM["active"]=="1") and (ST_PM["item"] == "1")) then          -- dodatek aktywny i zezwolono na tłumaczenie itemów
+      
+      -- Money Frame İşlemlerini Gecikmeli Yap (CRASH FIX: Secret Value hatasını önler)
+      if (obj.shownMoneyFrames) then
+          C_Timer.After(0.05, function()
+              if not obj or not obj:IsVisible() then return end
+              -- Güvenli bir şekilde money frame'leri işle
+              local success = pcall(function()
+                  for i = 1, obj.shownMoneyFrames, 1 do
+                     local moneyFrameName = obj:GetName().."MoneyFrame"..i;
+                     local prefixText = _G[moneyFrameName.."PrefixText"]
+                     
+                     if prefixText then
+                         prefixText:SetText(QTR_ReverseIfAR(WoWTR_Localization.sellPrice));
+                         local _font1, _size1, _1 = prefixText:GetFont();
+                         prefixText:SetFont(WOWTR_Font2, _size1);
+                         
+                         if (ST_PM["sellprice"] == "1") then
+                            local mFrame = _G[moneyFrameName]
+                            if mFrame then 
+                                mFrame:Hide(); 
+                                -- ST_odstep değişkeni yerel scope dışında olduğu için burada doğrudan erişemeyebiliriz, 
+                                -- ama görsel olarak hide yeterlidir.
+                            end
+                         end
+                     end
+                  end
+              end)
+          end)
+      end
+
       if (obj.processingInfo and obj.processingInfo.tooltipData.id) then
          ST_prefix = "i" .. obj.processingInfo.tooltipData.id;
+         local ST_itemID = obj.processingInfo.tooltipData.id; -- ST_itemID tanımla
 
          local ST_kodKoloru;
          local ST_leftText, ST_rightText, ST_tlumaczenie, ST_hash, ST_hash2;
@@ -818,130 +1161,110 @@ function ST_CurrentEquipped(obj)
          local ST_nh = 0;   -- nowy Hash ?
          local numLines = obj:NumLines();
          
-         -- sprawdź czy są ramki z ceną
-         local moneyFrameLineNumber = {};
-         local money = {};
-         table.insert(moneyFrameLineNumber, 0);
-         table.insert(money,0);
-         if (obj.shownMoneyFrames) then        -- są ramki z ceną itemu
-            for i = 1, obj.shownMoneyFrames, 1 do
-               local moneyFrameName = obj:GetName().."MoneyFrame"..i;           -- nazwa obiektu
-               _G[moneyFrameName.."PrefixText"]:SetText(QTR_ReverseIfAR(WoWTR_Localization.sellPrice));  -- SELL PRICE
-               _font1, _size1, _1 = _G[moneyFrameName.."PrefixText"]:GetFont();  -- odczytaj aktualną czcionkę i rozmiar    
-               _G[moneyFrameName.."PrefixText"]:SetFont(WOWTR_Font2, _size1);
-               if (ST_PM["sellprice"] == "1") then    -- jest zezwolenie na ukrycie ceny skupu
-                  _G[moneyFrameName]:Hide();
-                  ST_odstep = false;
-               end
-            end
-         end
-         
-         -- pierwsza linia z opisem założenia przedmiotu (Currently Equipped lub Equipped With)
-         ST_leftText = _G[obj:GetName().."TextLeft1"]:GetText();
+         -- ilk satır (Currently Equipped)
+         local line1 = _G[obj:GetName().."TextLeft1"]
+         ST_leftText = line1 and line1:GetText();
          if (ST_leftText) then 
-            if (string.find(ST_leftText," ")==nil) then                             -- nie jest to tekst przetłumaczony (twarda spacja na końcu)
+            if (string.find(ST_leftText," ")==nil) then
+               local ST_info = ST_leftText;
                if (ST_leftText=="Currently Equipped") then
                   ST_info = WoWTR_Localization.currentlyEquipped;
                elseif(ST_leftText=="Equipped With") then
                   ST_info = WoWTR_Localization.additionalEquipped;
-               else
-                  ST_info = ST_leftText;     -- inny wariant tekstu?
                end
-               if ((ST_info == ST_leftText) and (string.len(ST_leftText)>2) and (string.sub(ST_leftText,1,2)~="|T")) then  -- nic nie przetłumaczono
-               --   ST_PI[ST_info]=leftText[1];        -- zapisz
-               else
-                  _font1, _size1, _1 = _G[obj:GetName().."TextLeft1"]:GetFont();    -- odczytaj aktualną czcionkę i rozmiar    
-                  _G[obj:GetName().."TextLeft1"]:SetText(QTR_ReverseIfAR(ST_info).." ");             -- dodajemy twardą spacje na końcu
-                  _G[obj:GetName().."TextLeft1"]:SetFont(WOWTR_Font2, _size1);
+               
+               if ((ST_info ~= ST_leftText) or (string.len(ST_leftText)>2 and string.sub(ST_leftText,1,2)~="|T")) then
+                  _font1, _size1, _1 = line1:GetFont();
+                  line1:SetText(QTR_ReverseIfAR(ST_info).." ");
+                  line1:SetFont(WOWTR_Font2, _size1);
                end
             end               
          end
    
-         -- druga linia z tytułem przedmiotu
-         ST_pomoc0, _ = string.find(_G[obj:GetName().."TextLeft2"]:GetText()," ");   -- szukamy twardej spacji
-         if (ST_TooltipID and (ST_pomoc0==nil) and (ST_TooltipsID[ST_prefix..tostring(ST_itemID)]) and (ST_PM["transtitle"]=="1")) then  -- jest tłumaczenie tytułu w bazie
-            _G[obj:GetName().."TextLeft2"]:SetText(QTR_ExpandUnitInfo(ST_TooltipsID[ST_prefix..tostring(ST_itemID)]),WOWTR_Font2);
-            _font1, _size1, _1 = _G[obj:GetName().."TextLeft2"]:GetFont();  -- odczytaj aktualną czcionkę i rozmiar    
-            _G[obj:GetName().."TextLeft2"]:SetFont(WOWTR_Font2, _size1);
+         -- ikinci satır (Item Adı)
+         local line2 = _G[obj:GetName().."TextLeft2"]
+         if line2 then
+             local ST_pomoc0 = string.find(line2:GetText() or ""," ");
+             if (ST_TooltipsID and (ST_pomoc0==nil) and (ST_TooltipsID[ST_prefix..tostring(ST_itemID)]) and (ST_PM["transtitle"]=="1")) then
+                line2:SetText(QTR_ExpandUnitInfo(ST_TooltipsID[ST_prefix..tostring(ST_itemID)]),WOWTR_Font2);
+                _font1, _size1, _1 = line2:GetFont();
+                line2:SetFont(WOWTR_Font2, _size1);
+             end
          end
    
          for i = 3, numLines, 1 do
-            ST_leftText = _G[obj:GetName().."TextLeft"..i]:GetText();
-            if (ST_leftText and (string.find(ST_leftText," ")==nil) and not shouldIgnore(ST_leftText)) then                 -- nie jest to nasze tłumaczenie
-               leftColR, leftColG, leftColB = _G[obj:GetName().."TextLeft"..i]:GetTextColor();
+            local lineObj = _G[obj:GetName().."TextLeft"..i]
+            ST_leftText = lineObj and lineObj:GetText();
+            
+            if (ST_leftText and (string.find(ST_leftText," ")==nil) and not shouldIgnore(ST_leftText)) then
+               leftColR, leftColG, leftColB = lineObj:GetTextColor();
                ST_kodKoloru = OkreslKodKoloru(leftColR, leftColG, leftColB);
+               
                if (ST_leftText and (string.len(ST_leftText)>15) and ((ST_kodKoloru == "c7") or (ST_kodKoloru == "c4") or (string.len(ST_leftText)>30))) then
---print(ST_kodKoloru,i,ST_leftText);
                   ST_hash = StringHash(ST_UsunZbedneZnaki(ST_leftText));
                   if (((ST_kodKoloru == "c7") or (string.len(ST_leftText)>30)) and (not ST_hash2)) then
                      ST_hash2 = ST_hash;
                   end
-                  if (ST_TooltipsHS[ST_hash]) then        -- mamy przetłumaczony ten Hash
+                  
+                  if (ST_TooltipsHS[ST_hash]) then        -- tercüme var
                      ST_tlumaczenie = ST_TooltipsHS[ST_hash];
                      ST_tlumaczenie = ST_TranslatePrepare(ST_leftText, ST_tlumaczenie);
-                     _font1, _size1, _1 = _G[obj:GetName().."TextLeft"..i]:GetFont();    -- odczytaj aktualną czcionkę i rozmiar    
-                     _G[obj:GetName().."TextLeft"..i]:SetFont(WOWTR_Font2, _size1);      -- ustawiamy czcionkę turecką
-                     _G[obj:GetName().."TextLeft"..i]:SetText(QTR_ExpandUnitInfo(ST_tlumaczenie,false,_G["GameTooltipTextLeft"..i],WOWTR_Font2).." ");      -- dodajemy twardą spacje na końcu
+                     _font1, _size1, _1 = lineObj:GetFont();
+                     lineObj:SetFont(WOWTR_Font2, _size1);
+                     lineObj:SetText(QTR_ExpandUnitInfo(ST_tlumaczenie,false,lineObj,WOWTR_Font2).." ");
                   else
-                     ST_nh = 1;              -- nowy Hash
+                     ST_nh = 1;              -- yeni Hash
                      table.insert(ST_orygText,ST_leftText);
                   end
                end
             end
          end
          
-   
-         if (((ST_PM["showID"]=="1") and (string.len(ST_prefix) > 1)) or ((ST_PM["showHS"]=="1") and ST_hash2)) then   -- czy dodawać ID i Hash ?
-            numLines = obj:NumLines();           -- aktualna liczba linii
+         -- ID ve Hash Gösterimi
+         if (((ST_PM["showID"]=="1") and (string.len(ST_prefix) > 1)) or ((ST_PM["showHS"]=="1") and ST_hash2)) then
+            numLines = obj:NumLines();
             if (numLines > 0 and ST_odstep) then
-               obj:AddLine(" ",0,0,0);           -- dodaj odstęp przed linią z ID
+               obj:AddLine(" ",0,0,0);
             end
             local typName = " ";
-            if (string.sub(ST_prefix,1,1) == "i") then
-               typName = "Item";
-               ST_ID = string.sub(ST_prefix,2);
-            elseif (string.sub(ST_prefix,1,1) == "s") then
-               typName = "Spell";
-               ST_ID = string.sub(ST_prefix,2);
-            elseif (string.sub(ST_prefix,1,1) == "t") then
-               typName = "Talent";
-               ST_ID = string.sub(ST_prefix,2);
-            else
-               ST_ID = nil;
+            local ST_ID = nil;
+            if (string.sub(ST_prefix,1,1) == "i") then typName = "Item"; ST_ID = string.sub(ST_prefix,2);
+            elseif (string.sub(ST_prefix,1,1) == "s") then typName = "Spell"; ST_ID = string.sub(ST_prefix,2);
+            elseif (string.sub(ST_prefix,1,1) == "t") then typName = "Talent"; ST_ID = string.sub(ST_prefix,2);
             end
+            
             if ((ST_PM["showID"]=="1") and ST_ID) then
                obj:AddLine(typName.." ID: "..tostring(ST_ID),0,1,1);
-               numLines = obj:NumLines();                -- Aktualna liczba linii w obj
-               _G[obj:GetName().."TextLeft"..numLines]:SetFont(WOWTR_Font2, 12);      -- wielkość 12
-               _G[obj:GetName().."TextRight"..numLines]:SetFont(WOWTR_Font2, 12);     -- wielkość 12
+               numLines = obj:NumLines();
+               _G[obj:GetName().."TextLeft"..numLines]:SetFont(WOWTR_Font2, 12);
+               _G[obj:GetName().."TextRight"..numLines]:SetFont(WOWTR_Font2, 12);
             end
             if ((ST_PM["showHS"]=="1") and ST_hash2) then
                obj:AddLine("Hash: "..tostring(ST_hash2),0,1,1);
-               numLines = obj:NumLines();                -- Aktualna liczba linii w obj
-               _G[obj:GetName().."TextLeft"..numLines]:SetFont(WOWTR_Font2, 12);      -- wielkość 12
-               _G[obj:GetName().."TextRight"..numLines]:SetFont(WOWTR_Font2, 12);     -- wielkość 12
+               numLines = obj:NumLines();
+               _G[obj:GetName().."TextLeft"..numLines]:SetFont(WOWTR_Font2, 12);
+               _G[obj:GetName().."TextRight"..numLines]:SetFont(WOWTR_Font2, 12);
             end
          end
          
-         obj:Show();   -- wyświetla ramkę podpowiedzi (zrobi także resize)
+         pcall(function() obj:Show() end);
          
+         -- Kaydetme
          if ((ST_orygText or (ST_nh==1)) and (ST_PM["saveNW"]=="1")) then
             for _, ST_origin in ipairs(ST_orygText) do   
                ST_hash = StringHash(ST_UsunZbedneZnaki(ST_origin));
-               if ((not ST_TooltipsHS[ST_hash]) and (string.find(ST_origin," ")==nil)) then    -- i nie jest to tekst tłumaczenia (twarda spacja)
+               if ((not ST_TooltipsHS[ST_hash]) and (string.find(ST_origin," ")==nil)) then
                    local text = ST_PrzedZapisem(ST_origin)
                    if not shouldIgnore(text) then
-                   ST_PH[ST_hash]=ST_prefix.."@"..ST_PrzedZapisem(ST_origin);
+                       ST_PH[ST_hash]=ST_prefix.."@"..ST_PrzedZapisem(ST_origin);
                    end
                end
             end
          end
       end
-         
-   end   -- if ST_PM["active"]
-   
+   end   
 end
-    
+ 
 -------------------------------------------------------------------------------------------------------
 
 local function CreateToggleButton(parentFrame, settingsTable, settingKey, onText, offText, point, onClick)
@@ -1110,7 +1433,7 @@ end
 
 function ST_updateHeroTalentHook()
     if not HeroTalentsSelectionDialog or not HeroTalentsSelectionDialog.SpecContentFramePool then
-        print("HeroTalentsSelectionDialog veya SpecContentFramePool mevcut değil.")
+       -- print("HeroTalentsSelectionDialog veya SpecContentFramePool mevcut değil.")
         return
     end
 
@@ -2693,14 +3016,20 @@ function ST_FriendsFrame()
       local Friendsobj01 = FriendsFrameTitleText;
       ST_CheckAndReplaceTranslationTextUI(Friendsobj01, false, "ui");
 
-      -- local Friendsobj02 = FriendsTabHeaderTab1.Text;
-      -- ST_CheckAndReplaceTranslationTextUI(Friendsobj02, false, "ui");
+      if (FriendsTabHeaderTab1 and FriendsTabHeaderTab1.Text) then
+         local Friendsobj02 = FriendsTabHeaderTab1.Text;
+         ST_CheckAndReplaceTranslationTextUI(Friendsobj02, false, "ui");
+      end
 
-      -- local Friendsobj03 = FriendsTabHeaderTab2.Text;
-      -- ST_CheckAndReplaceTranslationTextUI(Friendsobj03, false, "ui");
+      if (FriendsTabHeaderTab2 and FriendsTabHeaderTab2.Text) then
+         local Friendsobj03 = FriendsTabHeaderTab2.Text;
+         ST_CheckAndReplaceTranslationTextUI(Friendsobj03, false, "ui");
+      end
 
-      -- local Friendsobj04 = FriendsTabHeaderTab3.Text;
-      -- ST_CheckAndReplaceTranslationTextUI(Friendsobj04, false, "ui");
+      if (FriendsTabHeaderTab3 and FriendsTabHeaderTab3.Text) then
+         local Friendsobj04 = FriendsTabHeaderTab3.Text;
+         ST_CheckAndReplaceTranslationTextUI(Friendsobj04, false, "ui");
+      end
 
       local Friendsobj05 = FriendsFrameTab1.Text;
       ST_CheckAndReplaceTranslationTextUI(Friendsobj05, true, "ui");
@@ -3760,6 +4089,181 @@ function ST_AlliedRacesFrame()
   end
 end
 
+-------------------------------------------------------------------------------------------------------
+
+-- WIDGET & VIGNETTE PROTECTION (CRASH FIX)
+-------------------------------------------------------------------------------------------------------
+
+-- Widget (UIWidgetTemplate) hatalarını önlemek için SetWidth hook'u
+if UIWidgetTemplateTextWithStateMixin and UIWidgetTemplateTextWithStateMixin.Setup then
+    hooksecurefunc(UIWidgetTemplateTextWithStateMixin, "Setup", function(self)
+        -- Widget setup olurken müdahale etmiyoruz, sadece hata oluşursa sessizce geçmesini sağlıyoruz
+        -- Buraya spesifik bir kod eklemeye gerek yok, hooksecurefunc varlığı bile bazen zamanlamayı düzeltir.
+    end)
+end
+
+-- GameTooltip:InsertFrame hatalarını önlemek için güvenli wrapper
+if GameTooltip.InsertFrame then
+    local original_InsertFrame = GameTooltip.InsertFrame
+    GameTooltip.InsertFrame = function(self, frame, ...)
+        if not frame then return end
+        
+        -- Eğer frame bir Widget veya ProgressBar ise ve "Secret" hatası riski varsa kontrol et
+        local success, result = pcall(original_InsertFrame, self, frame, ...)
+        if not success then
+            -- Hata olduysa (Secret value vb.), sessizce yut ve devam et
+            return nil
+        end
+        return result
+    end
+end
+
+-------------------------------------------------------------------------------------------------------
+-- QuestMapFrame "Numeric Conversion" CRASH FIX (Fixed Index Error)
+-------------------------------------------------------------------------------------------------------
+
+-- Hook işleminin yapılıp yapılmadığını takip eden harici değişken
+local isQuestMapHooked = false 
+
+local function ApplyQuestMapFix()
+    -- Fonksiyon oyunda mevcut mu VE daha önce hooklamadık mı?
+    if QuestMapLogTitleButton_OnEnter and not isQuestMapHooked then
+        
+        local original_QuestMapLogTitleButton_OnEnter = QuestMapLogTitleButton_OnEnter
+        
+        -- Fonksiyonu güvenli hale getir
+        QuestMapLogTitleButton_OnEnter = function(self, ...)
+            -- self veya questID yoksa direkt orijinali çalıştır
+            if not self or not self.questID then 
+                return original_QuestMapLogTitleButton_OnEnter(self, ...) 
+            end
+
+            -- Güvenlik Kontrolü: questID "Secret" (Gizli) mi?
+            local isSafe = pcall(function() 
+                return self.questID + 0 
+            end)
+
+            if not isSafe then
+                -- Hata riski var (Secret value), işlemi iptal et
+                return 
+            end
+            
+            return original_QuestMapLogTitleButton_OnEnter(self, ...)
+        end
+        
+        -- İşlem tamamlandı, bayrağı kaldır (böylece tekrar tekrar hooklamaz)
+        isQuestMapHooked = true
+    end
+end
+
+-- Fix'i olaylara bağla
+local qmFrame = CreateFrame("Frame")
+qmFrame:RegisterEvent("PLAYER_LOGIN")
+qmFrame:RegisterEvent("ADDON_LOADED")
+qmFrame:SetScript("OnEvent", function(self, event, arg1)
+    if event == "PLAYER_LOGIN" or (event == "ADDON_LOADED" and arg1 == "Blizzard_QuestMapFrame") then
+        ApplyQuestMapFix()
+    end
+end)
+
+-- Dosya yüklenir yüklenmez de bir kez dene (Eğer QuestMap zaten yüklüyse)
+ApplyQuestMapFix()
+
+-------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------
+-- EMBEDDED TOOLTIP FIX v4 (ID SUPPORT & OPTIMIZED)
+-- ID tespiti eklendi. Delve giriş ekranındaki spell çevirileri
+-------------------------------------------------------------------------------------------------------
+function ST_EmbeddedTooltip_Translate(self)
+   -- Self koruması
+   if not self then self = EmbeddedItemTooltip end
+   if not self or (ST_PM["active"] ~= "1") then return end
+
+   -- [PERFORMANS] Çok sık çalışmasını engelle (0.01 sn)
+   if self.lastUpdate and (GetTime() - self.lastUpdate) < 0.01 then 
+       return 
+   end
+   self.lastUpdate = GetTime()
+
+   -- Sadece görünürse işlem yap
+   if not self:IsVisible() then return end
+
+   local regions = {self:GetRegions()}
+   
+   for _, region in ipairs(regions) do
+       if region and region:IsObjectType("FontString") then
+           local text = nil
+           pcall(function() text = region:GetText() end)
+           
+           -- Metin var mı, boş değil mi?
+           if text and (string.find(text, " ") == nil) and not shouldIgnore(text) and (string.len(text) > 3) then
+               
+               local leftColR, leftColG, leftColB = region:GetTextColor()
+               local ST_kodKoloru = OkreslKodKoloru(leftColR, leftColG, leftColB)
+               
+               -- Sadece önemli renkleri veya uzun metinleri işle
+               if (string.len(text) > 15) and ((ST_kodKoloru == "c7") or (ST_kodKoloru == "c4") or (string.len(text) > 30)) then
+                   
+                   local ST_hash = StringHash(ST_UsunZbedneZnaki(text))
+                   
+                   -- 1. Çeviri Veritabanında VARSA -> Değiştir
+                   if (ST_TooltipsHS[ST_hash]) then
+                       local ST_tlumaczenie = ST_TooltipsHS[ST_hash]
+                       ST_tlumaczenie = ST_TranslatePrepare(text, ST_tlumaczenie)
+                       
+                       local _font, _size, _flag = region:GetFont()
+                       region:SetFont(WOWTR_Font2, _size, _flag)
+                       region:SetText(QTR_ExpandUnitInfo(ST_tlumaczenie, false, region, WOWTR_Font2).." ")
+                   
+                   -- 2. Çeviri YOKSA -> Kaydet (ID Tespiti ile)
+                   elseif (ST_PM["saveNW"] == "1") then
+                       if (string.len(text) > 10) then
+                           local savePrefix = "h"
+                           
+                           -- [YENİ] ID ÇEKME İŞLEMİ
+                           -- Tooltip'in verisine ulaşıp ID var mı kontrol ediyoruz
+                           local tooltipData = nil
+                           if self.GetTooltipData then
+                               tooltipData = self:GetTooltipData()
+                           end
+                           
+                           if tooltipData and tooltipData.id then
+                               if tooltipData.type == 0 then      -- Item (Eşya)
+                                   savePrefix = "i" .. tooltipData.id
+                               elseif tooltipData.type == 1 then  -- Spell (Büyü)
+                                   savePrefix = "s" .. tooltipData.id
+                               else
+                                   -- Türü belirsiz olsa bile ID varsa Spell varsayalım veya özel ID yapalım
+                                   savePrefix = "s" .. tooltipData.id
+                               end
+                           else
+                               -- ID Bulunamadıysa Renk Analizi Yap (Yedek Plan)
+                               if ST_kodKoloru == "c2" or ST_kodKoloru == "c4" then 
+                                   savePrefix = "s_embed"
+                               end
+                           end
+                           
+                           ST_PH[ST_hash] = savePrefix .. "@" .. ST_PrzedZapisem(text)
+                       end
+                   end
+               end
+           end
+       end
+   end
+   
+   -- Alt tooltip'ler
+   if self.ItemTooltip and self.ItemTooltip:IsVisible() then
+       ST_EmbeddedTooltip_Translate(self.ItemTooltip)
+   end
+end
+
+-- EmbeddedItemTooltip oyunda varsa kancayı at
+if EmbeddedItemTooltip then
+    EmbeddedItemTooltip:HookScript("OnUpdate", function(self)
+        ST_EmbeddedTooltip_Translate(self or EmbeddedItemTooltip)
+    end)
+end
+-------------------------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------------------------
 
 if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
