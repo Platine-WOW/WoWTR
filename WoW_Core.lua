@@ -14,7 +14,40 @@ WOWTR_time_ver = GetTime() - 15*60;
 WOWTR_lastNotificationTime = 0;      -- Son bildirim zamanını sakla
 WOWTR_notificationCooldown = 10800;  -- 3 saat (10800 saniye) cooldown süresi
 
----------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------------
+
+function WOWTR_SafeGetText(textWidget)
+   if (not textWidget or type(textWidget) ~= "table" or type(textWidget.GetText) ~= "function") then
+      return nil
+   end
+   
+   -- 12.0.0+ ve Retail için güvenli koruma
+   local success, text = pcall(function() 
+      local t = textWidget:GetText()
+      -- "Secret" values seem to crash on string operations. 
+      -- We perform a dummy operation here to trigger the error inside pcall if it's a secret.
+      if t and type(t) == "string" then
+          local _ = string.len(t) 
+          local _ = string.find(t, "") -- Double check with find as that's what crashed
+          return t
+      end
+      return nil
+   end)
+   
+   -- "Restricted execution" veya "secret" hatalarını filtrele
+   if (not success) then
+      -- Geliştirici modunda hata belki yazdırılabilir ama normalde sessiz olmalı
+      return nil
+   end
+   
+   if (text and type(text) == "string") then
+      return text
+   end
+   
+   return nil
+end
+
+----------------------------------------------------------------------------------------------------------------------------------------
 
 function StringHash(text)           -- funkcja tworząca Hash (32-bitowa liczba) podanego tekstu
    if (not text or (#text == 0)) then return 0 end  -- Check if string is empty or nil
@@ -54,7 +87,9 @@ function WOWTR_wait(delay, func, ...)           -- można też użyć funkcji sy
                i = i + 1;
             else
                count = count - 1;
-               f(unpack(p));
+               -- Güvenli (Protected) Çalıştırma
+               local success, err = pcall(f, unpack(p));
+               -- if not success then print("WoWTR Error:", err) end
             end
          end
       end);
@@ -69,12 +104,12 @@ end
 local tickers = {}
 function StartTicker(frame, func, interval)
    if not tickers[frame] then
-      -- Execute the function immediately for the first run
-      func()
+      -- Execute the function immediately for the first run (Protected)
+      pcall(func)
       -- Start the ticker for subsequent runs
       tickers[frame] = C_Timer.NewTicker(interval, function()
          if frame:IsVisible() then
-            func()
+            pcall(func) -- Protected execution
          else
             -- Stop the ticker if the frame is no longer visible
             tickers[frame]:Cancel()
@@ -410,8 +445,7 @@ end
 
 ----------------------------------------------------------------------------------------------------------------------------------------
 -- WoW sürüm kontrolü - en başa ekleyin
-local _, _, _, uiVersion = GetBuildInfo()
-local WOWTR_Is1200OrNewer = uiVersion and uiVersion >= 120000
+
 
 function WOWTR_onEvent(self, event, name, ...)
    if (event=="ADDON_LOADED" and name==WoWTR_Localization.addonFolder) then
@@ -557,8 +591,9 @@ function WOWTR_onEvent(self, event, name, ...)
       end
    elseif (GameTooltip:IsShown() and (event=="MODIFIER_STATE_CHANGED") and (name == "LSHIFT" or name == "RSHIFT") and (ST_PM["active"]=="1")) then
       -- 12.0.0+ için secret value hatalarını sessizce handle et
+      -- 12.0.0+ için secret value hatalarını sessizce handle et
       if WOWTR_Is1200OrNewer then
-         local success = pcall(function()
+         WOWTR_ProtectedTooltipCall(function()
             -- Tüm işlemleri pcall içinde yap
             if GameTooltip.processingInfo and 
                GameTooltip.processingInfo.tooltipData and 

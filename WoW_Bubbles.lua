@@ -33,7 +33,17 @@ function BB_FindProS(text)                 -- znajdź, czy jest tekst '%s' w pod
 end
 
 -------------------------------------------------------------------------------------------------------
-function BB_bubblizeText()
+local lastUpdate = 0
+local updateElement = 0.05 -- Her 0.05 saniyede bir güncelle (20 FPS hızı yeterli)
+
+function BB_bubblizeText(self, elapsed)
+    -- Throttle (Gecikme Önleyici)
+    lastUpdate = lastUpdate + (elapsed or 0)
+    if lastUpdate < updateElement then 
+       return 
+    end
+    lastUpdate = 0
+
     -- Process TalkingHeadFrame if it is visible
     if (TalkingHeadFrame and TalkingHeadFrame:IsVisible()) then
         processTalkingHeadFrame()
@@ -68,45 +78,52 @@ function processTalkingHeadFrame()
 end
 
 function processNormalChatBubbles()
-    for _, bubble in pairs(C_ChatBubbles.GetAllChatBubbles(true)) do
+    local bubbles = C_ChatBubbles.GetAllChatBubbles(true)
+    for _, bubble in pairs(bubbles) do
         -- Iterate through the children of the bubble
         for i = 1, bubble:GetNumChildren() do
-            local child = select(i, select(i, bubble:GetChildren()))
+            local child = select(i, bubble:GetChildren())
             -- Check if the child frame is not forbidden
-            if not child:IsForbidden() then
+            if child and not child:IsForbidden() then
                 -- Check if the child is a valid frame with text content
-                if child and (child:GetObjectType() == "Frame") and (child.String) and (child.Center) then
+                if (child:GetObjectType() == "Frame") and (child.String) and (child.Center) then
                     -- Iterate through the regions of the child frame
-                    for i = 1, child:GetNumRegions() do
-                        local region = select(i, child:GetRegions())
-                        for idx, iArray in ipairs(BB_BubblesArray) do
-                            -- Check if the region matches the saved text in the array
-                            if region and not region:GetName() and region:IsVisible() and region.GetText and (region:GetText() == iArray[1]) then
-                                -- Get the current width of the text and bubble
-                                local oldTextWidth = region:GetStringWidth()
-                                local oldBubbleWidth = region:GetWidth()
-                                -- Get the current font and size
-                                local _font1, _size1, _3 = region:GetFont()
-                                -- Set the new font and size if enabled
-                                if (BB_PM["setsize"] == "1") then
-                                    region:SetFont(WOWTR_Font2, tonumber(BB_PM["fontsize"]))
-                                else
-                                    region:SetFont(WOWTR_Font2, _size1)
+                    for j = 1, child:GetNumRegions() do
+                        local region = select(j, child:GetRegions())
+                        if region and region:GetObjectType() == "FontString" and not region:GetName() and region:IsVisible() then
+                            local regionText = region:GetText()
+                            if regionText then
+                                for idx, iArray in ipairs(BB_BubblesArray) do
+                                    -- Check if the region matches the saved text in the array
+                                    if (regionText == iArray[1]) then
+                                        -- Get the current width of the text and bubble
+                                        local oldTextWidth = region:GetStringWidth()
+                                        local oldBubbleWidth = region:GetWidth()
+                                        -- Get the current font and size
+                                        local _font1, _size1, _3 = region:GetFont()
+                                        -- Set the new font and size if enabled
+                                        if (BB_PM["setsize"] == "1") then
+                                            region:SetFont(WOWTR_Font2, tonumber(BB_PM["fontsize"]))
+                                        else
+                                            region:SetFont(WOWTR_Font2, _size1)
+                                        end
+                                        -- Ensure the width is at least 100
+                                        if (region:GetWidth() < 100) then
+                                            region:SetWidth(100)
+                                        end
+                                        -- Set the translated text based on the width
+                                        if (region:GetWidth() > 200) then
+                                            region:SetText(QTR_ExpandUnitInfo(iArray[2], false, region, WOWTR_Font2, -50))
+                                        else
+                                            region:SetText(QTR_ReverseIfAR(iArray[2]))
+                                        end
+                                        -- Center the text
+                                        region:SetJustifyH("CENTER")
+                                        -- Remove the processed data from the array IMMEDIATELY
+                                        tremove(BB_BubblesArray, idx)
+                                        break -- Stop checking this region since we found a match
+                                    end
                                 end
-                                -- Ensure the width is at least 100
-                                if (region:GetWidth() < 100) then
-                                    region:SetWidth(100)
-                                end
-                                -- Set the translated text based on the width
-                                if (region:GetWidth() > 200) then
-                                    region:SetText(QTR_ExpandUnitInfo(iArray[2], false, region, WOWTR_Font2, -50))
-                                else
-                                    region:SetText(QTR_ReverseIfAR(iArray[2]))
-                                end
-                                -- Center the text
-                                region:SetJustifyH("CENTER")
-                                -- Remove the processed data from the array
-                                tremove(BB_BubblesArray, idx)
                             end
                         end
                     end

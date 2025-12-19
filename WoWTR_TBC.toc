@@ -1,6 +1,6 @@
 ﻿## Interface: 20505
-## Title: WoWTR|cFF00FF00 v25.1206|r by hknylmz
-## Version: 25.1206
+## Title: WoWTR|cFF00FF00 v25.1214|r by hknylmz
+## Version: 25.1214
 ## Notes: Görev, Diyalog, Sinematik ve Arayüz metinleri Türkçe olarak görüntülenir.
 ## Notes_en: Translates the texts in the play into Turkish.
 ## Author: Platine & Hakan YILMAZ
