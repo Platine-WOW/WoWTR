@@ -404,6 +404,9 @@ if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
 
 -- funkcja wywoływana po wyświetleniu się oryginalnego okienka Tooltip
    GameTooltip:HookScript('OnUpdate', function(self, ...)
+      -- 12.0.0+ Local Whitelist: Check safe processing locally
+      if WOWTR_Is1200OrNewer and not WOWTR_IsSafeToProcess(self) then return end
+      
       if (not WOWTR_wait(0, ST_GameTooltipOnShow)) then
       -- opóźnienie 0.01 sek
       end
@@ -420,8 +423,8 @@ if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
 
 -- funkcja wywoływana po wyświetleniu się oryginalnego okienka Tooltip
    GameTooltip:HookScript('OnUpdate', function(self, ...)
-      -- 12.0.0+ Whitelist Protection: Strictly allow only safe types
-      if WOWTR_Is1200OrNewer and not WOWTR_TooltipAllowed then return end
+      -- 12.0.0+ Local Whitelist: Strictly allow only safe types
+      if WOWTR_Is1200OrNewer and not WOWTR_IsSafeToProcess(self) then return end
 
       if ((ST_PM["active"]=="1") and (ST_lastNumLines > 0)) then                        -- dodatek aktywny
          if ((ST_PM["constantly"] == "1") and (UnitLevel("player") > 10)) then
@@ -441,18 +444,15 @@ if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
    if EmbeddedItemTooltip then
        -- Primary Hook: Ensures ST_GameTooltipOnShow is called to process the tooltip
        EmbeddedItemTooltip:HookScript('OnUpdate', function(self, ...)
-          -- Embedded tooltips usually contain items or spells, so we might need to enable them specifically
-          -- For now, if it's an embedded item tooltip, it "should" follow the item rules.
-          -- But EmbeddedItemTooltip works differently. We can conditionally allow it if it has an Item.
-          -- However, to be safe, we check the global allow flag which should have been set by the Item data processing.
-          if WOWTR_Is1200OrNewer and not WOWTR_TooltipAllowed then return end
+          -- Embedded tooltips logic...
+          if WOWTR_Is1200OrNewer and not WOWTR_IsSafeToProcess(self) then return end
           
           if (not WOWTR_wait(0, ST_GameTooltipOnShow, self)) then
           end
        end );
 
       EmbeddedItemTooltip:HookScript('OnUpdate', function(self, ...)
-         if WOWTR_Is1200OrNewer and not WOWTR_TooltipAllowed then return end
+         if WOWTR_Is1200OrNewer and not WOWTR_IsSafeToProcess(self) then return end
          if ((ST_PM["active"]=="1") and (ST_lastNumLines > 0)) then
              if ((ST_PM["constantly"] == "1") and (UnitLevel("player") > 10)) then
                 if ((ST_PM["showID"] == "1") or (ST_PM["showHS"] == "1")) then
@@ -461,8 +461,22 @@ if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
                    end
                 -- Relaxed check: Just verify lines existence, don't rely on global specific widget for trigger
                 elseif (self:NumLines() > 0) then
-                   -- Optional: Check valid text locally if needed, but NumLines is enough trigger
-                   ST_GameTooltipOnShow(self);
+                    -- [FIX] Loop prevention: Check for nbsp in Line 1 OR Line 2 (Sync with GameTooltip logic)
+                    local eName = self:GetName() or "EmbeddedItemTooltip";
+                    
+                    local function IsProcessed(lineObj)
+                        if not lineObj then return false end
+                        local text = WOWTR_SafeGetText(lineObj)
+                        return text and (string.find(text, " ") ~= nil) -- check for nbsp
+                    end
+
+                    local eLine1 = _G[eName.."TextLeft1"] or (self.TextLeft1)
+                    local eLine2 = _G[eName.."TextLeft2"] or (self.TextLeft2)
+                    
+                    -- If neither Line 1 nor Line 2 has nbsp, then update
+                    if (not IsProcessed(eLine1) and not IsProcessed(eLine2)) then
+                        ST_GameTooltipOnShow(self);
+                    end
                 end
              elseif ((ST_PM["constantly"] == "1") and (self.updateTooltipTimer > 1)) then
                 self.updateTooltipTimer = 2;
@@ -612,7 +626,7 @@ function ST_GameTooltipOnShow_Original(tooltip)
    tooltip = tooltip or GameTooltip -- Ensure tooltip is set
    
    -- 12.0.0+ Whitelist Protection
-   if WOWTR_Is1200OrNewer and not WOWTR_TooltipAllowed then
+   if WOWTR_Is1200OrNewer and not WOWTR_IsSafeToProcess(tooltip) then
       return
    end
 
@@ -635,7 +649,8 @@ function ST_GameTooltipOnShow_Original(tooltip)
       if not left1Widget and tooltip.TextLeft1 then left1Widget = tooltip.TextLeft1 end
       
       local left1Text = WOWTR_SafeGetText(left1Widget)
-      if (left1Widget and left1Text) then
+      -- [FIX] EmbeddedItemTooltip için bu genel başlık değişikliğini yapma! (Loop içinde Hash ile çevireceğiz)
+      if (left1Widget and left1Text and (tooltip ~= EmbeddedItemTooltip)) then
          if (string.find(left1Text," ")) then
              return;
          end
@@ -687,6 +702,8 @@ function ST_GameTooltipOnShow_Original(tooltip)
       local ST_odstep = true;
       local ST_orygText = {};
       local ST_nh = 0;   -- nowy Hash ?
+
+
       
       -- sprawdź czy są ramki z ceną
       local moneyFrameLineNumber = {};
@@ -706,12 +723,13 @@ function ST_GameTooltipOnShow_Original(tooltip)
          end
       end
 
-      local ST_fromLine = 2;
+      local ST_fromLine = 1;
       if (ST_prefix == "h") then
          ST_fromLine = 1;
       end
       
       if (ST_TooltipsID and (ST_PM["transtitle"]=="1") and ST_TooltipsID[ST_prefix] and left1Widget) then     -- jest zezwolenie na tłumaczenie tytułu i jest tłumaczenie
+         left1Widget:SetWordWrap(true);
          left1Widget:SetText(QTR_ExpandUnitInfo(ST_TooltipsID[ST_prefix],WOWTR_Font2).." ");   -- znacznik twardej spacji do tytułu
          _font1, _size1, _1 = left1Widget:GetFont();           -- odczytaj aktualną czcionkę i rozmiar    
          left1Widget:SetFont(WOWTR_Font2, _size1);
@@ -722,6 +740,7 @@ function ST_GameTooltipOnShow_Original(tooltip)
          if not leftWidget and tooltip["TextLeft"..i] then leftWidget = tooltip["TextLeft"..i] end
          
          ST_leftText = WOWTR_SafeGetText(leftWidget);
+         
          if (ST_leftText and (string.find(ST_leftText," ")==nil)) then                 -- nie jest to nasze tłumaczenie
             leftColR, leftColG, leftColB = leftWidget:GetTextColor();
             ST_kodKoloru = OkreslKodKoloru(leftColR, leftColG, leftColB);
@@ -767,8 +786,9 @@ function ST_GameTooltipOnShow_Original(tooltip)
                   ST_tlumaczenie = ST_TranslatePrepare(ST_leftText, ST_tlumaczenie);
                   _font1, _size1, _1 = leftWidget:GetFont();    -- odczytaj aktualną czcionkę i rozmiar    
                   leftWidget:SetFont(WOWTR_Font2, _size1);      -- ustawiamy czcionkę turecką
+                  leftWidget:SetWordWrap(true);
                   leftWidget:SetText(QTR_ExpandUnitInfo(ST_tlumaczenie,false,leftWidget,WOWTR_Font2).." ");      -- dodajemy twardą spacje na końcu
-                  leftWidget.wrap = true;
+                  -- leftWidget.wrap = true;
                   if (tooltip.processingInfo and tooltip.processingInfo.tooltipData.id and (tooltip.processingInfo.tooltipData.id == 6948)) then   -- wyjątek na Kamień Powrotu
                      break;
                   end
@@ -813,8 +833,12 @@ function ST_GameTooltipOnShow_Original(tooltip)
          end
       end
       
-      if ((ST_PM["constantly"] == "1") and (UnitLevel("player") > 60) and left1Widget and WOWTR_SafeGetText(left1Widget)) then
-         left1Widget:SetText(QTR_ExpandUnitInfo(WOWTR_SafeGetText(left1Widget),WOWTR_Font2).." ");
+      if ((ST_PM["constantly"] == "1") and (UnitLevel("player") > 60) and left1Widget) then
+          local tText = WOWTR_SafeGetText(left1Widget);
+          if (tText and (string.find(tText, " ") == nil)) then
+             left1Widget:SetWordWrap(true);
+             left1Widget:SetText(QTR_ExpandUnitInfo(tText,WOWTR_Font2).." ");
+          end
       end
       tooltip:Show();   -- wyświetla ramkę podpowiedzi (zrobi także resize)
       ST_lastNumLines = tooltip:NumLines();
@@ -949,66 +973,67 @@ function ST_CurrentEquipped(obj)
                   if (((ST_kodKoloru == "c7") or (string.len(ST_leftText)>30)) and (not ST_hash2)) then
                      ST_hash2 = ST_hash;
                   end
-                  if (ST_TooltipsHS[ST_hash]) then        -- mamy przetłumaczony ten Hash
+
+                   if (ST_TooltipsHS[ST_hash]) then        -- mamy przetłumaczony ten Hash
                      ST_tlumaczenie = ST_TooltipsHS[ST_hash];
                      ST_tlumaczenie = ST_TranslatePrepare(ST_leftText, ST_tlumaczenie);
                      _font1, _size1, _1 = _G[obj:GetName().."TextLeft"..i]:GetFont();    -- odczytaj aktualną czcionkę i rozmiar    
                      _G[obj:GetName().."TextLeft"..i]:SetFont(WOWTR_Font2, _size1);      -- ustawiamy czcionkę turecką
                      _G[obj:GetName().."TextLeft"..i]:SetText(QTR_ExpandUnitInfo(ST_tlumaczenie,false,_G["GameTooltipTextLeft"..i],WOWTR_Font2).." ");      -- dodajemy twardą spacje na końcu
-                  else
-                     ST_nh = 1;              -- nowy Hash
-                     table.insert(ST_orygText,ST_leftText);
-                  end
-               end
-            end
-         end
-         
-   
-         if (((ST_PM["showID"]=="1") and (string.len(ST_prefix) > 1)) or ((ST_PM["showHS"]=="1") and ST_hash2)) then   -- czy dodawać ID i Hash ?
-            numLines = obj:NumLines();           -- aktualna liczba linii
-            if (numLines > 0 and ST_odstep) then
-               obj:AddLine(" ",0,0,0);           -- dodaj odstęp przed linią z ID
-            end
-            local typName = " ";
-            if (string.sub(ST_prefix,1,1) == "i") then
-               typName = "Item";
-               ST_ID = string.sub(ST_prefix,2);
-            elseif (string.sub(ST_prefix,1,1) == "s") then
-               typName = "Spell";
-               ST_ID = string.sub(ST_prefix,2);
-            elseif (string.sub(ST_prefix,1,1) == "t") then
-               typName = "Talent";
-               ST_ID = string.sub(ST_prefix,2);
-            else
-               ST_ID = nil;
-            end
-            if ((ST_PM["showID"]=="1") and ST_ID) then
-               obj:AddLine(typName.." ID: "..tostring(ST_ID),0,1,1);
-               numLines = obj:NumLines();                -- Aktualna liczba linii w obj
-               _G[obj:GetName().."TextLeft"..numLines]:SetFont(WOWTR_Font2, 12);      -- wielkość 12
-               _G[obj:GetName().."TextRight"..numLines]:SetFont(WOWTR_Font2, 12);     -- wielkość 12
-            end
-            if ((ST_PM["showHS"]=="1") and ST_hash2) then
-               obj:AddLine("Hash: "..tostring(ST_hash2),0,1,1);
-               numLines = obj:NumLines();                -- Aktualna liczba linii w obj
-               _G[obj:GetName().."TextLeft"..numLines]:SetFont(WOWTR_Font2, 12);      -- wielkość 12
-               _G[obj:GetName().."TextRight"..numLines]:SetFont(WOWTR_Font2, 12);     -- wielkość 12
-            end
-         end
-         
-         obj:Show();   -- wyświetla ramkę podpowiedzi (zrobi także resize)
-         
-         if ((ST_orygText or (ST_nh==1)) and (ST_PM["saveNW"]=="1")) then
-            for _, ST_origin in ipairs(ST_orygText) do   
-               ST_hash = StringHash(ST_UsunZbedneZnaki(ST_origin));
-               if ((not ST_TooltipsHS[ST_hash]) and (string.find(ST_origin," ")==nil)) then    -- i nie jest to tekst tłumaczenia (twarda spacja)
-                   local text = ST_PrzedZapisem(ST_origin)
-                   if not shouldIgnore(text) then
-                   ST_PH[ST_hash]=ST_prefix.."@"..ST_PrzedZapisem(ST_origin);
+                   else
+                      ST_nh = 1;              -- nowy Hash
+                      table.insert(ST_orygText,ST_leftText);
                    end
-               end
-            end
-         end
+                end
+             end
+          end
+          
+    
+          if (((ST_PM["showID"]=="1") and (string.len(ST_prefix) > 1)) or ((ST_PM["showHS"]=="1") and ST_hash2)) then   -- czy dodawać ID i Hash ?
+             numLines = obj:NumLines();           -- aktualna liczba linii
+             if (numLines > 0 and ST_odstep) then
+                obj:AddLine(" ",0,0,0);           -- dodaj odstęp przed linią z ID
+             end
+             local typName = " ";
+             if (string.sub(ST_prefix,1,1) == "i") then
+                typName = "Item";
+                ST_ID = string.sub(ST_prefix,2);
+             elseif (string.sub(ST_prefix,1,1) == "s") then
+                typName = "Spell";
+                ST_ID = string.sub(ST_prefix,2);
+             elseif (string.sub(ST_prefix,1,1) == "t") then
+                typName = "Talent";
+                ST_ID = string.sub(ST_prefix,2);
+             else
+                ST_ID = nil;
+             end
+             if ((ST_PM["showID"]=="1") and ST_ID) then
+                obj:AddLine(typName.." ID: "..tostring(ST_ID),0,1,1);
+                numLines = obj:NumLines();                -- Aktualna liczba linii w obj
+                _G[obj:GetName().."TextLeft"..numLines]:SetFont(WOWTR_Font2, 12);      -- wielkość 12
+                _G[obj:GetName().."TextRight"..numLines]:SetFont(WOWTR_Font2, 12);     -- wielkość 12
+             end
+             if ((ST_PM["showHS"]=="1") and ST_hash2) then
+                obj:AddLine("Hash: "..tostring(ST_hash2),0,1,1);
+                numLines = obj:NumLines();                -- Aktualna liczba linii w obj
+                _G[obj:GetName().."TextLeft"..numLines]:SetFont(WOWTR_Font2, 12);      -- wielkość 12
+                _G[obj:GetName().."TextRight"..numLines]:SetFont(WOWTR_Font2, 12);     -- wielkość 12
+             end
+          end
+          
+          obj:Show();   -- wyświetla ramkę podpowiedzi (zrobi także resize)
+          
+          if ((ST_orygText or (ST_nh==1)) and (ST_PM["saveNW"]=="1")) then
+             for _, ST_origin in ipairs(ST_orygText) do   
+                ST_hash = StringHash(ST_UsunZbedneZnaki(ST_origin));
+                if ((not ST_TooltipsHS[ST_hash]) and (string.find(ST_origin," ")==nil)) then    -- i nie jest to tekst tłumaczenia (twarda spacja)
+                    local text = ST_PrzedZapisem(ST_origin)
+                    if not shouldIgnore(text) then
+                    ST_PH[ST_hash]=ST_prefix.."@"..ST_PrzedZapisem(ST_origin);
+                    end
+                end
+             end
+          end
       end
          
    end   -- if ST_PM["active"]
@@ -1412,7 +1437,7 @@ end
         
       elseif (addonName == 'Blizzard_PVPUI') then
          ST_load5 = true;
-         PVPQueueFrameCategoryButton1:HookScript("OnShow", function() StartTicker(PVPQueueFrameCategoryButton1, ST_GroupPVPFinder, 0.02) end)
+         PVPQueueFrame.CategoryButton1:HookScript("OnShow", function() StartTicker(PVPQueueFrame.CategoryButton1, ST_GroupPVPFinder, 0.02) end)
         
       elseif (addonName == 'Blizzard_ChallengesUI') then
          ST_load6 = true;
@@ -2413,13 +2438,13 @@ function ST_GroupPVPFinder()
 --print("ST_GroupPVPFinder");
 -- Player vs. Player
    if (TT_PS["ui3"] == "1") then
-      local gfpvpobj01 = PVPQueueFrameCategoryButton1.Name;
+      local gfpvpobj01 = PVPQueueFrame.CategoryButton1.Name;
       ST_CheckAndReplaceTranslationTextUI(gfpvpobj01, true, "ui");
 
-      local gfpvpobj02 = PVPQueueFrameCategoryButton2.Name;
+      local gfpvpobj02 = PVPQueueFrame.CategoryButton2.Name;
       ST_CheckAndReplaceTranslationTextUI(gfpvpobj02, true, "ui");
 
-      local gfpvpobj03 = PVPQueueFrameCategoryButton3.Name;
+      local gfpvpobj03 = PVPQueueFrame.CategoryButton3.Name;
       ST_CheckAndReplaceTranslationTextUI(gfpvpobj03, true, "ui");
 
       local gfpvpobj04 = PVPQueueFrame.NewSeasonPopup.NewSeason;

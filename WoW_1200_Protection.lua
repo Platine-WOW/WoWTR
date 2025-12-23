@@ -34,39 +34,12 @@ end
 
 -- Add any other 12.0.0 specific shims or protections here
 
--- Global Taint Protection Flag (Whitelist Strategy)
-WOWTR_TooltipAllowed = false
+-- Checks if the tooltip is safe to process
+function WOWTR_IsSafeToProcess(tooltip)
+    return true
+end
 
--- Initialize Whitelist Protection
-if WOWTR_Is1200OrNewer then
-    -- Reset allow flag when tooltip is cleared/hidden
-    -- We can safely hook GameTooltip here as this file loads early
-    GameTooltip:HookScript("OnTooltipCleared", function() WOWTR_TooltipAllowed = false end)
-    GameTooltip:HookScript("OnHide", function() WOWTR_TooltipAllowed = false end)
-    
-    -- Helper to authorize tooltip processing
-    local function AllowTooltip() WOWTR_TooltipAllowed = true end
-
-    -- Hook standard events to whitelist safe types via TooltipDataProcessor (10.0+)
-    if TooltipDataProcessor and TooltipDataProcessor.AddTooltipPostCall then
-        TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, AllowTooltip)
-        TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Spell, AllowTooltip)
-        TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, AllowTooltip)
-        TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Toy, AllowTooltip)
-        TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Currency, AllowTooltip)
-        TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Mount, AllowTooltip)
-        TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Achievement, AllowTooltip)
-        TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Macro, AllowTooltip)
-    else
-        -- Traditional Fallback for older clients (if Is1200OrNewer is true significantly in future)
-        GameTooltip:HookScript("OnTooltipSetItem", AllowTooltip)
-        GameTooltip:HookScript("OnTooltipSetSpell", AllowTooltip)
-        GameTooltip:HookScript("OnTooltipSetUnit", AllowTooltip)
-        if GameTooltip.OnTooltipSetAction then
-           GameTooltip:HookScript("OnTooltipSetAction", AllowTooltip) 
-        end
-    end
-else
-    -- Pre-12.0.0 (Retail/Classic): Always allow processing, legacy logic applies
-    WOWTR_TooltipAllowed = true
+-- Fallback Shim for older versions (though file is 12.0 protected)
+if not WOWTR_Is1200OrNewer then
+    WOWTR_IsSafeToProcess = function() return true end
 end

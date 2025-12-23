@@ -112,6 +112,10 @@ function TT_onTutorialShow()                      -- main function called when t
         end
       end
 
+
+
+      TT_TutorialFrame(); -- [NEW] Call dedicated TutorialFrame logic
+
       if iteration < 10 then                                          -- If the current iteration is less than 10,
          C_Timer.After(0.2, function() MyRepeatingFunction(iteration + 1) end);    -- schedule the function to run again after 0.2 seconds.
       end
@@ -451,14 +455,20 @@ if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
       if (TT_PS["active"] == "1") then
          local frame;
          for frame in self.framePool:EnumerateActive() do
-            if frame.info.system == "MicroButtons" then
+            -- [Modified] Removed 'MicroButtons' check to support all HelpTips
+            if (frame.Text) then   -- Safety check
                local txt = frame.Text:GetText();
                if ((txt) and (string.find(txt," ")==nil)) then         -- nie jest to tekst po turecku (nie ma twardej spacji)
                   local hash= StringHash(txt);
                   if (Tut_Data7[hash]) then                  -- jest tłumacznie tego tekstu
                      local _font8, _size8, _38 = frame.Text:GetFont();
-                     frame.Text:SetText(QTR_ReverseIfAR(WOW_ZmienKody(Tut_Data7[hash])).." ");  -- podmieniamy tekst na nasze tłumaczenie
-                     frame.Text:SetFont(WOWTR_Font2, _size8);        -- na końcu dodajemy twardą spację, jako znacznik tekstu tureckiego
+                     if (WoWTR_Localization.lang == 'AR') then
+                         frame.Text:SetText(QTR_ExpandUnitInfo(Tut_Data7[hash],false,frame.Text,WOWTR_Font2).." ");
+                         frame.Text:SetFont(WOWTR_Font2, _size8);
+                     else
+                         frame.Text:SetText(QTR_ReverseIfAR(WOW_ZmienKody(Tut_Data7[hash])).." ");  -- podmieniamy tekst na nasze tłumaczenie
+                         frame.Text:SetFont(WOWTR_Font2, _size8);        -- na końcu dodajemy twardą spację, jako znacznik tekstu tureckiego
+                     end
                   elseif (TT_PS["save"] == "1") then
                      TT_TUTORIALS[tostring(hash)] = txt;
                   end
@@ -468,4 +478,78 @@ if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
       end
    end
    );
+end
+
+-------------------------------------------------------------------------------------------------------
+
+
+
+local TT_TutorialFrame_LastRun = 0;
+function TT_TutorialFrame()
+    -- [Fix] Throttle execution to prevent spamming/conflicts (run max once per 0.1s)
+    if ((GetTime() - TT_TutorialFrame_LastRun) < 0.1) then return end
+    TT_TutorialFrame_LastRun = GetTime();
+
+    if (TT_PS["active"] == "1") then
+        
+        local function ST_ProcessTutorialText(obj)
+            if (obj and obj.GetText) then
+                local txt = obj:GetText();
+                if ((txt) and (string.find(txt," ")==nil)) then         -- nie jest to tekst po turecku (nie ma twardej spacji)
+                     local id = StringHash(txt);
+                     if (Tut_Data7[id]) then                    -- jest tureckie tłumaczenie w bazie tłumaczeń
+                        local _font5, _size5, _35 = obj:GetFont();
+                        if (WoWTR_Localization.lang == 'AR') then
+                           obj:SetText(QTR_ExpandUnitInfo(Tut_Data7[id],false,obj,WOWTR_Font2).." ");  -- podmieniamy tekst na nasze tłumaczenie
+                        else
+                           obj:SetText(QTR_ReverseIfAR(WOW_ZmienKody(Tut_Data7[id])).." ");   -- podmieniamy tekst na nasze tłumaczenie
+                        end
+                        obj:SetFont(WOWTR_Font2, _size5);
+                     elseif (ST_TooltipsHS and ST_TooltipsHS[id]) then    -- [NEW] Check generic Tooltips DB if Tutorial DB fails
+                        local _font5, _size5, _35 = obj:GetFont();
+                        if (WoWTR_Localization.lang == 'AR') then
+                           obj:SetText(QTR_ExpandUnitInfo(ST_TooltipsHS[id],false,obj,WOWTR_Font2).." ");
+                        else
+                           obj:SetText(QTR_ReverseIfAR(ST_TooltipsHS[id]).." "); -- Note: WOW_ZmienKody might not be needed for TooltipsHS if plain text, but usually harmless
+                        end
+                         obj:SetFont(WOWTR_Font2, _size5);
+                     elseif (TT_PS["save"] == "1") then
+                        TT_TUTORIALS[tostring(id)] = txt;
+                     end
+                end
+            end
+        end
+
+        local function processRegion(frame)
+            if not frame then return end
+            
+            -- Check for FontStrings or Buttons with text
+            if frame.GetFontString then
+                local fs = frame:GetFontString()
+                ST_ProcessTutorialText(fs);
+            elseif frame.GetObjectType and frame:GetObjectType() == "FontString" then
+                 ST_ProcessTutorialText(frame);
+            end
+
+            -- Recursively process children
+            if frame.GetChildren then
+                for _, child in ipairs({ frame:GetChildren() }) do
+                    processRegion(child)
+                end
+            end
+            
+             -- Process regions (specifically FontStrings attached to the frame)
+            if frame.GetRegions then
+                 for _, region in ipairs({ frame:GetRegions() }) do
+                    if region.GetObjectType and region:GetObjectType() == "FontString" then
+                        ST_ProcessTutorialText(region);
+                    end
+                 end
+            end
+        end
+
+        if (TutorialFrame and TutorialFrame:IsVisible()) then
+            processRegion(TutorialFrame)
+        end
+    end
 end
