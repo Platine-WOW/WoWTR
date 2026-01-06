@@ -227,6 +227,11 @@ function WOWTR_CheckVars()
       WOWTR_Font2 = WoWTR_Localization.mainFolder.."\\Fonts\\"..QTR_PS["FontFile"];
    end
 
+   -- window scale
+   if (not QTR_PS["scale"]) then
+      QTR_PS["scale"] = "1";
+   end
+
 if not QTR_PS.firstTimeLoaded6 then   -- Automatic log cleaning (reset saved texts)
     QTR_PS.firstTimeLoaded6 = true
 
@@ -688,6 +693,10 @@ function STspell_ON_OFF()
       end
    end
 end
+----------------------------------------------------------------------------------------------------------------------------------------
+
+
+
 ----------------------------------------------------------------------------------------------------------------------------------------
 
 if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then

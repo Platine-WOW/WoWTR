@@ -474,6 +474,51 @@ if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
                   end
                end
             end
+            
+            -- [NEW] Catch and translate "Got It" button (OkayButton)
+            if (frame.OkayButton) then
+               local btnTxt = frame.OkayButton:GetText();
+               if ((btnTxt) and (string.find(btnTxt," ")==nil)) then
+                  local btnHash = StringHash(btnTxt);
+                  local translatedText = nil;
+                  
+                  -- 1. Try Tooltips DB (ST_TooltipsHS) as requested
+                  if (ST_TooltipsHS and ST_TooltipsHS[btnHash]) then
+                      translatedText = ST_TooltipsHS[btnHash];
+                  -- 2. Try Tutorials DB (Tut_Data7)
+                  elseif (Tut_Data7[btnHash]) then
+                      translatedText = Tut_Data7[btnHash];
+                  end
+                  
+                  if (translatedText) then
+                     -- Use button's FontString to get/set font size
+                     local btnFS = frame.OkayButton:GetFontString();
+                     local _f, _s, _fl = nil, 12, nil;
+                     if btnFS then
+                        _f, _s, _fl = btnFS:GetFont();
+                     end
+
+                     if (WoWTR_Localization.lang == 'AR') then
+                         frame.OkayButton:SetText(QTR_ExpandUnitInfo(translatedText,false,frame.OkayButton,WOWTR_Font2).." ");
+                     else
+                         frame.OkayButton:SetText(QTR_ReverseIfAR(WOW_ZmienKody(translatedText)).." ");
+                     end
+                     
+                     if (btnFS) then
+                        btnFS:SetFont(WOWTR_Font2, _s);
+                     end
+                  elseif (TT_PS["save"] == "1") then
+                     -- [Modified] Save to Tooltips DB (ST_PH) with 'ui@' prefix as requested
+                     if (ST_PH) then
+                        local saveTxt = btnTxt;
+                        if (ST_PrzedZapisem) then saveTxt = ST_PrzedZapisem(btnTxt); end
+                        ST_PH[btnHash] = "ui@"..saveTxt;
+                     else
+                        TT_TUTORIALS[tostring(btnHash)] = btnTxt;
+                     end
+                  end
+               end
+            end
          end
       end
    end

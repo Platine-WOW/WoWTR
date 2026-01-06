@@ -24,6 +24,7 @@ local ST_load11 = false;
 local ST_firstBoss = true;
 local ST_nameBoss = { };
 local ST_navBar1, ST_navBar2, ST_navBar3, ST_navBar4, ST_navBar5 = false;
+local ST_EnableSettingSave = false; -- [DEV] Toggle true to enable saving setting@ tooltips
 
 ------------------------------------------------------------------------------------
 
@@ -111,7 +112,7 @@ local ignoreSettings = {
         "Realm: ",
         "Waiting on: ",
         "Reagents: |n",
-        "  |A:raceicon",
+        "  |A:raceicon128",
         "Achievement in progress by",
         "Achievement earned by",
         "You completed this on ",
@@ -134,12 +135,17 @@ local ignoreSettings = {
         "|cFFFFFF00%[",
         "|cFFFF8040%[",
         "|cFFFF1A1A%[",
-		"|cFF21CCE7%[",
         "Requires ",
         "Classes: ",
-		"|r  "
+        "|cnIQ4:|",
+        "Flame Leviathan pursues ",
+        " summons reinforcements!",
+        " added to the time!",
+        "Talents - ",
+        "|T",
+        "- "
     },
-    pattern = "[Яа-яĄ-Źą-źŻ-żЀ-ӿΑ-Ωα-ω]"
+    pattern = "[Ğ¯Ğ°-ÑÄ„-Å¹ą-źÅ»-żĞ€-Ó¿Î‘-Î©Î±-Ï‰]"
 }
 
 local function shouldIgnore(text)
@@ -152,6 +158,15 @@ local function shouldIgnore(text)
         return true
     end
     return false
+end
+
+-- [Fix] Helper to validate if text should be saved (Prevents Hash 0 and ignored text)
+local function ST_IsValidForSave(text, hash)
+   if not text or text == "" then return false end
+   if not hash or hash == 0 then return false end
+   if string.match(text, "^%s*$") then return false end -- Ignore whitespace-only strings
+   if shouldIgnore(text) then return false end
+   return true
 end
 
 -- ST_CheckAndReplaceTranslationText(obj, sav, prefix, font1, onlyReverse, ST_corr)
@@ -184,7 +199,7 @@ function ST_CheckAndReplaceTranslationText(obj, sav, prefix, font1, onlyReverse,
                obj:SetFont(originalFont, originalSize, originalFlags);
             end
             -- Save only if we don't have a translation and saving is enabled
-            if (sav and (ST_PM["saveNW"]=="1")) then
+            if (sav and (ST_PM["saveNW"]=="1") and ST_IsValidForSave(txt, ST_Hash)) then
                ST_PH[ST_Hash] = prefix.."@"..ST_PrzedZapisem(txt);
             end
          end
@@ -232,7 +247,7 @@ function ST_CheckAndReplaceTranslationTextUI(obj, sav, prefix, font1)
                    obj:SetFont(WOWTR_Font2, a2);
                end
 
-           elseif (sav and (TT_PS["saveui"] == "1")) then
+           elseif (sav and (TT_PS["saveui"] == "1") and ST_IsValidForSave(txt, ST_Hash)) then
                ST_PH[ST_Hash] = prefix.."@"..ST_PrzedZapisem(txt);
 
            else
@@ -379,10 +394,18 @@ if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
 
 -- funkcja wywoływana po wyświetleniu się oryginalnego okienka Tooltip
    GameTooltip:HookScript('OnUpdate', function(self, ...)
+      -- Force check for SettingsPanel tooltips to ensure they are captured
+      local owner = self:GetOwner()
+      if owner and owner.IsDescendantOf and (_G.SettingsPanel and owner:IsDescendantOf(_G.SettingsPanel)) then
+         ST_GameTooltipOnShow()
+         return
+      end
+
       if (not WOWTR_wait(0, ST_GameTooltipOnShow)) then
       -- opóźnienie 0.01 sek
       end
    end );
+
 
 -------------------------------------------------------------------------------------------------------
 
@@ -520,7 +543,7 @@ function ST_BuffOrDebuff()
             _G["ST_MyGameTooltipTextLeft3"]:SetFont(WOWTR_Font2, 12);      -- wielkość 12
          end
          ST_MyGameTooltip:Show();         -- wyświetla ramkę w tłumaczeniem (zrobi także resize)
-      elseif ((ST_PM["saveNW"]=="1") and GameTooltip.processingInfo and GameTooltip.processingInfo.tooltipData.id) then
+      elseif ((ST_PM["saveNW"]=="1") and GameTooltip.processingInfo and GameTooltip.processingInfo.tooltipData.id and ST_IsValidForSave(ST_leftText2, ST_hash)) then
          local ST_prefix = "s"..GameTooltip.processingInfo.tooltipData.id;
          ST_PH[ST_hash]=ST_prefix.."@"..ST_PrzedZapisem(ST_leftText2);
       end
@@ -593,8 +616,22 @@ function ST_GameTooltipOnShow()
          end
       end
 
+      if (ST_prefix == "h") then
+         local owner = GameTooltip:GetOwner();
+         if (owner and owner.IsDescendantOf) then
+            if ((_G.SettingsPanel and owner:IsDescendantOf(_G.SettingsPanel)) or 
+                (_G.InterfaceOptionsFrame and owner:IsDescendantOf(_G.InterfaceOptionsFrame)) or 
+                (_G.AddonList and owner:IsDescendantOf(_G.AddonList)))  then
+                -- [DEV] Only set as "setting" if enabled
+                if ST_EnableSettingSave then
+                   ST_prefix = "setting";
+                end
+            end
+         end
+      end
+
       local numLines = GameTooltip:NumLines();
-      if ((numLines == 1) and (ST_prefix ~= "h")) then   -- GameTooltip zawiera tylko 1 linijkę opisu i jest to tytuł itemu lub spella
+      if ((numLines == 1) and (ST_prefix ~= "h") and (ST_prefix ~= "setting")) then   -- GameTooltip zawiera tylko 1 linijkę opisu i jest to tytuł itemu lub spella
          return;
       end
       
@@ -736,20 +773,7 @@ function ST_GameTooltipOnShow()
           for _, ST_origin in ipairs(ST_orygText) do
               local ST_hash = StringHash(ST_UsunZbedneZnaki(ST_origin))
               if (string.sub(ST_origin, 1, 11) ~= '|A:raceicon') then
-                  local shouldSave = true
-                  
-                  for _, word in ipairs(ignoreSettings.words) do
-                      if string.find(ST_origin, word) then
-                          shouldSave = false
-                          break
-                      end
-                  end
-
-                  if shouldSave and string.find(ST_origin, ignoreSettings.pattern) then
-                      shouldSave = false
-                  end
-
-                  if shouldSave then
+                  if ST_IsValidForSave(ST_origin, ST_hash) then
                       ST_PH[ST_hash] = ST_prefix .. "@" .. ST_PrzedZapisem(ST_origin)
                   end
               end
@@ -1845,7 +1869,7 @@ function ST_clickBosses()
            -- Update previousText
            previousText = currentText
 
-           -- Add “ ” at the end of the text (only once)
+           -- Add â€œ â€ at the end of the text (only once)
            if not string.find(currentText, " $") then
                local modifiedText = currentText .. " "
                EncounterJournalEncounterFrameInfoEncounterTitle:SetText(modifiedText)
@@ -3633,7 +3657,7 @@ if _G["WhatsTrainingTooltip"] then
                              ST_CheckAndReplaceTranslationText(textRight, true, ST_prefix)
                         end
                         
-                    -- DİĞER (GRİ/BEYAZ) METİNLER (YENİ MANTIK)
+                    -- DİÄER (GRİ/BEYAZ) METİNLER (YENİ MANTIK)
                     else
                         -- Turuncu değil: Çevir varsa göster, çeviri yoksa KAYDETME!
                         
@@ -3675,3 +3699,104 @@ if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
    end
 
 end
+
+-------------------------------------------------------------------------------------------------------
+
+-- Generic Tooltip Handler for Non-GameTooltip Frames (e.g., SettingsTooltip, EmbeddedItemTooltip)
+function ST_ProcessTooltip(tooltip, forcePrefix)
+   if (ST_PM['active'] ~= '1') then return end
+
+   -- Ensure prefix is set
+   local ST_prefix = forcePrefix or 'h';
+
+   local numLines = tooltip:NumLines();
+   if (numLines == 0) then return end
+
+   -- Basic check for single line tooltips if not forced
+   if ((numLines == 1) and (ST_prefix ~= 'h') and (ST_prefix ~= 'setting')) then
+      return; 
+   end
+   
+   local tooltipName = tooltip:GetName();
+   local ST_leftText, ST_hash, ST_hash2;
+   local _font1, _size1, _1;
+   local ST_nh = 0;
+   local ST_orygText = {};
+
+   for i = 1, numLines do
+      local lineObj = _G[tooltipName..'TextLeft'..i];
+      if (lineObj) then
+         ST_leftText = lineObj:GetText();
+         if (ST_leftText and (string.find(ST_leftText,' ')==nil)) then
+            -- Standard Hash Generation
+            ST_hash = StringHash(ST_UsunZbedneZnaki(ST_leftText));
+            
+            -- Check translation
+            if (ST_TooltipsHS[ST_hash]) then
+               local ST_tlumaczenie = ST_TooltipsHS[ST_hash];
+               ST_tlumaczenie = ST_TranslatePrepare(ST_leftText, ST_tlumaczenie);
+               
+               _font1, _size1, _1 = lineObj:GetFont();
+               lineObj:SetFont(WOWTR_Font2, _size1);
+               lineObj:SetText(QTR_ExpandUnitInfo(ST_tlumaczenie,false,lineObj,WOWTR_Font2)..' ');
+               lineObj.wrap = true;
+            else
+               ST_nh = 1;
+               ST_hash2 = ST_hash; -- Save last hash for debug/display
+               table.insert(ST_orygText, ST_leftText);
+            end
+         end
+      end
+   end
+
+   tooltip:Show();
+
+   -- Display ID / Hash if enabled
+   if ((ST_PM['showHS']=='1') and ST_hash2) then
+       tooltip:AddLine('Hash: '..tostring(ST_hash2),0,1,1);
+       numLines = tooltip:NumLines();
+       local lineObj = _G[tooltipName..'TextLeft'..numLines];
+       if lineObj then lineObj:SetFont(WOWTR_Font2, 12); end
+   end
+
+   -- Save untranslated text
+   -- [DEV] Internal toggle logic
+   local canSave = (ST_PM['saveNW'] == '1');
+   if (ST_prefix == 'setting' and not ST_EnableSettingSave) then canSave = false; end
+
+   if ((ST_orygText or (ST_nh == 1)) and canSave) then
+       for _, ST_origin in ipairs(ST_orygText) do
+           local ST_hash = StringHash(ST_UsunZbedneZnaki(ST_origin))
+           local shouldSave = true
+           
+           for _, word in ipairs(ignoreSettings.words) do
+               if string.find(ST_origin, word) then
+                   shouldSave = false
+                   break
+               end
+           end
+
+           if shouldSave and string.find(ST_origin, ignoreSettings.pattern) then
+               shouldSave = false
+           end
+
+           if shouldSave then
+               ST_PH[ST_hash] = ST_prefix .. '@' .. ST_PrzedZapisem(ST_origin)
+           end
+       end
+   end
+end
+
+if (_G.SettingsTooltip) then
+   _G.SettingsTooltip:HookScript('OnUpdate', function(self)
+      ST_ProcessTooltip(self, 'setting');
+   end);
+end
+
+if (_G.EmbeddedItemTooltip) then
+    _G.EmbeddedItemTooltip:HookScript('OnUpdate', function(self)
+       ST_ProcessTooltip(self, 'setting');
+    end);
+ end
+
+

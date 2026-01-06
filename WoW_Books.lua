@@ -115,9 +115,16 @@ function BookTranslator_ShowTranslation()
             -- Yazı tipi ayarları (Font settings) (Ustawienia czcionki)
             local a1, a2, a3 = ItemTextPageText:GetFont("P");
             if (BT_PM["setsize"] == "1") then
-               ItemTextPageText:SetFont("P", WOWTR_Font2, tonumber(BT_PM["fontsize"]), a3);
+               local size = tonumber(BT_PM["fontsize"]);
+               ItemTextPageText:SetFont("P", WOWTR_Font2, size, a3);
+               ItemTextPageText:SetFont("H1", WOWTR_Font1, size + 10, a3);
+               ItemTextPageText:SetFont("H2", WOWTR_Font2, size + 5, a3);
+               ItemTextPageText:SetFont("H3", WOWTR_Font2, size, a3);
             else
                ItemTextPageText:SetFont("P", WOWTR_Font2, a2, a3);
+               ItemTextPageText:SetFont("H1", WOWTR_Font1, a2 + 10, a3);
+               ItemTextPageText:SetFont("H2", WOWTR_Font2, a2 + 5, a3);
+               ItemTextPageText:SetFont("H3", WOWTR_Font2, a2, a3);
             end
 
             ItemTextPageText:SetText(QTR_ExpandUnitInfo(BT_tekst_tr, false, ItemTextPageText, WOWTR_Font2, -10));

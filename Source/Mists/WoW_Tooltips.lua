@@ -3611,3 +3611,99 @@ if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
    end
 
 end
+
+-------------------------------------------------------------------------------------------------------
+
+-- Generic Tooltip Handler for Non-GameTooltip Frames (e.g., SettingsTooltip, EmbeddedItemTooltip)
+function ST_ProcessTooltip(tooltip, forcePrefix)
+   if (ST_PM['active'] ~= '1') then return end
+
+   -- Ensure prefix is set
+   local ST_prefix = forcePrefix or 'h';
+
+   local numLines = tooltip:NumLines();
+   if (numLines == 0) then return end
+
+   -- Basic check for single line tooltips if not forced
+   if ((numLines == 1) and (ST_prefix ~= 'h') and (ST_prefix ~= 'setting')) then
+      return; 
+   end
+   
+   local tooltipName = tooltip:GetName();
+   local ST_leftText, ST_hash, ST_hash2;
+   local _font1, _size1, _1;
+   local ST_nh = 0;
+   local ST_orygText = {};
+
+   for i = 1, numLines do
+      local lineObj = _G[tooltipName..'TextLeft'..i];
+      if (lineObj) then
+         ST_leftText = lineObj:GetText();
+         if (ST_leftText and (string.find(ST_leftText,' ')==nil)) then
+            -- Standard Hash Generation
+            ST_hash = StringHash(ST_UsunZbedneZnaki(ST_leftText));
+            
+            -- Check translation
+            if (ST_TooltipsHS[ST_hash]) then
+               local ST_tlumaczenie = ST_TooltipsHS[ST_hash];
+               ST_tlumaczenie = ST_TranslatePrepare(ST_leftText, ST_tlumaczenie);
+               
+               _font1, _size1, _1 = lineObj:GetFont();
+               lineObj:SetFont(WOWTR_Font2, _size1);
+               lineObj:SetText(QTR_ExpandUnitInfo(ST_tlumaczenie,false,lineObj,WOWTR_Font2)..' ');
+               lineObj.wrap = true;
+            else
+               ST_nh = 1;
+               ST_hash2 = ST_hash; -- Save last hash for debug/display
+               table.insert(ST_orygText, ST_leftText);
+            end
+         end
+      end
+   end
+
+   tooltip:Show();
+
+   -- Display ID / Hash if enabled
+   if ((ST_PM['showHS']=='1') and ST_hash2) then
+       tooltip:AddLine('Hash: '..tostring(ST_hash2),0,1,1);
+       numLines = tooltip:NumLines();
+       local lineObj = _G[tooltipName..'TextLeft'..numLines];
+       if lineObj then lineObj:SetFont(WOWTR_Font2, 12); end
+   end
+
+   -- Save untranslated text
+   if ((ST_orygText or (ST_nh == 1)) and (ST_PM['saveNW'] == '1')) then
+       for _, ST_origin in ipairs(ST_orygText) do
+           local ST_hash = StringHash(ST_UsunZbedneZnaki(ST_origin))
+           local shouldSave = true
+           
+           for _, word in ipairs(ignoreSettings.words) do
+               if string.find(ST_origin, word) then
+                   shouldSave = false
+                   break
+               end
+           end
+
+           if shouldSave and string.find(ST_origin, ignoreSettings.pattern) then
+               shouldSave = false
+           end
+
+           if shouldSave then
+               ST_PH[ST_hash] = ST_prefix .. '@' .. ST_PrzedZapisem(ST_origin)
+           end
+       end
+   end
+end
+
+if (_G.SettingsTooltip) then
+   _G.SettingsTooltip:HookScript('OnUpdate', function(self)
+      ST_ProcessTooltip(self, 'setting');
+   end);
+end
+
+if (_G.EmbeddedItemTooltip) then
+    _G.EmbeddedItemTooltip:HookScript('OnUpdate', function(self)
+       ST_ProcessTooltip(self, 'setting');
+    end);
+ end
+

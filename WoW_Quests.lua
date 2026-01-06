@@ -793,6 +793,8 @@ function QTR_START()
    QTR_ToggleButton0:SetPoint("TOPLEFT", QuestFrame, "TOPLEFT", 105, -20)
    QTR_ToggleButton0:SetScript("OnClick", QTR_ON_OFF)
 
+
+
    -- Button in QuestLogPopupDetailFrame
    QTR_ToggleButton1 = CreateFrame("Button", nil, QuestLogPopupDetailFrame, "UIPanelButtonTemplate")
    QTR_ToggleButton1:SetWidth(150)
@@ -4036,6 +4038,8 @@ function ST_AdvantureMapFrm()			-- https://imgur.com/a/uQElPgm
 	ST_CheckAndReplaceTranslationTextUI(AdvMapFrm01, true, "Collections:Quest", WOWTR_Font1);
 	local AdvMapFrm02 = AdventureMapQuestChoiceDialog.Details.Child.DescriptionText;
 	ST_CheckAndReplaceTranslationTextUI(AdvMapFrm02, true, "Collections:Quest");
+	local AdvMapFrm08 = QuestNPCModelText;
+	ST_CheckAndReplaceTranslationTextUI(AdvMapFrm08, true, "Collections:Quest");
 	local AdvMapFrm04 = AdventureMapQuestChoiceDialog.Details.Child.ObjectivesText;
 	ST_CheckAndReplaceTranslationTextUI(AdvMapFrm04, true, "Collections:Quest");
    end

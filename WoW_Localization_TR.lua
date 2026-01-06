@@ -12,6 +12,7 @@ WoWTR_Localization = {
    addonIconDesc = "Ayar menüsünü açmak için tıkla",                 -- Click to open the settings menu
    optionName = "WoWTR - Ayarlar",                                   -- WowTR - options
    optionTitle = "WoWTR Türkçe Yama",                                -- WowTR Turkish Patch
+   launcherCommand = "/wowtr",
    optionTitleAR = "",
    addressWWW = "https://www.wowtr.com.tr",                          -- address of project page
    addressDiscord = "https://discord.gg/PEknRSqEQ7",                 -- address of discord page
@@ -262,7 +263,7 @@ WoWTR_Config_Interface = {
    saveUntranslatedTooltipsDESC = "Etkinleştirilirse çevrilmemiş araç ipuçları kaydedilecek",         -- If enabled, untranslated tooltips will be saved (TR:Etkinleştirilirse çevrilmemiş araç ipuçları kaydedilecek)
 
    titleTab9 = "Hakkında",                                                                            -- About (TR:Hakkında)
-   generalText = "\nWoWTR: World of Warcraft Türkçe Yama Addonu\n\nBu addon, World of Warcraft oyununu Türkçe oynamak isteyen oyuncular için geliştirilmiştir. WoWTR, oyun içindeki metinleri, görev açıklamalarını, arayüz öğelerini ve daha fazlasını Türkçe\'ye çevirerek, Türk oyuncuların oyun deneyimini geliştirmeyi amaçlamaktadır.\n\n\nÖzellikler:\n - Oyun içi metinlerin Türkçe çevirisi\n - Görev açıklamalarının Türkçeleştirilmesi\n - Arayüz öğelerinin Türkçe gösterimi\n - NPC diyaloglarının çevirisi\n - Sürekli güncellenen çeviri veritabanı\n\n\nWoWTR, Türk WoW topluluğunun desteğiyle geliştirilmektedir.\n\n\n|cffEAC408Kayıt Dosyası Yolu:|r \n...World of Warcraft\\_retail_\\WTF\\Account\\[XXX]\\SavedVariables\\|cffEAC408WoWTR.lua|r",
+   generalText = "WoWTR: Azeroth Artık Senin Dilini Konuşuyor!\n\nSelam kahraman! WoWTR ailesine hoş geldin. Şu an bu satırları okuyorsan, Azeroth maceraların artık çok daha anlamlı olacak demektir.\n\nBu addon sayesinde, yıllardır merak ettiğin hikayeleri, kaçırdığın ince esprileri ve karmaşık görev detaylarını kendi dilimizde deneyimleyeceksin. Biz çevirirken çok keyif aldık, umarız sen de oynarken aynı keyfi alırsın.\n\nNeler Seninle?\n\n • Hikaye Odaklı: Görevleri \"Next\"leyip geçmek yok, artık hikayenin başrolündesin.\n\n • Canlı Diyaloglar: NPC'lerin ne dediğini anla, dünyaya hakim ol.\n\n • Net Arayüz: Kafa karışıklığı yok, her şey Türkçe ve net.\n\nBu proje Türk WoW topluluğunun gücüyle büyüyor. Bir hata görürsen bize bildirmekten çekinme; burası hepimizin!\n\nMaceraya kaldığın yerden, kendi dilinde devam et!",
    welcomeText = "",
    welcomeButton = "Tamam - okundu",                                                                  -- Button: Close welcome panel
    showWelcome = "Karşılama panelini göster",                                                         -- Button: Show welcome panel
@@ -360,6 +361,16 @@ local myFontPath = WoWTR_Localization.mainFolder.."\\Fonts\\"
 
 WOWTR_Font1 = WoWTR_Localization.mainFolder.."\\Fonts\\morpheus_tr.ttf";
 WOWTR_Font2 = WoWTR_Localization.mainFolder.."\\Fonts\\frizquadrata_tr.ttf";
-WOWTR_Fonts = {"frizquadrata_tr.ttf", "Expressway.ttf", "Naowh.ttf"};
+WOWTR_Fonts = {
+   "frizquadrata_tr.ttf", 
+   "Expressway.ttf", 
+   "Naowh.ttf",
+   "Roboto.ttf",
+   "OpenSans.ttf",
+   "Ubuntu.ttf",
+   "BebasNeue.ttf",
+   "Inter.ttf",
+   "Oswald.ttf"
+};
 local GetAddOnMetadata = (C_AddOns and C_AddOns.GetAddOnMetadata) or GetAddOnMetadata;
 WOWTR_version = GetAddOnMetadata(WoWTR_Localization.addonFolder, "Version");

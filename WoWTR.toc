@@ -1,6 +1,6 @@
 ﻿## Interface: 110205, 110207, 120000, 120001
-## Title: WoWTR|cFF00FF00 v25.1221|r by hknylmz
-## Version: 25.1221
+## Title: WoWTR|cFF00FF00 v26.0107|r by hknylmz
+## Version: 26.0107
 ## Notes: Görev, Diyalog, Sinematik ve Arayüz metinleri Türkçe olarak görüntülenir.
 ## Notes_en: Translates the texts in the play into Turkish.
 ## Author: Platine & Hakan YILMAZ
@@ -41,4 +41,5 @@ WoW_1200_Protection.lua
 
 WoW_Tooltips.lua
 
+WoW_ModernUI.lua
 WoW_Config.lua

@@ -24,6 +24,7 @@ local ST_load11 = false;
 local ST_firstBoss = true;
 local ST_nameBoss = { };
 local ST_navBar1, ST_navBar2, ST_navBar3, ST_navBar4, ST_navBar5 = false;
+local ST_EnableSettingSave = false; -- [DEV] Toggle true to enable saving setting@ tooltips
 
 ------------------------------------------------------------------------------------
 
@@ -140,7 +141,9 @@ local ignoreSettings = {
         "Flame Leviathan pursues ",
         " summons reinforcements!",
         " added to the time!",
-		"Talents - "
+        "Talents - ",
+        "|T",
+        "- "
     },
     pattern = "[Яа-яĄ-Źą-źŻ-żЀ-ӿΑ-Ωα-ω]"
 }
@@ -155,6 +158,15 @@ local function shouldIgnore(text)
         return true
     end
     return false
+end
+
+-- [Fix] Helper to validate if text should be saved (Prevents Hash 0 and ignored text)
+local function ST_IsValidForSave(text, hash)
+   if not text or text == "" then return false end
+   if not hash or hash == 0 then return false end
+   if string.match(text, "^%s*$") then return false end -- Ignore whitespace-only strings
+   if shouldIgnore(text) then return false end
+   return true
 end
 
 -- ST_CheckAndReplaceTranslationText(obj, sav, prefix, font1, onlyReverse, ST_corr)
@@ -187,7 +199,7 @@ function ST_CheckAndReplaceTranslationText(obj, sav, prefix, font1, onlyReverse,
                obj:SetFont(originalFont, originalSize, originalFlags);
             end
             -- Save only if we don't have a translation and saving is enabled
-            if (sav and (ST_PM["saveNW"]=="1")) then
+            if (sav and (ST_PM["saveNW"]=="1") and ST_IsValidForSave(txt, ST_Hash)) then
                ST_PH[ST_Hash] = prefix.."@"..ST_PrzedZapisem(txt);
             end
          end
@@ -259,7 +271,7 @@ function ST_CheckAndReplaceTranslationTextUI(obj, sav, prefix, font1)
         obj:SetFont(font1 or WOWTR_Font2, a2)
     
     -- Kaydetme işlemi
-    elseif sav and TT_PS["saveui"] == "1" then
+    elseif sav and TT_PS["saveui"] == "1" and ST_IsValidForSave(txt, ST_Hash) then
         ST_PH[ST_Hash] = prefix.."@"..ST_PrzedZapisem(txt)
     
     -- Orijinal fonta dönme
@@ -403,7 +415,7 @@ end
 if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
 
 -- funkcja wywoływana po wyświetleniu się oryginalnego okienka Tooltip
-   GameTooltip:HookScript('OnUpdate', function(self, ...)
+   GameTooltip:HookScript('OnShow', function(self, ...)
       -- 12.0.0+ Local Whitelist: Check safe processing locally
       if WOWTR_Is1200OrNewer and not WOWTR_IsSafeToProcess(self) then return end
       
@@ -418,6 +430,7 @@ if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
    GameTooltip:HookScript('OnHide', function(self, ...)
       ST_lastNumLines = 0;
    end );
+
 
 -------------------------------------------------------------------------------------------------------
 
@@ -485,6 +498,16 @@ if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
       end);
    end 
    
+   if SettingsTooltip then
+      -- Hook SettingsTooltip for Game Options
+      SettingsTooltip:HookScript('OnUpdate', function(self, ...)
+         -- 12.0.0+ Safety Check
+         if WOWTR_Is1200OrNewer and not WOWTR_IsSafeToProcess(self) then return end
+         
+         if (not WOWTR_wait(0, ST_GameTooltipOnShow, self)) then
+         end
+      end );
+   end
 end
 
 -------------------------------------------------------------------------------------------------------
@@ -522,9 +545,9 @@ function ST_ElvSpellBookTooltipOnShow()
          leftColR, leftColG, leftColB = widget:GetTextColor();
       end
       ST_kodKoloru = OkreslKodKoloru(leftColR, leftColG, leftColB);
-      if (ST_leftText and (string.len(ST_leftText)>15) and ((ST_kodKoloru == "c7") or (ST_kodKoloru == "c4") or (string.len(ST_leftText)>30))) then
+                   if (ST_leftText and (string.len(ST_leftText)>1) and ((ST_kodKoloru == "c7") or (ST_kodKoloru == "c4") or (ST_kodKoloru == "c3") or (string.len(ST_leftText)>30) or string.find(ST_leftText, "Right click"))) then
          ST_hash = StringHash(ST_UsunZbedneZnaki(ST_leftText));
-         if (((ST_kodKoloru == "c7") or (string.len(ST_leftText)>30)) and (not ST_hash2)) then
+         if (((ST_kodKoloru == "c7") or (string.len(ST_leftText)>30) or string.find(ST_leftText, "Right click")) and (not ST_hash2)) then
             ST_hash2 = ST_hash;
          end
          if (ST_TooltipsHS[ST_hash]) then        -- mamy przetłumaczony ten Hash
@@ -601,7 +624,9 @@ function ST_BuffOrDebuff()
          ST_MyGameTooltip:Show();         -- wyświetla ramkę w tłumaczeniem (zrobi także resize)
       elseif ((ST_PM["saveNW"]=="1") and GameTooltip.processingInfo and GameTooltip.processingInfo.tooltipData.id) then
          local ST_prefix = "s"..GameTooltip.processingInfo.tooltipData.id;
-         ST_PH[ST_hash]=ST_prefix.."@"..ST_PrzedZapisem(ST_leftText2);
+         if ST_IsValidForSave(ST_leftText2, ST_hash) then
+            ST_PH[ST_hash]=ST_prefix.."@"..ST_PrzedZapisem(ST_leftText2);
+         end
       end
    end
 end
@@ -624,6 +649,10 @@ end
 -- Orijinal fonksiyonun içeriği (sadece 1 kere yazılıyor)
 function ST_GameTooltipOnShow_Original(tooltip)
    tooltip = tooltip or GameTooltip -- Ensure tooltip is set
+   
+   -- [FIX] Sticky Tooltip: If the tooltip is not visible, do not process or force show it
+   if not tooltip:IsVisible() then return end
+
    
    -- 12.0.0+ Whitelist Protection
    if WOWTR_Is1200OrNewer and not WOWTR_IsSafeToProcess(tooltip) then
@@ -651,13 +680,20 @@ function ST_GameTooltipOnShow_Original(tooltip)
       local left1Text = WOWTR_SafeGetText(left1Widget)
       -- [FIX] EmbeddedItemTooltip için bu genel başlık değişikliğini yapma! (Loop içinde Hash ile çevireceğiz)
       if (left1Widget and left1Text and (tooltip ~= EmbeddedItemTooltip)) then
-         if (string.find(left1Text," ")) then
-             return;
+         -- [Fix] Allow dynamic updates: Don't return early if title is translated.
+         -- Just skip translating the title again if it's already done.
+         if (string.find(left1Text," ") == nil) then
+             left1Widget:SetText(QTR_ExpandUnitInfo(left1Text,WOWTR_Font2).." ");   -- znacznik twardej spacji do tytułu
          end
-         left1Widget:SetText(QTR_ExpandUnitInfo(left1Text,WOWTR_Font2).." ");   -- znacznik twardej spacji do tytułu
       end
       
       local ST_prefix = "h";
+      if (SettingsTooltip and (tooltip == SettingsTooltip or tooltip:GetName() == "SettingsTooltip")) then
+          -- [DEV] Toggle
+          if ST_EnableSettingSave then
+              ST_prefix = "settings";
+          end
+      end
       if (tooltip.processingInfo and tooltip.processingInfo.tooltipData.id) then
          if (tooltip.processingInfo.tooltipData.type == 0) then           -- items
             ST_prefix = "i" .. tooltip.processingInfo.tooltipData.id;
@@ -744,7 +780,7 @@ function ST_GameTooltipOnShow_Original(tooltip)
          if (ST_leftText and (string.find(ST_leftText," ")==nil)) then                 -- nie jest to nasze tłumaczenie
             leftColR, leftColG, leftColB = leftWidget:GetTextColor();
             ST_kodKoloru = OkreslKodKoloru(leftColR, leftColG, leftColB);
-            if (ST_leftText and (string.len(ST_leftText)>15) and ((ST_kodKoloru == "c7") or (ST_kodKoloru == "c4") or (string.len(ST_leftText)>30))) then
+             if (ST_leftText and (string.len(ST_leftText)>1) and ((ST_kodKoloru == "c7") or (ST_kodKoloru == "c4") or (ST_kodKoloru == "c3") or (string.len(ST_leftText)>30) or string.find(ST_leftText, "Right click"))) then
 --print(ST_kodKoloru,i,ST_leftText);
                if (tooltip.processingInfo and tooltip.processingInfo.tooltipData.id and (tooltip.processingInfo.tooltipData.id == 6948)) then   -- wyjątek na Kamień Powrotu
                   ST_pomoc5, _ = string.find(ST_leftText,". Speak");        -- znajdź kropkę kończącą pierwsze zdanie
@@ -762,7 +798,7 @@ function ST_GameTooltipOnShow_Original(tooltip)
                else
                   ST_hash = StringHash(ST_UsunZbedneZnaki(ST_leftText));
                end
-               if (((ST_kodKoloru == "c7") or (string.len(ST_leftText)>30)) and (not ST_hash2)) then
+               if (((ST_kodKoloru == "c7") or (string.len(ST_leftText)>30) or string.find(ST_leftText, "Right click")) and (not ST_hash2)) then
                   ST_hash2 = ST_hash;
                end
                ST_pomoc7, _ = string.find(ST_leftText,"<Made by");    -- znajdź czy jest to tekst typu "|cff00ff00<Made by Platine>|r"
@@ -840,6 +876,42 @@ function ST_GameTooltipOnShow_Original(tooltip)
              left1Widget:SetText(QTR_ExpandUnitInfo(tText,WOWTR_Font2).." ");
           end
       end
+      -- [Fix] Iterate regions and children deeply to find missing text (e.g. Story Variant at depth 2)
+      -- Bu dongu standart TextLeftN/TextRightN disindaki metinleri (Ornegin Delve Story Variant) yakalamak icin
+      -- region ve child'lari recursive olarak tarar.
+      local function ProcessExtraRegions(frame, depth)
+         if not frame or depth > 4 then return end -- Derinlik limiti 4 olarak belirlendi (Debug'da 2. seviyede cikmisti)
+         
+         -- Regions
+         local regions = { frame:GetRegions() }
+         for i, region in ipairs(regions) do
+            if region:IsObjectType("FontString") then
+               local text = WOWTR_SafeGetText(region)
+               -- Zaten islenmisse (bbsp varsa) veya bos ise atla
+               if text and not string.find(text, " ") then
+                  local name = region:GetName()
+                  -- [Fix] Sadece en distaki cerceve (depth 0) icin standart satirlari atliyoruz.
+                  -- Alt cerceveler (depth > 0) icin SADECE Basligi (TextLeft1) atliyoruz.
+                  local isRootStandard = (depth == 0) and name and (string.find(name, "TextLeft%d+") or string.find(name, "TextRight%d+"))
+                  -- TextLeft1 ile bitenler basliktir (Item ismi), bunlari cevirmek istemiyoruz
+                  local isChildTitle = (depth > 0) and name and string.find(name, "TextLeft1$")
+                  
+                  if not isRootStandard and not isChildTitle then
+                     ST_CheckAndReplaceTranslationText(region, true, ST_prefix)
+                  end
+               end
+            end
+         end
+         
+         -- Children
+         local children = { frame:GetChildren() }
+         for i, child in ipairs(children) do
+            ProcessExtraRegions(child, depth + 1)
+         end
+      end
+      
+      ProcessExtraRegions(tooltip, 0)
+      
       tooltip:Show();   -- wyświetla ramkę podpowiedzi (zrobi także resize)
       ST_lastNumLines = tooltip:NumLines();
 
@@ -860,7 +932,7 @@ function ST_GameTooltipOnShow_Original(tooltip)
                       shouldSave = false
                   end
 
-                  if shouldSave then
+                  if shouldSave and ST_IsValidForSave(ST_origin, ST_hash) then
                       ST_PH[ST_hash] = ST_prefix .. "@" .. ST_PrzedZapisem(ST_origin)
                   end
               end
@@ -876,7 +948,7 @@ function ST_SetText(txt)      -- funkcja wyszukuje tłumaczenie, albo zapisuje t
       local ST_hash = StringHash(ST_UsunZbedneZnaki(txt));
       if (ST_TooltipsHS[ST_hash]) then
          return ST_TooltipsHS[ST_hash].." ";       -- dodajemy twardą spację na końcu tłumaczenia
-      elseif (ST_PM["saveNW"]=="1") then           -- jest zezwolenie na zapis oryginalnego tekstu
+      elseif (ST_PM["saveNW"]=="1") and ST_IsValidForSave(txt, ST_hash) then           -- jest zezwolenie na zapis oryginalnego tekstu
          ST_PH[ST_hash] = "ui@"..ST_PrzedZapisem(txt);
       end
    end
@@ -967,10 +1039,10 @@ function ST_CurrentEquipped(obj)
             if (ST_leftText and (string.find(ST_leftText," ")==nil) and not shouldIgnore(ST_leftText)) then                 -- nie jest to nasze tłumaczenie
                leftColR, leftColG, leftColB = _G[obj:GetName().."TextLeft"..i]:GetTextColor();
                ST_kodKoloru = OkreslKodKoloru(leftColR, leftColG, leftColB);
-               if (ST_leftText and (string.len(ST_leftText)>15) and ((ST_kodKoloru == "c7") or (ST_kodKoloru == "c4") or (string.len(ST_leftText)>30))) then
+                            if (ST_leftText and (string.len(ST_leftText)>1) and ((ST_kodKoloru == "c7") or (ST_kodKoloru == "c4") or (ST_kodKoloru == "c3") or (string.len(ST_leftText)>30) or string.find(ST_leftText, "Right click"))) then
 --print(ST_kodKoloru,i,ST_leftText);
                   ST_hash = StringHash(ST_UsunZbedneZnaki(ST_leftText));
-                  if (((ST_kodKoloru == "c7") or (string.len(ST_leftText)>30)) and (not ST_hash2)) then
+                  if (((ST_kodKoloru == "c7") or (string.len(ST_leftText)>30) or string.find(ST_leftText, "Right click")) and (not ST_hash2)) then
                      ST_hash2 = ST_hash;
                   end
 
@@ -1027,9 +1099,8 @@ function ST_CurrentEquipped(obj)
              for _, ST_origin in ipairs(ST_orygText) do   
                 ST_hash = StringHash(ST_UsunZbedneZnaki(ST_origin));
                 if ((not ST_TooltipsHS[ST_hash]) and (string.find(ST_origin," ")==nil)) then    -- i nie jest to tekst tłumaczenia (twarda spacja)
-                    local text = ST_PrzedZapisem(ST_origin)
-                    if not shouldIgnore(text) then
-                    ST_PH[ST_hash]=ST_prefix.."@"..ST_PrzedZapisem(ST_origin);
+                    if ST_IsValidForSave(ST_origin, ST_hash) then
+                       ST_PH[ST_hash]=ST_prefix.."@"..ST_PrzedZapisem(ST_origin);
                     end
                 end
              end
@@ -1174,7 +1245,7 @@ function ST_updateSpecContentsHook()
             specContentFrame.Description:SetFont(WOWTR_Font2, select(2, specContentFrame.Description:GetFont()))
             local translatedText = QTR_ExpandUnitInfo(ST_TranslatePrepare(description, ST_TooltipsHS[ST_hash]), false, specContentFrame.Description, WOWTR_Font2)
             specContentFrame.Description:SetText(translatedText)
-         elseif ST_PM["saveNW"] == "1" then
+         elseif ST_PM["saveNW"] == "1" and ST_IsValidForSave(description, ST_hash) then
             ST_PH[ST_hash] = "SpecTab:" .. WOWTR_player_class .. ":" .. (WOWTR_SafeGetText(specContentFrame.SpecName) or "?") .. "@" .. ST_PrzedZapisem(description:gsub("(%d),(%d)", "%1%2"):gsub("\r", ""))
          end
       end
@@ -1223,7 +1294,7 @@ function ST_updateHeroTalentHook()
                         frame.Description:SetFont(WOWTR_Font2, select(2, frame.Description:GetFont()))
                         local translatedText = QTR_ExpandUnitInfo(ST_TranslatePrepare(description, ST_TooltipsHS[ST_hash]), false, frame.Description, WOWTR_Font2)
                         frame.Description:SetText(translatedText)
-                    elseif ST_PM["saveNW"] == "1" then
+                    elseif ST_PM["saveNW"] == "1" and ST_IsValidForSave(description, ST_hash) then
                         ST_PH[ST_hash] = "SpecTab:" .. WOWTR_player_class .. ":" .. (WOWTR_SafeGetText(frame.SpecName) or "?") .. "@" .. ST_PrzedZapisem(description:gsub("(%d),(%d)", "%1%2"):gsub("\r", ""))
                     end
                 end

@@ -817,6 +817,17 @@ end)
    QuestFrameAcceptButton:HookScript("OnClick", QTR_QuestFrameButton_OnClick)
    QuestFrameCompleteQuestButton:HookScript("OnClick", QTR_QuestFrameButton_OnClick)
    QuestLogFrame:HookScript("OnShow", QTR_QuestLogPopupShow)
+   
+   -- Hook scripts for specific quest panels to ensure text is prepared
+   if QuestFrameProgressPanel then
+      QuestFrameProgressPanel:HookScript("OnShow", function() QTR_QuestPrepare("QUEST_PROGRESS") end)
+   end
+   if QuestFrameDetailPanel then
+      QuestFrameDetailPanel:HookScript("OnShow", function() QTR_QuestPrepare("QUEST_DETAIL") end)
+   end
+   if QuestFrameRewardPanel then
+      QuestFrameRewardPanel:HookScript("OnShow", function() QTR_QuestPrepare("QUEST_COMPLETE") end)
+   end
 
    -- local versionString = select(4, GetBuildInfo())
    -- local versionNumber = tonumber(versionString)
