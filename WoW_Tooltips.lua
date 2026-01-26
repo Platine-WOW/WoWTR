@@ -145,10 +145,11 @@ local ignoreSettings = {
         "|T",
         "- "
     },
-    pattern = "[Яа-яĄ-Źą-źŻ-żЀ-ӿΑ-Ωα-ω]"
+    pattern = "[Я-яĄ-Źą-źŻ-żЀ-ӿΑ-Ωα-ωğĞüÜşŞıİöÖçÇ]"
 }
 
 local function shouldIgnore(text)
+    if not text or string.find(text, " ") then return true end
     for _, pattern in ipairs(ignoreSettings.words) do
         if text:match("^" .. pattern) then  -- Başlangıç kontrolü için ^ eklendi
             return true
@@ -414,15 +415,20 @@ end
 
 if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
 
--- funkcja wywoływana po wyświetleniu się oryginalnego okienka Tooltip
-   GameTooltip:HookScript('OnShow', function(self, ...)
-      -- 12.0.0+ Local Whitelist: Check safe processing locally
-      if WOWTR_Is1200OrNewer and not WOWTR_IsSafeToProcess(self) then return end
-      
+   -- funkcja wywoływana po wyświetleniu się oryginalnego okienka Tooltip
+   local function ST_TooltipHookHandler(self)
       if (not WOWTR_wait(0, ST_GameTooltipOnShow)) then
       -- opóźnienie 0.01 sek
       end
-   end );
+   end
+
+   GameTooltip:HookScript('OnShow', ST_TooltipHookHandler);
+
+   GameTooltip:HookScript('OnUpdate', function(self)
+      if (LootFrame and LootFrame:IsShown()) then
+         ST_TooltipHookHandler(self);
+      end
+   end);
 
 -------------------------------------------------------------------------------------------------------
 
@@ -436,9 +442,6 @@ if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
 
 -- funkcja wywoływana po wyświetleniu się oryginalnego okienka Tooltip
    GameTooltip:HookScript('OnUpdate', function(self, ...)
-      -- 12.0.0+ Local Whitelist: Strictly allow only safe types
-      if WOWTR_Is1200OrNewer and not WOWTR_IsSafeToProcess(self) then return end
-
       if ((ST_PM["active"]=="1") and (ST_lastNumLines > 0)) then                        -- dodatek aktywny
          if ((ST_PM["constantly"] == "1") and (UnitLevel("player") > 10)) then
             if ((ST_PM["showID"] == "1") or (ST_PM["showHS"] == "1")) then
@@ -457,15 +460,11 @@ if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
    if EmbeddedItemTooltip then
        -- Primary Hook: Ensures ST_GameTooltipOnShow is called to process the tooltip
        EmbeddedItemTooltip:HookScript('OnUpdate', function(self, ...)
-          -- Embedded tooltips logic...
-          if WOWTR_Is1200OrNewer and not WOWTR_IsSafeToProcess(self) then return end
-          
           if (not WOWTR_wait(0, ST_GameTooltipOnShow, self)) then
           end
        end );
 
       EmbeddedItemTooltip:HookScript('OnUpdate', function(self, ...)
-         if WOWTR_Is1200OrNewer and not WOWTR_IsSafeToProcess(self) then return end
          if ((ST_PM["active"]=="1") and (ST_lastNumLines > 0)) then
              if ((ST_PM["constantly"] == "1") and (UnitLevel("player") > 10)) then
                 if ((ST_PM["showID"] == "1") or (ST_PM["showHS"] == "1")) then
@@ -501,9 +500,6 @@ if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
    if SettingsTooltip then
       -- Hook SettingsTooltip for Game Options
       SettingsTooltip:HookScript('OnUpdate', function(self, ...)
-         -- 12.0.0+ Safety Check
-         if WOWTR_Is1200OrNewer and not WOWTR_IsSafeToProcess(self) then return end
-         
          if (not WOWTR_wait(0, ST_GameTooltipOnShow, self)) then
          end
       end );
@@ -636,14 +632,8 @@ end
 -- WoW sürüm kontrolü
 function ST_GameTooltipOnShow(tooltip)
    tooltip = tooltip or GameTooltip -- Default to GameTooltip if not provided
-   -- 12.0.0+ için sadece secret value hatalarını sessizce handle et
-   if WOWTR_Is1200OrNewer then
-      WOWTR_ProtectedTooltipCall(ST_GameTooltipOnShow_Original, tooltip)
-      return
-   end
-   
-   -- 12.0.0 altı için orijinal kod
-   ST_GameTooltipOnShow_Original(tooltip)
+   -- Use protected call for secret value handling
+   WOWTR_ProtectedTooltipCall(ST_GameTooltipOnShow_Original, tooltip)
 end
 
 -- Orijinal fonksiyonun içeriği (sadece 1 kere yazılıyor)
@@ -652,12 +642,6 @@ function ST_GameTooltipOnShow_Original(tooltip)
    
    -- [FIX] Sticky Tooltip: If the tooltip is not visible, do not process or force show it
    if not tooltip:IsVisible() then return end
-
-   
-   -- 12.0.0+ Whitelist Protection
-   if WOWTR_Is1200OrNewer and not WOWTR_IsSafeToProcess(tooltip) then
-      return
-   end
 
    --print("Jestem w OnShow");
    if (ST_PM["active"]=="1") then                        -- dodatek aktywny
@@ -830,7 +814,7 @@ function ST_GameTooltipOnShow_Original(tooltip)
                   end
                else
                   ST_nh = 1;              -- nowy Hash
-                  table.insert(ST_orygText,ST_leftText);
+                  table.insert(ST_orygText, {text = ST_leftText, color = ST_kodKoloru});
                end
             end
          end
@@ -915,29 +899,37 @@ function ST_GameTooltipOnShow_Original(tooltip)
       tooltip:Show();   -- wyświetla ramkę podpowiedzi (zrobi także resize)
       ST_lastNumLines = tooltip:NumLines();
 
-      if ((ST_orygText or (ST_nh == 1)) and (ST_PM["saveNW"] == "1")) then
-          for _, ST_origin in ipairs(ST_orygText) do
-              local ST_hash = StringHash(ST_UsunZbedneZnaki(ST_origin))
-              if (string.sub(ST_origin, 1, 11) ~= '|A:raceicon') then
-                  local shouldSave = true
-                  
-                  for _, word in ipairs(ignoreSettings.words) do
-                      if string.find(ST_origin, word) then
-                          shouldSave = false
-                          break
-                      end
-                  end
+       if ((ST_orygText or (ST_nh == 1)) and (ST_PM["saveNW"] == "1")) then
+           for _, ST_data in ipairs(ST_orygText) do
+               local ST_origin = ST_data.text
+               local ST_color = ST_data.color
+               
+               local ST_hash = StringHash(ST_UsunZbedneZnaki(ST_origin))
+               if (string.sub(ST_origin, 1, 11) ~= '|A:raceicon') then
+                   local shouldSave = true
+                   
+                   for _, word in ipairs(ignoreSettings.words) do
+                       if string.find(ST_origin, word) then
+                           shouldSave = false
+                           break
+                       end
+                   end
 
-                  if shouldSave and string.find(ST_origin, ignoreSettings.pattern) then
-                      shouldSave = false
-                  end
+                   if shouldSave and string.find(ST_origin, ignoreSettings.pattern) then
+                       shouldSave = false
+                   end
 
-                  if shouldSave and ST_IsValidForSave(ST_origin, ST_hash) then
-                      ST_PH[ST_hash] = ST_prefix .. "@" .. ST_PrzedZapisem(ST_origin)
-                  end
-              end
-          end
-      end
+                   -- [FIX] Turuncu (Gold) Quest Başlıklarını Kaydetme (h@ prefix için)
+                   if shouldSave and (ST_prefix == "h") and (ST_color == "c7") then
+                       shouldSave = false
+                   end
+
+                   if shouldSave and ST_IsValidForSave(ST_origin, ST_hash) then
+                       ST_PH[ST_hash] = ST_prefix .. "@" .. ST_PrzedZapisem(ST_origin)
+                   end
+               end
+           end
+       end
    end
 end
 
@@ -1029,7 +1021,7 @@ function ST_CurrentEquipped(obj)
          local textVal = WOWTR_SafeGetText(_G[obj:GetName().."TextLeft2"])
          ST_pomoc0, _ = string.find(textVal or ""," ");   -- szukamy twardej spacji
          if (ST_TooltipID and (ST_pomoc0==nil) and (ST_TooltipsID[ST_prefix..tostring(ST_itemID)]) and (ST_PM["transtitle"]=="1")) then  -- jest tłumaczenie tytułu w bazie
-            _G[obj:GetName().."TextLeft2"]:SetText(QTR_ExpandUnitInfo(ST_TooltipsID[ST_prefix..tostring(ST_itemID)]),WOWTR_Font2);
+            _G[obj:GetName().."TextLeft2"]:SetText(QTR_ExpandUnitInfo(ST_TooltipsID[ST_prefix..tostring(ST_itemID)]) .. " ");
             _font1, _size1, _1 = _G[obj:GetName().."TextLeft2"]:GetFont();  -- odczytaj aktualną czcionkę i rozmiar    
             _G[obj:GetName().."TextLeft2"]:SetFont(WOWTR_Font2, _size1);
          end
@@ -1465,11 +1457,6 @@ end
 function WOWSTR_onEvent(_, event, addonName)
    --print(addonName);
    --QTR_PS["Test"] = Frame; -- search data
-      if (QTR_PS) then
-         C_Timer.After(1, function() 
-         QTR_ObjectiveTrackerFrame_Titles() -- Addon adds translations when it starts
-         end)
-      end
       if (addonName == 'Blizzard_PlayerSpells') then
          ST_Load1 = true;
          PlayerSpellsFrame:HookScript("OnShow", ST_SpellBookTranslateButton);

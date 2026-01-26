@@ -151,6 +151,14 @@ end
 
 -----------------------------------------------------------------------------------------------------------------
 
+function WOWTR_ShowReloadButton()
+    if WOWTR_ReloadButton then
+        WOWTR_ReloadButton:Show()
+    end
+end
+
+-----------------------------------------------------------------------------------------------------------------
+
 function WOWTR_HideOptionsFrame()
    WOWTR_SetDungeonFrames(WOWBB1, false);
    WOWTR_SetDungeonFrames(WOWBB2, false);
@@ -201,6 +209,15 @@ end
 local WOWTR_OptionsClose = CreateFrame("Button", "WOWTR_OptionsClose", WOWTR_Options, "UIPanelCloseButton");
 WOWTR_OptionsClose:SetPoint("TOPRIGHT", WOWTR_Options, "TOPRIGHT", -8, -8);
 WOWTR_OptionsClose:SetScript("OnClick", function() WOWTR_Options:Hide() end);
+
+-- Reload UI Button
+WOWTR_ReloadButton = CreateFrame("Button", "WOWTR_ReloadButton", WOWTR_Options, "UIPanelButtonTemplate");
+WOWTR_ReloadButton:SetSize(320, 40);
+WOWTR_ReloadButton:SetPoint("BOTTOM", WOWTR_Options, "BOTTOM", -120, 10);
+WOWTR_ReloadButton:SetText("|cffffff00"..WoWTR_Config_Interface.ReloadButtonUI.."|r");
+WOWTR_ReloadButton:SetScript("OnClick", function() ReloadUI() end);
+WOWTR_ReloadButton:Hide();
+_G[WOWTR_ReloadButton:GetName().."Text"]:SetFont(WOWTR_Font2, 13);
 
 WOWTR_Options:SetScript("OnHide", WOWTR_HideOptionsFrame);
 WOWTR_Options.name = WoWTR_Localization.optionName;
@@ -582,7 +599,7 @@ else
 end
 
 local WOWTR_CheckButton11 = WOWTR_CreateModernCheckbox("WOWTR_CheckButton11", WOWTR_OptionPanel1, "", nil);
-WOWTR_CheckButton11:SetScript("OnClick", function(self) if (QTR_PS["active"]=="1") then QTR_PS["active"]="0" else QTR_PS["active"]="1" end; end);
+WOWTR_CheckButton11:SetScript("OnClick", function(self) if (QTR_PS["active"]=="1") then QTR_PS["active"]="0" else QTR_PS["active"]="1" end; if WOWTR_ShowReloadButton then WOWTR_ShowReloadButton() end end);
 if (WoWTR_Localization.lang == 'AR') then
    WOWTR_CheckButton11:SetPoint("TOPLEFT", WOWTR_Panel1Header1, "TOPLEFT", 110, -20);
    WOWTR_CheckButton11.Text:SetPoint("TOPLEFT", WOWTR_Panel1Header1, "TOPLEFT", -13, -30);
@@ -605,7 +622,7 @@ WOWTR_CheckButton11:SetScript("OnLeave", function(self)
    end);
 
 local WOWTR_CheckButton12 = WOWTR_CreateModernCheckbox("WOWTR_CheckButton12", WOWTR_OptionPanel1, "", nil);
-WOWTR_CheckButton12:SetScript("OnClick", function(self) if (QTR_PS["transtitle"]=="1") then QTR_PS["transtitle"]="0" else QTR_PS["transtitle"]="1" end; end);
+WOWTR_CheckButton12:SetScript("OnClick", function(self) if (QTR_PS["transtitle"]=="1") then QTR_PS["transtitle"]="0" else QTR_PS["transtitle"]="1" end; if WOWTR_ShowReloadButton then WOWTR_ShowReloadButton() end end);
 if (WoWTR_Localization.lang == 'AR') then
    WOWTR_CheckButton12:SetPoint("TOPLEFT", WOWTR_Panel1Header1, "TOPLEFT", 110, -70);
    WOWTR_CheckButton12.Text:SetPoint("TOPLEFT", WOWTR_Panel1Header1, "TOPLEFT", -50, -80);
@@ -628,7 +645,7 @@ WOWTR_CheckButton12:SetScript("OnLeave", function(self)
    end);
  
 local WOWTR_CheckButton13 = WOWTR_CreateModernCheckbox("WOWTR_CheckButton13", WOWTR_OptionPanel1, "", nil);
-WOWTR_CheckButton13:SetScript("OnClick", function(self) if (QTR_PS["gossip"]=="1") then QTR_PS["gossip"]="0" else QTR_PS["gossip"]="1" end; end);
+WOWTR_CheckButton13:SetScript("OnClick", function(self) if (QTR_PS["gossip"]=="1") then QTR_PS["gossip"]="0" else QTR_PS["gossip"]="1" end; if WOWTR_ShowReloadButton then WOWTR_ShowReloadButton() end end);
 if (WoWTR_Localization.lang == 'AR') then
    WOWTR_CheckButton13:SetPoint("TOPLEFT", WOWTR_Panel1Header1, "TOPLEFT", 110, -100);
    WOWTR_CheckButton13.Text:SetPoint("TOPLEFT", WOWTR_Panel1Header1, "TOPLEFT", -105, -110);
@@ -682,7 +699,11 @@ WOWTR_CheckButton1a:Disable(); -- User requested this to be passive/unclickable
 
 -- QUEST TRACKER
 local WOWTR_CheckButton14 = WOWTR_CreateModernCheckbox("WOWTR_CheckButton14", WOWTR_OptionPanel1, "", nil);
-WOWTR_CheckButton14:SetScript("OnClick", function(self) if (QTR_PS["tracker"]=="1") then QTR_PS["tracker"]="0" else QTR_PS["tracker"]="1" end; end);
+
+WOWTR_CheckButton14:SetScript("OnClick", function(self) 
+   if (QTR_PS["tracker"]=="1") then QTR_PS["tracker"]="0" else QTR_PS["tracker"]="1" end; 
+   if WOWTR_ShowReloadButton then WOWTR_ShowReloadButton() end
+end);
 if (WoWTR_Localization.lang == 'AR') then
    WOWTR_CheckButton14:SetPoint("TOPLEFT", WOWTR_Panel1Header1, "TOPLEFT", 110, -160);
    WOWTR_CheckButton14.Text:SetPoint("TOPLEFT", WOWTR_Panel1Header1, "TOPLEFT", -108, -170);
@@ -706,7 +727,10 @@ WOWTR_CheckButton14:SetScript("OnLeave", function(self)
 if (WoWTR_Localization.lang == 'AR') then
    WOWTR_CheckButton14:Hide();               -- opcja Quest Tracker jest wyłączona w wersji AR
 end
- 
+
+
+
+
 local WOWTR_slider4 = WOWTR_CreateModernSlider("WOWTR_slider4", WOWTR_OptionPanel1, "", 11, 14, 1, nil);
 if (WoWTR_Localization.lang == 'AR') then
    WOWTR_slider4:SetPoint("TOPLEFT", WOWTR_CheckButton14, "BOTTOMLEFT", -120, -30);

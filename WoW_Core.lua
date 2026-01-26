@@ -16,29 +16,43 @@ WOWTR_notificationCooldown = 10800;  -- 3 saat (10800 saniye) cooldown süresi
 
 ----------------------------------------------------------------------------------------------------------------------------------------
 
+local _, _, _, uiVersion = GetBuildInfo()
+WOWTR_Is1200OrNewer = uiVersion and uiVersion >= 120000
+
+-- Safe wrapper for GameTooltip access that might trigger "restricted execution" or "secret" errors
+function WOWTR_ProtectedTooltipCall(func, ...)
+    local success, result = pcall(func, ...)
+    if not success then
+        -- Suppress "secret" value errors which are common in 12.0.0+ restricted environments
+        if result and type(result) == "string" and string.find(result, "secret") then
+            return nil
+        end
+        -- print("WoWTR Protection Error:", result) 
+    end
+    return success, result
+end
+
+-- Checks if the tooltip is safe to process (Universal for 12.0.0+)
+function WOWTR_IsSafeToProcess(tooltip)
+    return true
+end
+
 function WOWTR_SafeGetText(textWidget)
    if (not textWidget or type(textWidget) ~= "table" or type(textWidget.GetText) ~= "function") then
       return nil
    end
    
-   -- 12.0.0+ ve Retail için güvenli koruma
-   local success, text = pcall(function() 
+   -- Use the protected call for text access
+   local _, text = WOWTR_ProtectedTooltipCall(function() 
       local t = textWidget:GetText()
-      -- "Secret" values seem to crash on string operations. 
-      -- We perform a dummy operation here to trigger the error inside pcall if it's a secret.
+      -- Perform a dummy operation to trigger "secret" errors inside pcall
       if t and type(t) == "string" then
           local _ = string.len(t) 
-          local _ = string.find(t, "") -- Double check with find as that's what crashed
+          local _ = string.find(t, "")
           return t
       end
       return nil
    end)
-   
-   -- "Restricted execution" veya "secret" hatalarını filtrele
-   if (not success) then
-      -- Geliştirici modunda hata belki yazdırılabilir ama normalde sessiz olmalı
-      return nil
-   end
    
    if (text and type(text) == "string") then
       return text
@@ -232,19 +246,23 @@ function WOWTR_CheckVars()
       QTR_PS["scale"] = "1";
    end
 
-if not QTR_PS.firstTimeLoaded6 then   -- Automatic log cleaning (reset saved texts)
-    QTR_PS.firstTimeLoaded6 = true
+if not QTR_PS.firstTimeLoaded8 then   -- Automatic log cleaning (reset saved texts)
+    QTR_PS.firstTimeLoaded8 = true
 
     -- Diğer numaralandırılmış kayıtları sıfırlamak için bir döngü
     for i = 1, 9 do
-        if i ~= 6 then  -- 6 numaralı kayıt hariç
+        if i ~= 8 then  -- 8 numaralı kayıt hariç
             QTR_PS["firstTimeLoaded" .. i] = nil
         end
     end
 
     WOWTR_ResetVariables(1)
-    ST_PM["saveNW"] = "0";
-    TT_PS["saveui"] = "0";
+    ST_PM["saveNW"] = "1";
+    TT_PS["saveui"] = "1";
+	QTR_PS["active"] = "1";
+	QTR_PS["transtitle"] = "1";
+	QTR_PS["tracker"] = "1";
+	
 end
 
    -- initialize check options
@@ -414,7 +432,7 @@ end
       ST_PM["showHS"] = "0";   
    end
    if (not ST_PM["saveNW"] ) then    -- zapisz nieprzetłumaczone
-      ST_PM["saveNW"] = "0";   
+      ST_PM["saveNW"] = "1";   
    end
    if (not ST_PM["sellprice"] ) then    -- ukryj cene skupu itemu
       ST_PM["sellprice"] = "0";   
@@ -480,6 +498,7 @@ function WOWTR_onEvent(self, event, name, ...)
       SLASH_WOWTR_BUBBLES4 = "/mtr";
       SLASH_WOWTR_BUBBLES5 = "/btr";
       SLASH_WOWTR_BUBBLES6 = "/str";
+      
       WOWTR_CheckVars();
       QTR_START();
       Config_OnEnable();
@@ -517,8 +536,8 @@ function WOWTR_onEvent(self, event, name, ...)
       GameMenuFrame:HookScript("OnShow", ST_GameMenuTranslate);
       MerchantFrame:HookScript("OnShow", ST_MerchantFrame);
       PVEFrame:HookScript("OnShow", function() StartTicker(PVEFrame, ST_GroupFinder, 0) end);
-      WorldMapFrame:HookScript("OnShow", function() StartTicker(WorldMapFrame, ST_WorldMapFunc, 0.1) end);
-      QuestScrollFrame:HookScript("OnShow", function() StartTicker(QuestScrollFrame, QTR_Quest_Next, 0.02) end);
+      WorldMapFrame:HookScript("OnShow", function() StartTicker(WorldMapFrame, ST_WorldMapFunc, 0.02) end);
+      QuestScrollFrame:HookScript("OnShow", function() StartTicker(QuestScrollFrame, QTR_QuestMap_Check, 0.02) end);
       CharacterFrame:HookScript("OnShow", ST_CharacterFrame);
       FriendsFrame:HookScript("OnShow", function() StartTicker(FriendsFrame, ST_FriendsFrame, 0.1) end);
       HelpPlateTooltip:HookScript("OnShow", function() StartTicker(HelpPlateTooltip, ST_HelpPlateTooltip, 0.1) end);
@@ -534,6 +553,34 @@ function WOWTR_onEvent(self, event, name, ...)
       MailFrame:HookScript("OnShow", function() StartTicker(MailFrame, ST_MailFrame, 0.1) end);
       CommunitiesFrame:HookScript("OnShow", function() StartTicker(CommunitiesFrame, ST_GuildFrame, 0.02) end);
       SettingsPanel:HookScript("OnShow", function() StartTicker(SettingsPanel, ST_SettingsPanel, 0.02) end);
+      
+      -- Hook for Quest Details Display (Map/Log)
+      hooksecurefunc("QuestInfo_Display", function()
+          if (QTR_QuestMap_Check) then QTR_QuestMap_Check(); end
+      end);
+      if (QTR_PS["active"]=="1" and QTR_PS["tracker"]=="1") then
+      -- Hook for Objective Tracker Update (Instant Sync)
+      if (ObjectiveTracker_Update) then
+          hooksecurefunc("ObjectiveTracker_Update", function(...) 
+              QTR_ObjectiveTracker_Check(); 
+          end);
+      end
+      -- Retail/Modern Tracker Hooks
+      if (ObjectiveTrackerFrame) then
+          hooksecurefunc(ObjectiveTrackerFrame, "Update", function()
+              QTR_ObjectiveTracker_Check();
+          end);
+          hooksecurefunc(ObjectiveTrackerFrame, "OnEvent", function()
+              QTR_ObjectiveTracker_Check();
+          end);
+      end
+      end
+      -- Quest Objective Tracker Loop (Periodic Hooking of New Elements)
+      if (QTR_PS["active"]=="1" and QTR_PS["tracker"]=="1") then 
+         if (ObjectiveTrackerFrame) then
+            StartTicker(ObjectiveTrackerFrame, QTR_ObjectiveTracker_Check, 2);
+         end
+      end
       BB_OknoTRonline();
       
       WOWTR_ADDON_PREFIX = WoWTR_Localization.addonName .. "_ver";
@@ -561,9 +608,9 @@ function WOWTR_onEvent(self, event, name, ...)
          -- opóźnienie 1 sek
          end
       end	-- QuestFrame is Visible
-      if (not WOWTR_wait(1,QTR_ObjectiveTracker_Check)) then
-         -- opóźnienie 1 sek
-      end
+      -- if (not WOWTR_wait(1,QTR_ObjectiveTracker_Check)) then
+      --    -- opóźnienie 1 sek
+      -- end
    elseif (event=="GOSSIP_SHOW") then
       if (QTR_PS["gossip"] == "1") then
          if (ElvUI and not isDUIQuestFrame()) then
@@ -595,33 +642,15 @@ function WOWTR_onEvent(self, event, name, ...)
          WOWTR_onChatMsgAddon(who,msg);
       end
    elseif (GameTooltip:IsShown() and (event=="MODIFIER_STATE_CHANGED") and (name == "LSHIFT" or name == "RSHIFT") and (ST_PM["active"]=="1")) then
-      -- 12.0.0+ için secret value hatalarını sessizce handle et
-      -- 12.0.0+ için secret value hatalarını sessizce handle et
-      if WOWTR_Is1200OrNewer then
-         WOWTR_ProtectedTooltipCall(function()
-            -- Tüm işlemleri pcall içinde yap
-            if GameTooltip.processingInfo and 
-               GameTooltip.processingInfo.tooltipData and 
-               GameTooltip.processingInfo.tooltipData.id and 
-               (ST_PM["item"] == "1") then
-               
-               if GameTooltip.processingInfo.tooltipData.type == 0 then           -- items
-                  if (ShoppingTooltip1 and ShoppingTooltip1:IsVisible()) then
-                     ShoppingTooltip1:Hide();
-                     if (ShoppingTooltip2 and ShoppingTooltip2:IsVisible()) then
-                         ShoppingTooltip2:Hide();
-                     end
-                  else
-                     GameTooltip_ShowCompareItem();
-                  end
-               end
-            end
-         end)
-         -- Hata oluştuysa sessizce çık, başarılıysa zaten çalışmıştır
-      else
-         -- 12.0.0 altı için orijinal kod
-         if (GameTooltip.processingInfo and GameTooltip.processingInfo.tooltipData.id and (ST_PM["item"] == "1")) then
-            if (GameTooltip.processingInfo.tooltipData.type == 0) then           -- items
+      -- Use protected call for secret value handling
+      WOWTR_ProtectedTooltipCall(function()
+         -- Tüm işlemleri pcall içinde yap
+         if GameTooltip.processingInfo and 
+            GameTooltip.processingInfo.tooltipData and 
+            GameTooltip.processingInfo.tooltipData.id and 
+            (ST_PM["item"] == "1") then
+            
+            if GameTooltip.processingInfo.tooltipData.type == 0 then           -- items
                if (ShoppingTooltip1 and ShoppingTooltip1:IsVisible()) then
                   ShoppingTooltip1:Hide();
                   if (ShoppingTooltip2 and ShoppingTooltip2:IsVisible()) then
@@ -632,7 +661,7 @@ function WOWTR_onEvent(self, event, name, ...)
                end
             end
          end
-      end
+      end)
    end
    
    if (TT_onTutorialShow) then
