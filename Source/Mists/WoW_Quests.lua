@@ -3568,7 +3568,7 @@ function QTR_ExpandUnitInfo(msg, OnObjectives, AR_obj, AR_font, AR_corr)
       msg = prefix .. msg
    end
    
-   return msg;
+   return msg .. " ";
 end
 
 -------------------------------------------------------------------------------------------------------------------
@@ -3727,6 +3727,16 @@ function WOWTR_DeleteSpecialCodes(txt,part)
       text = string.gsub(text, '$C$', '');
       text = string.gsub(text, '$C', '');
    end
+   -- New additions for consistency with Panel and missing codes
+   if (part==nil) or (part=='$G') then text = string.gsub(text, '$G', ''); end
+   if (part==nil) or (part=='$P') then text = string.gsub(text, '$P', ''); end
+   if (part==nil) or (part=='$O') then text = string.gsub(text, '$O', ''); end
+   if (part==nil) or (part=='$TARGET') then text = string.gsub(text, '$TARGET', ''); end
+   
+   -- Newlines should ALWAYS be removed when cleaning for hash, regardless of 'part' filtering
+   text = string.gsub(text, '\n', '');
+   text = string.gsub(text, '\r', '');
+   
    return text;
 end
 
@@ -3793,7 +3803,7 @@ function QTR_OverrideObjectiveTrackerHeader(tracker, quest, directID)
          else
             block.HeaderText:SetFont(WOWTR_Font2, 12);
          end
-         block.HeaderText:SetText( QTR_ExpandUnitInfo(questDataTitle, false, block.HeaderText, WOWTR_Font1, -50) );
+         block.HeaderText:SetText( QTR_ExpandUnitInfo(questDataTitle, false, block.HeaderText, WOWTR_Font1, -50) .. " " );
 
          -- Example: if Arabic, justify to the right, otherwise left
          if WoWTR_Localization.lang == "AR" then
