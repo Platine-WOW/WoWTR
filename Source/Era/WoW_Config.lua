@@ -294,7 +294,7 @@ if (WoWTR_Localization.lang == 'AR') then
    WOWTR_OptionsHeaderText:SetText(AS_UTF8reverse(WoWTR_Localization.optionTitleAR));
 else
    WOWTR_OptionsHeaderText:SetPoint("LEFT", WOWTR_OptionsHeaderIcon, "RIGHT", 10, 5); -- Adjusted for icon position
-   WOWTR_OptionsHeaderText:SetText(" "..WoWTR_Localization.optionTitle.." |cff8080ffv"..WOWTR_version.."|r      by Platine, Hknylmz © 2025");
+   WOWTR_OptionsHeaderText:SetText(" "..WoWTR_Localization.optionTitle.." |cff8080ffv"..WOWTR_version.."|r      by Platine, Hknylmz © 2026");
 end
 
 -- Sidebar Divider (Visual separator)

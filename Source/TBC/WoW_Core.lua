@@ -430,11 +430,11 @@ function WOWTR_onEvent(self, event, name, ...)
       self:RegisterEvent("PLAYER_ENTERING_WORLD");
       self:RegisterEvent("MODIFIER_STATE_CHANGED");
 
-      -- ChatFrame_AddMessageEventFilter("CHAT_MSG_MONSTER_SAY", BB_ChatFilter)
-      -- ChatFrame_AddMessageEventFilter("CHAT_MSG_MONSTER_PARTY", BB_ChatFilter)
-      -- ChatFrame_AddMessageEventFilter("CHAT_MSG_MONSTER_YELL", BB_ChatFilter)
-      -- ChatFrame_AddMessageEventFilter("CHAT_MSG_MONSTER_WHISPER", BB_ChatFilter)
-      -- ChatFrame_AddMessageEventFilter("CHAT_MSG_MONSTER_EMOTE", BB_ChatFilter)
+      ChatFrame_AddMessageEventFilter("CHAT_MSG_MONSTER_SAY", BB_ChatFilter)
+      ChatFrame_AddMessageEventFilter("CHAT_MSG_MONSTER_PARTY", BB_ChatFilter)
+      ChatFrame_AddMessageEventFilter("CHAT_MSG_MONSTER_YELL", BB_ChatFilter)
+      ChatFrame_AddMessageEventFilter("CHAT_MSG_MONSTER_WHISPER", BB_ChatFilter)
+      ChatFrame_AddMessageEventFilter("CHAT_MSG_MONSTER_EMOTE", BB_ChatFilter)
 
 -- local f = CreateFrame("Frame")
 
