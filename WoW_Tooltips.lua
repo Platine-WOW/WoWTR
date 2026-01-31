@@ -102,6 +102,32 @@ end
 
 -------------------------------------------------------------------------------------------------------
 
+function ST_NormalizeObjective(txt)
+    if not txt or txt == "" then return txt end
+    local normalized = txt
+    -- Remove common prefixes/bullets: "- ", "· ", "• "
+    normalized = string.gsub(normalized, "^[%s%-·•]*", "")
+    
+    -- Try to match "Objective text: 10/15" or "Objective text: 10"
+    local dialog, progress = string.match(normalized, "^(.+):%s*(%d+/%d+)$")
+    if not dialog then
+        dialog, progress = string.match(normalized, "^(.+):%s*(%d+)$")
+    end
+    
+    if dialog and progress then
+        normalized = progress .. " " .. dialog
+    end
+    
+    -- Cleanup trailing colon and extra spaces
+    normalized = string.gsub(normalized, ":$", "")
+    normalized = strtrim(normalized)
+    
+    return normalized
+end
+
+
+-------------------------------------------------------------------------------------------------------
+
 local ignoreSettings = {
     words = {
         "Seller: ",
@@ -143,7 +169,7 @@ local ignoreSettings = {
         " added to the time!",
         "Talents - ",
         "|T",
-        "- "
+		"- "
     },
     pattern = "[Я-яĄ-Źą-źŻ-żЀ-ӿΑ-Ωα-ωğĞüÜşŞıİöÖçÇ]"
 }
@@ -221,7 +247,9 @@ function ST_CheckAndReplaceTranslationTextUI(obj, sav, prefix, font1)
     local txt = WOWTR_SafeGetText(obj)
     if not (txt and string.find(txt, " ") == nil and not shouldIgnore(txt)) then return end
     
-    local ST_Hash = StringHash(ST_UsunZbedneZnaki(txt))
+    local normalized_txt = ST_NormalizeObjective(txt)
+    local ST_Hash = StringHash(ST_UsunZbedneZnaki(normalized_txt))
+
     local questName, zoneName
     
     -- 1. "Do you want to destroy" kontrolü
@@ -272,8 +300,12 @@ function ST_CheckAndReplaceTranslationTextUI(obj, sav, prefix, font1)
         obj:SetFont(font1 or WOWTR_Font2, a2)
     
     -- Kaydetme işlemi
-    elseif sav and TT_PS["saveui"] == "1" and ST_IsValidForSave(txt, ST_Hash) then
-        ST_PH[ST_Hash] = prefix.."@"..ST_PrzedZapisem(txt)
+    elseif sav and TT_PS["saveui"] == "1" and ST_IsValidForSave(normalized_txt, ST_Hash) then
+        local savePrefix = prefix
+        if string.find(normalized_txt, "%d+/%d+") or string.find(normalized_txt, "%d+$") then
+            savePrefix = "Collections:QuestObjective"
+        end
+        ST_PH[ST_Hash] = savePrefix.."@"..ST_PrzedZapisem(normalized_txt)
     
     -- Orijinal fonta dönme
     elseif obj.SetFont then
@@ -764,7 +796,8 @@ function ST_GameTooltipOnShow_Original(tooltip)
          if (ST_leftText and (string.find(ST_leftText," ")==nil)) then                 -- nie jest to nasze tłumaczenie
             leftColR, leftColG, leftColB = leftWidget:GetTextColor();
             ST_kodKoloru = OkreslKodKoloru(leftColR, leftColG, leftColB);
-             if (ST_leftText and (string.len(ST_leftText)>1) and ((ST_kodKoloru == "c7") or (ST_kodKoloru == "c4") or (ST_kodKoloru == "c3") or (string.len(ST_leftText)>30) or string.find(ST_leftText, "Right click"))) then
+            local isObjLine = string.find(ST_leftText, "%d+/%d+") or string.find(ST_leftText, "%d+$")
+            if (ST_leftText and (string.len(ST_leftText)>1) and (isObjLine or (ST_kodKoloru == "c7") or (ST_kodKoloru == "c4") or (ST_kodKoloru == "c3") or (string.len(ST_leftText)>30) or string.find(ST_leftText, "Right click"))) then
 --print(ST_kodKoloru,i,ST_leftText);
                if (tooltip.processingInfo and tooltip.processingInfo.tooltipData.id and (tooltip.processingInfo.tooltipData.id == 6948)) then   -- wyjątek na Kamień Powrotu
                   ST_pomoc5, _ = string.find(ST_leftText,". Speak");        -- znajdź kropkę kończącą pierwsze zdanie
@@ -780,8 +813,10 @@ function ST_GameTooltipOnShow_Original(tooltip)
                      ST_hash = 3076025968;
                   end
                else
-                  ST_hash = StringHash(ST_UsunZbedneZnaki(ST_leftText));
+                   local normalized_left = ST_NormalizeObjective(ST_leftText)
+                   ST_hash = StringHash(ST_UsunZbedneZnaki(normalized_left));
                end
+
                if (((ST_kodKoloru == "c7") or (string.len(ST_leftText)>30) or string.find(ST_leftText, "Right click")) and (not ST_hash2)) then
                   ST_hash2 = ST_hash;
                end
@@ -904,7 +939,14 @@ function ST_GameTooltipOnShow_Original(tooltip)
                local ST_origin = ST_data.text
                local ST_color = ST_data.color
                
-               local ST_hash = StringHash(ST_UsunZbedneZnaki(ST_origin))
+               -- Check if it's an objective line and normalize it for saving
+               local isObjLine = string.find(ST_origin, "%d+/%d+") or string.find(ST_origin, "%d+$")
+               local ST_saveText = ST_origin
+               if isObjLine then
+                   ST_saveText = ST_NormalizeObjective(ST_origin)
+               end
+
+               local ST_hash = StringHash(ST_UsunZbedneZnaki(ST_saveText))
                if (string.sub(ST_origin, 1, 11) ~= '|A:raceicon') then
                    local shouldSave = true
                    
@@ -924,9 +966,13 @@ function ST_GameTooltipOnShow_Original(tooltip)
                        shouldSave = false
                    end
 
-                   if shouldSave and ST_IsValidForSave(ST_origin, ST_hash) then
-                       ST_PH[ST_hash] = ST_prefix .. "@" .. ST_PrzedZapisem(ST_origin)
-                   end
+                   if shouldSave and ST_IsValidForSave(ST_saveText, ST_hash) then
+                    local savePrefix = ST_prefix
+                    if isObjLine then
+                        savePrefix = "Collections:QuestObjective"
+                    end
+                    ST_PH[ST_hash] = savePrefix .. "@" .. ST_PrzedZapisem(ST_saveText)
+                end
                end
            end
        end
@@ -2581,6 +2627,18 @@ function ST_MerchantFrame()
 
       local MercTab2 = MerchantFrameTab2.Text;
       ST_CheckAndReplaceTranslationTextUI(MercTab2, true, "ui");
+
+      local MercPText = MerchantPageText;
+      ST_CheckAndReplaceTranslationTextUI(MercPText, true, "ui");
+	 
+        local function processRegion(frame)
+            ST_CheckAndReplaceTranslationTextUI(frame, true, "ui")
+        end 
+
+        processRegion(select(1, MerchantPrevPageButton:GetRegions()))
+		processRegion(select(1, MerchantNextPageButton:GetRegions()))
+		
+
    end
 end
 
@@ -3700,6 +3758,11 @@ errFrame:SetScript("OnEvent", function(self, event, message, messageType)
         if not text or text == "" then return true end
         
         local lowerText = text:lower()
+        -- Allow numbers if it's a quest objective progress (e.g. 10/15 or 10 slain)
+        local isObjective = string.find(text, "%d/%d") or string.find(text, "%d$") or string.find(text, "%d%s")
+        
+        if isObjective then return false end -- Don't skip if it looks like an objective
+        
         return string.find(lowerText, "%d") or                     -- Contains numbers
                string.find(lowerText, "completed") or              -- Quest completion messages
                string.find(lowerText, "discovered:") or            -- Discovery messages

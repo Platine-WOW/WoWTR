@@ -22,6 +22,23 @@ local BB_ile_got = 0;
 
 -------------------------------------------------------------------------------------------------------
 
+function BB_NormalizeGeneric(text)
+    if not text then return "" end
+    -- Remove color codes |cXXXXXXXX and |r (case insensitive for letters)
+    local clean = string.gsub(text, "|[cC]%x%x%x%x%x%x%x%x", "")
+    clean = string.gsub(clean, "|[rR]", "")
+    -- Remove standard punctuation
+    clean = string.gsub(clean, "[.,!%?%:%;]", "")
+    -- Remove special codes like $B or \n
+    clean = string.gsub(clean, "[$]B", "")
+    clean = string.gsub(clean, "[\n\r]", "")
+    -- Remove spaces and lowercase result
+    clean = string.gsub(clean, "%s+", "")
+    return string.lower(clean)
+end
+
+-------------------------------------------------------------------------------------------------------
+
 function BB_FindProS(text)                 -- znajdź, czy jest tekst '%s' w podanym tłumaczeniu
    local dl_txt = string.len(text)-1;
    for i_j=1,dl_txt,1 do
@@ -63,8 +80,9 @@ end
 
 function processTalkingHeadFrame()
     for idx, iArray in ipairs(BB_BubblesArray) do
-        -- Check if the original text matches the saved text in the array
-        if (TalkingHeadFrame.TextFrame.Text:GetText() == iArray[1]) then
+        -- Check if the original text matches the saved text in the array (Fuzzy Match)
+        local frameText = TalkingHeadFrame.TextFrame.Text:GetText();
+        if (BB_NormalizeGeneric(frameText) == BB_NormalizeGeneric(iArray[1])) then
             -- Get the current font and size
             local _font1, _size1, _3 = TalkingHeadFrame.TextFrame.Text:GetFont()
             -- Set the new font
@@ -93,9 +111,10 @@ function processNormalChatBubbles()
                         if region and region:GetObjectType() == "FontString" and not region:GetName() and region:IsVisible() then
                             local regionText = region:GetText()
                             if regionText then
+                                local normalizedRegion = BB_NormalizeGeneric(regionText)
                                 for idx, iArray in ipairs(BB_BubblesArray) do
-                                    -- Check if the region matches the saved text in the array
-                                    if (regionText == iArray[1]) then
+                                    -- Check if the region matches the saved text in the array (Fuzzy Match)
+                                    if (normalizedRegion == BB_NormalizeGeneric(iArray[1])) then
                                         -- Get the current width of the text and bubble
                                         local oldTextWidth = region:GetStringWidth()
                                         local oldBubbleWidth = region:GetWidth()

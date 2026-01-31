@@ -534,7 +534,7 @@ function WOWTR_onEvent(self, event, name, ...)
       StaticPopup1:HookScript("OnUpdate", ST_StaticPopup1);
       StaticPopup2:HookScript("OnShow", ST_StaticPopup1);
       GameMenuFrame:HookScript("OnShow", ST_GameMenuTranslate);
-      MerchantFrame:HookScript("OnShow", ST_MerchantFrame);
+      MerchantFrame:HookScript("OnShow", function() StartTicker(MerchantFrame, ST_MerchantFrame, 0.02) end);
       PVEFrame:HookScript("OnShow", function() StartTicker(PVEFrame, ST_GroupFinder, 0) end);
       WorldMapFrame:HookScript("OnShow", function() StartTicker(WorldMapFrame, ST_WorldMapFunc, 0.02) end);
       QuestScrollFrame:HookScript("OnShow", function() StartTicker(QuestScrollFrame, QTR_QuestMap_Check, 0.02) end);
@@ -578,7 +578,12 @@ function WOWTR_onEvent(self, event, name, ...)
       -- Quest Objective Tracker Loop (Periodic Hooking of New Elements)
       if (QTR_PS["active"]=="1" and QTR_PS["tracker"]=="1") then 
          if (ObjectiveTrackerFrame) then
-            StartTicker(ObjectiveTrackerFrame, QTR_ObjectiveTracker_Check, 2);
+            -- Initial scans to catch elements early
+            C_Timer.After(1, QTR_ObjectiveTracker_Check);
+            C_Timer.After(5, QTR_ObjectiveTracker_Check);
+            C_Timer.After(10, QTR_ObjectiveTracker_Check);
+            -- Permanent ticker (every 2 seconds) for new elements
+            C_Timer.NewTicker(2, QTR_ObjectiveTracker_Check);
          end
       end
       BB_OknoTRonline();

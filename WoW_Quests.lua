@@ -645,7 +645,7 @@ function GossipOnQuestFrame()       -- frame: QuestFrame
                end
                local GOptionText = WOWTR_DetectAndReplacePlayerName(GossText, nil, '$N');    -- detect only name of player
                local Czysty_Text = WOWTR_DeleteSpecialCodes(GOptionText, '$N');
-               local TitleHash = StringHash(Czysty_text);
+               local TitleHash = StringHash(Czysty_Text);
                if (GO_resized > 0) then
                   local point, relativeTo, relativePoint, xOfs, yOfs = GText:GetPoint(1);
                   GText:ClearAllPoints();
@@ -895,9 +895,25 @@ function QTR_START()
    isStoryline()
    
       -- Original hook for standard quests (UpdateSingle for individual quest blocks)
-      hooksecurefunc(QuestObjectiveTracker, "UpdateSingle", function(self, quest)
-         QTR_OverrideObjectiveTrackerHeader(self, quest); -- For individual quest titles within this tracker
-      end);
+      if QuestObjectiveTracker and type(QuestObjectiveTracker.UpdateSingle) == "function" then
+         hooksecurefunc(QuestObjectiveTracker, "UpdateSingle", function(self, quest)
+            QTR_OverrideObjectiveTrackerHeader(self, quest); -- For individual quest titles within this tracker
+         end);
+      end
+
+      -- Campaign Quest Tracker hook (Retail)
+      if CampaignQuestObjectiveTracker and type(CampaignQuestObjectiveTracker.UpdateSingle) == "function" then
+         hooksecurefunc(CampaignQuestObjectiveTracker, "UpdateSingle", function(self, quest)
+            QTR_OverrideObjectiveTrackerHeader(self, quest);
+         end);
+      end
+
+      -- World Quest Tracker hook (Retail)
+      if WorldQuestObjectiveTracker and type(WorldQuestObjectiveTracker.UpdateSingle) == "function" then
+         hooksecurefunc(WorldQuestObjectiveTracker, "UpdateSingle", function(self, quest)
+            QTR_OverrideObjectiveTrackerHeader(self, quest);
+         end);
+      end
 
       -- Helper function to process updates for INDIVIDUAL QUEST TITLES within trackers using the 'Update' method
       local function ProcessTrackerBlockUpdates(tracker)

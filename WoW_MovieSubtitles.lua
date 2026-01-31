@@ -68,19 +68,40 @@ function MF_ShowCinematicSubtitles()            -- wyświetlanie napisów w CINE
                local MF_napis2 = WOWTR_DetectAndReplacePlayerName(string.sub(MF_napis, p1+2));
                local MF_napis2_HS = WOWTR_DeleteSpecialCodes(MF_napis2);
                local MF_hash2 = StringHash(MF_napis2_HS);
-               if (BB_Bubbles[MF_hash2] or MF_Hash[MF_hash2]) then                           -- istnieje tłumaczenie w dymkach (TR: konuşma balonlarında çeviri mevcut)
+               local MF_full_translation = BB_Bubbles[MF_hash] or MF_Hash[MF_hash];
+               local MF_split_translation = BB_Bubbles[MF_hash2] or MF_Hash[MF_hash2];
+
+               if (MF_full_translation) then
+                  -- Priority 1: Full text translation (Speaker: Text)
+                  local MF_tekst = WOW_ZmienKody(MF_full_translation);
+                  local nr_poz = BB_FindProS(MF_tekst,1);
+                  if (strsub(MF_tekst,1,2)=="%o") then 
+                     MF_tekst = strsub(MF_tekst, 3):gsub("^%s*", "");
+                  elseif (nr_poz>0) then
+                     local safe_NPC_Name = name_NPC or "" 
+                     if (nr_poz==1) then
+                        MF_tekst = safe_NPC_Name..strsub(MF_tekst, 3);
+                     else
+                        MF_tekst = strsub(MF_tekst,1,nr_poz-1)..safe_NPC_Name..strsub(MF_tekst, nr_poz+2);
+                     end
+                  end
+                  SubtitlesFrame.Subtitle1:SetText(QTR_ReverseIfAR(MF_tekst).." ");
+                  MF_zapisz_EN = false;
+               elseif (MF_split_translation) then
+                  -- Priority 2: Split text translation (Metin)
                   if (WoWTR_Localization.lang == 'AR') then
-                     local MF_output = "r|"..WOWTR_AnsiReverse(string.sub(MF_napis,1,p1-1)).." :0099FFFFc| "..WOW_ZmienKody(BB_Bubbles[MF_hash2] or MF_Hash[MF_hash2]);
-                     SubtitlesFrame.Subtitle1:SetText(QTR_ExpandUnitInfo((MF_output),false,SubtitlesFrame.Subtitle1,WOWTR_Font1).." ");         -- podmień wyświetlany tekst dodając twardą spację (TR: görüntülenen metni sert boşluk ekleyerek değiştir)
+                     local MF_output = "r|"..WOWTR_AnsiReverse(string.sub(MF_napis,1,p1-1)).." :0099FFFFc| "..WOW_ZmienKody(MF_split_translation);
+                     SubtitlesFrame.Subtitle1:SetText(QTR_ExpandUnitInfo((MF_output),false,SubtitlesFrame.Subtitle1,WOWTR_Font1).." ");
                      MF_zapisz_EN = false;
                   else
-                     local MF_output = "|cFFFF9900"..string.sub(MF_napis,1,p1-1).." :|r "..WOW_ZmienKody(BB_Bubbles[MF_hash2] or MF_Hash[MF_hash2]);
-                     SubtitlesFrame.Subtitle1:SetText(MF_output.." ");         -- podmień wyświetlany tekst dodając twardą spację (TR: görüntülenen metni sert boşluk ekleyerek değiştir)
+                     local MF_output = "|cFFFF9900"..string.sub(MF_napis,1,p1-1).." :|r "..WOW_ZmienKody(MF_split_translation);
+                     SubtitlesFrame.Subtitle1:SetText(MF_output.." ");
                      MF_zapisz_EN = false;
                   end
                else
-                  if ((MF_zapisz_EN) and (MF_PM["save"] == "1")) then       -- zapisz oryginalny tekst wraz z kodem Hash (TR: orijinal metni Hash kodu ile birlikte kaydet)
-                     MF_PS[tostring(MF_hash2)] = MF_napis2.."@"..WOWTR_player_name..":"..WOWTR_player_race..":"..WOWTR_player_class;       
+                  -- Logging: Save full string if no translation found
+                  if ((MF_zapisz_EN) and (MF_PM["save"] == "1")) then
+                     MF_PS[tostring(MF_hash)] = MF_napis.."@"..WOWTR_player_name..":"..WOWTR_player_race..":"..WOWTR_player_class;       
                   end
                end
             else
