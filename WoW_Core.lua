@@ -478,6 +478,7 @@ function WOWTR_onEvent(self, event, name, ...)
       self:RegisterEvent("QUEST_PROGRESS");
       self:RegisterEvent("QUEST_COMPLETE");
       self:RegisterEvent("GOSSIP_SHOW");
+      self:RegisterEvent("QUEST_REMOVED");
       self:RegisterEvent("PLAY_MOVIE");
       self:RegisterEvent("CINEMATIC_START");
       self:RegisterEvent("CINEMATIC_STOP");
@@ -618,14 +619,9 @@ function WOWTR_onEvent(self, event, name, ...)
       -- end
    elseif (event=="GOSSIP_SHOW") then
       if (QTR_PS["gossip"] == "1") then
-         if (ElvUI and not isDUIQuestFrame()) then
-            if (not isDUIQuestFrame()) then  
-               if (not WOWTR_wait(0.02, QTR_Gossip_Show)) then
-               -- opóźnienie 0.02 sek
-               end
-            end
-         else
-            QTR_Gossip_Show();
+         -- Her zaman küçük bir gecikme ekliyoruz ki Blizzard'ın işi bitsin (0.05 sn)
+         if (not WOWTR_wait(0.03, QTR_Gossip_Show)) then
+            -- QTR_Gossip_Show();
          end
       end
    elseif (event=="PLAY_MOVIE") then
@@ -639,8 +635,16 @@ function WOWTR_onEvent(self, event, name, ...)
       MF_CinematicStop();
    elseif (event=="TUTORIAL_TRIGGER") then
       TT_onTutorialShow();
-   elseif (isImmersion() and event=="QUEST_ACCEPTED") then
-      QTR_delayed3();
+   elseif (event=="QUEST_ACCEPTED" or event=="QUEST_REMOVED") then
+      if (isImmersion() and event=="QUEST_ACCEPTED") then
+         QTR_delayed3();
+      end
+      -- Görev kabul edildiğinde veya silindiğinde eğer dedikodu penceresi açıksa içeriği yenileriz
+      if (GossipFrame:IsVisible() and QTR_PS["gossip"] == "1") then
+         if (not WOWTR_wait(0.03, QTR_Gossip_Show)) then
+            -- QTR_Gossip_Show();
+         end
+      end
    elseif (event == "CHAT_MSG_ADDON") then        -- ukryty kanał addonu
       local msg, method, who = select (1, ...);
       if (name == WOWTR_ADDON_PREFIX) then 

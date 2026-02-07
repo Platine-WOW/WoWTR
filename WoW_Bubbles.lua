@@ -228,7 +228,7 @@ function BB_ChatFilter(self, event, arg1, arg2, arg3, _, arg5, ...)     -- wywo≈
    local changeBubble = false;
    local colorText = "";
    local original_txt = strtrim(arg1);
-   local name_NPC = string.gsub(arg2, " says:", "");
+   local name_NPC = strtrim(string.gsub(arg2 or "", " says:", ""));
    local target = arg5;
 
    if (event == "CHAT_MSG_MONSTER_SAY") then          -- okre≈õl kolor tekstu do okna chat

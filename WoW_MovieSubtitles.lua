@@ -6,7 +6,7 @@
 -- General Variables
 MF_race = UnitRace("player");
 MF_class = UnitClass("player");
-local MF_movieID, MF_SubTitle, MF_lp, MF_ID, MF_playing, MF_showing, MF_timer, MF_time1, MF_last_ST, MF_pytanie1, MF_pytanie2;
+local MF_movieID, MF_SubTitle, MF_lp, MF_ID, MF_playing, MF_showing, MF_timer, MF_time1, MF_last_ST, MF_pytanie1, MF_pytanie2, MF_Mode;
 if (MF_class == "Death Knight") then
    MF_race = MF_class;
 end
@@ -29,6 +29,7 @@ end
 -------------------------------------------------------------------------------------------------------------------
 
 function MF_ShowMovieSubtitles()       -- wyświetlanie napisów w MOVIES (TR: FİLMLERDE altyazıları gösterme)
+   if (MF_Mode ~= "MOVIE") then return end;
    local MF_readed_ST = SubtitlesFrame.Subtitle1:GetText();
    if (MF_readed_ST and (MF_readed_ST ~= MF_last_ST) and (string.find(MF_readed_ST," ")==nil)) then   -- napis jest inny niż ostatni (TR: yazı son yazıdan farklı)
       MF_readed_ST = WOWTR_DetectAndReplacePlayerName(MF_readed_ST);
@@ -45,7 +46,11 @@ function MF_ShowMovieSubtitles()       -- wyświetlanie napisów w MOVIES (TR: F
          SubtitlesFrame.Subtitle1:SetFont(WOWTR_Font2, MF_Size); 
       else           -- nie ma tego Hasha - zapisz dane (TR: bu Hash yok - verileri kaydet)
          if (MF_PM["save"] == "1") then
-            MF_PS[MF_ID..":"..MF_lpSTR..":"..MF_hash2] = MF_readed_ST;
+            if (MF_ID and MF_ID ~= "" and MF_ID ~= "000") then
+               MF_PS[MF_ID..":"..MF_lpSTR..":"..MF_hash2] = MF_readed_ST;
+            else
+               BB_PS["MovieSubtitle:"..tostring(MF_hash2)] = MF_readed_ST.."@"..WOWTR_player_name..":"..WOWTR_player_race..":"..WOWTR_player_class;
+            end
          end;
       end
    end
@@ -54,6 +59,7 @@ end
 -------------------------------------------------------------------------------------------------------------------
 
 function MF_ShowCinematicSubtitles()            -- wyświetlanie napisów w CINEMATIC (TR: SİNEMATİKLERDE altyazıları gösterme)
+   if (MF_Mode ~= "CINEMATIC") then return end;
    if (GetTime() - MF_time1 > 0.1) then         -- minęło conajmniej 0.1 sek. (TR: en az 0.1 saniye geçti)
       if (SubtitlesFrame.Subtitle1 and SubtitlesFrame.Subtitle1:IsVisible()) then        -- jest widoczny napis (TR: yazı görünür durumda)
          local MF_napis = SubtitlesFrame.Subtitle1:GetText();     -- odczytaj aktualny napis (TR: mevcut yazıyı oku)
@@ -63,22 +69,31 @@ function MF_ShowCinematicSubtitles()            -- wyświetlanie napisów w CINE
             MF_napis = WOWTR_DetectAndReplacePlayerName(MF_napis);   -- przeszukaj tekst i zamien na kody $x (TR: metni ara ve $x kodlarına dönüştür)
             local MF_napis_HS = WOWTR_DeleteSpecialCodes(MF_napis);
             local MF_hash = StringHash(MF_napis_HS);                 -- zrób Hash z tego tekstu (TR: bu metinden Hash oluştur)
-            local p1, p2 = string.find(MF_napis,":");             -- poszukaj znaku ':' (TR: ':' işaretini ara)
+            local p1 = string.find(MF_napis,":");             -- poszukaj znaku ':' (TR: ':' işaretini ara)
             if (p1 and (p1>0) and (p1<30)) then                   -- jest znak ':' w początkowej części napisu (NPC says:) (TR: yazının başlangıç kısmında ':' işareti var (NPC diyor ki:))
-               local MF_napis2 = WOWTR_DetectAndReplacePlayerName(string.sub(MF_napis, p1+2));
+               local MF_speaker = strtrim(string.sub(MF_napis, 1, p1-1));
+               local MF_napis2 = WOWTR_DetectAndReplacePlayerName(string.sub(MF_napis, p1+1):gsub("^%s*", ""));
                local MF_napis2_HS = WOWTR_DeleteSpecialCodes(MF_napis2);
                local MF_hash2 = StringHash(MF_napis2_HS);
-               local MF_full_translation = BB_Bubbles[MF_hash] or MF_Hash[MF_hash];
-               local MF_split_translation = BB_Bubbles[MF_hash2] or MF_Hash[MF_hash2];
-
-               if (MF_full_translation) then
-                  -- Priority 1: Full text translation (Speaker: Text)
-                  local MF_tekst = WOW_ZmienKody(MF_full_translation);
+               local MF_translation = MF_Hash[MF_hash2] or BB_Bubbles[MF_hash2];
+               if (MF_translation) then                           -- istnieje tłumaczenie w dymkach (TR: konuşma balonlarında çeviri mevcut)
+                  if (WoWTR_Localization.lang == 'AR') then
+                     local MF_output = "r|"..WOWTR_AnsiReverse(MF_speaker).." :0099FFFFc| "..WOW_ZmienKody(MF_translation);
+                     SubtitlesFrame.Subtitle1:SetText(QTR_ExpandUnitInfo((MF_output),false,SubtitlesFrame.Subtitle1,WOWTR_Font1).." ");         -- podmień wyświetlany tekst dodając twardą spację (TR: görüntülenen metni sert boşluk ekleyerek değiştir)
+                     MF_zapisz_EN = false;
+                  else
+                     local MF_output = "|cFFFF9900"..MF_speaker.." :|r "..WOW_ZmienKody(MF_translation);
+                     SubtitlesFrame.Subtitle1:SetText(MF_output.." ");         -- podmień wyświetlany tekst dodając twardą spację (TR: görüntülenen metni sert boşluk ekleyerek değiştir)
+                     MF_zapisz_EN = false;
+                  end
+               elseif (MF_Hash[MF_hash] or BB_Bubbles[MF_hash]) then
+                  -- çevirisi yoksa High Speaker Eirich: The High Speaker... has SPOKEN. çevirisine baksın
+                  local MF_tekst = WOW_ZmienKody(MF_Hash[MF_hash] or BB_Bubbles[MF_hash]);
                   local nr_poz = BB_FindProS(MF_tekst,1);
                   if (strsub(MF_tekst,1,2)=="%o") then 
                      MF_tekst = strsub(MF_tekst, 3):gsub("^%s*", "");
                   elseif (nr_poz>0) then
-                     local safe_NPC_Name = name_NPC or "" 
+                     local safe_NPC_Name = MF_speaker or "" 
                      if (nr_poz==1) then
                         MF_tekst = safe_NPC_Name..strsub(MF_tekst, 3);
                      else
@@ -87,32 +102,20 @@ function MF_ShowCinematicSubtitles()            -- wyświetlanie napisów w CINE
                   end
                   SubtitlesFrame.Subtitle1:SetText(QTR_ReverseIfAR(MF_tekst).." ");
                   MF_zapisz_EN = false;
-               elseif (MF_split_translation) then
-                  -- Priority 2: Split text translation (Metin)
-                  if (WoWTR_Localization.lang == 'AR') then
-                     local MF_output = "r|"..WOWTR_AnsiReverse(string.sub(MF_napis,1,p1-1)).." :0099FFFFc| "..WOW_ZmienKody(MF_split_translation);
-                     SubtitlesFrame.Subtitle1:SetText(QTR_ExpandUnitInfo((MF_output),false,SubtitlesFrame.Subtitle1,WOWTR_Font1).." ");
-                     MF_zapisz_EN = false;
-                  else
-                     local MF_output = "|cFFFF9900"..string.sub(MF_napis,1,p1-1).." :|r "..WOW_ZmienKody(MF_split_translation);
-                     SubtitlesFrame.Subtitle1:SetText(MF_output.." ");
-                     MF_zapisz_EN = false;
-                  end
                else
-                  -- Logging: Save full string if no translation found
-                  if ((MF_zapisz_EN) and (MF_PM["save"] == "1")) then
-                     MF_PS[tostring(MF_hash)] = MF_napis.."@"..WOWTR_player_name..":"..WOWTR_player_race..":"..WOWTR_player_class;       
+                  if ((MF_zapisz_EN) and (MF_PM["save"] == "1")) then       -- zapisz oryginalny tekst wraz z kodem Hash (TR: orijinal metni Hash kodu ile birlikte kaydet)
+                     BB_PS[MF_speaker..":"..tostring(MF_hash2)] = MF_napis2.."@"..WOWTR_player_name..":"..WOWTR_player_race..":"..WOWTR_player_class;       
                   end
                end
             else
-               if (BB_Bubbles[MF_hash] or MF_Hash[MF_hash]) then            -- istnieje tłumaczenie w dymkach (TR: konuşma balonlarında çeviri mevcut)
-                  local MF_tekst = WOW_ZmienKody(BB_Bubbles[MF_hash] or MF_Hash[MF_hash]);
+               if (MF_Hash[MF_hash] or BB_Bubbles[MF_hash]) then            -- istnieje tłumaczenie w dymkach (TR: konuşma balonlarında çeviri mevcut)
+                  local MF_tekst = WOW_ZmienKody(MF_Hash[MF_hash] or BB_Bubbles[MF_hash]);
                   local nr_poz = BB_FindProS(MF_tekst,1);   -- znajdź tekst '%s' (TR: '%s' metnini bul)
                   if (strsub(MF_tekst,1,2)=="%o") then 
                      MF_tekst = strsub(MF_tekst, 3):gsub("^%s*", "");
                   elseif (nr_poz>0) then           -- mamy formę opisową dymku %s np. NPC_name wpada w szał! (TR: %s şeklinde tasvirli konuşma balonumuz var, örn. NPC_adı öfkeye kapılıyor!)
                      -- Düzeltme: name_NPC tanımlı değilse boşluk ata
-                     local safe_NPC_Name = name_NPC or "" 
+                     local safe_NPC_Name = "" 
                      if (nr_poz==1) then
                         MF_tekst = safe_NPC_Name..strsub(MF_tekst, 3);
                      else
@@ -125,7 +128,7 @@ function MF_ShowCinematicSubtitles()            -- wyświetlanie napisów w CINE
                   MF_zapisz_EN = false;
                else
                   if ((MF_zapisz_EN) and (MF_PM["save"] == "1")) then             -- zapisz oryginalny tekst wraz z kodem Hash (TR: orijinal metni Hash kodu ile birlikte kaydet)
-                     MF_PS[tostring(MF_hash)] = MF_napis.."@"..WOWTR_player_name..":"..WOWTR_player_race..":"..WOWTR_player_class;       
+                     BB_PS["CinematicSubtitle:"..tostring(MF_hash)] = MF_napis.."@"..WOWTR_player_name..":"..WOWTR_player_race..":"..WOWTR_player_class;       
                   end
                end
             end
@@ -205,6 +208,7 @@ function MF_PlayMovie(movieID)      -- fired by PLAY_MOVIE event (TR: PLAY_MOVIE
    end
    local _font, _size, _3 = SubtitlesFrame.Subtitle1:GetFont();
    SubtitlesFrame.Subtitle1:SetFont(WOWTR_Font2, _size);           -- przetłumaczona czcionka do napisów (TR: altyazılar için çevrilmiş yazı tipi)
+   MF_Mode = "MOVIE";
    SubtitlesFrame:HookScript("OnEvent", MF_ShowMovieSubtitles);
    MF_Size = _size;
 end
@@ -243,6 +247,8 @@ function MF_CinematicStart()             -- fired by CINEMATIC_START event (TR: 
    local _font, _size, _3 = SubtitlesFrame.Subtitle1:GetFont();   -- odczytaj wielkość czcionki (TR: yazı tipi boyutunu oku)
    _size = math.floor(_size+.5);
    SubtitlesFrame.Subtitle1:SetFont(WOWTR_Font2, _size);              -- zmień czcionkę na turecką (TR: yazı tipini Türkçe'ye çevir)
+   MF_Mode = "CINEMATIC";
+   MF_ID = "";
    if (((UnitLevel("player")==1) and (C_Map.GetBestMapForUnit("player")~=1409) and (C_Map.GetBestMapForUnit("player")~=1726) and (C_Map.GetBestMapForUnit("player")~=1727)) or ((MF_class == "Death Knight") and (UnitLevel("player")==8))) then
       MF_SubTitle = CinematicFrame:CreateFontString(nil, "ARTWORK");    -- mamy Cinematic INTRO, ale nie z nowego zone: Exile's Reach, ani The North Sea (TR: Elimizde Cinematic INTRO var, ancak yeni bölgeden değil: Exile's Reach veya The North Sea)                                      kraina: 124
       MF_SubTitle:SetFontObject(GameFontWhite);

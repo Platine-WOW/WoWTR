@@ -710,17 +710,17 @@ function QTR_START()
    QTR_ToggleButton0:SetText("Quest ID=?")
    QTR_ToggleButton0:Hide()
    QTR_ToggleButton0:ClearAllPoints()
-   QTR_ToggleButton0:SetPoint("TOPLEFT", QuestFrame, "TOPLEFT", 120, -50)
+   QTR_ToggleButton0:SetPoint("TOPLEFT", QuestFrame, "TOPLEFT", 120, -80)
    QTR_ToggleButton0:SetScript("OnClick", QTR_ON_OFF)
 
    -- Button in QuestLogFrame
 QTR_ToggleButton1 = CreateFrame("Button", nil, QuestLogFrame, "UIPanelButtonTemplate")
-QTR_ToggleButton1:SetWidth(150)
+QTR_ToggleButton1:SetWidth(250)
 QTR_ToggleButton1:SetHeight(20)
 QTR_ToggleButton1:SetText("Quest ID=?")
 QTR_ToggleButton1:Hide()
 QTR_ToggleButton1:ClearAllPoints()
-QTR_ToggleButton1:SetPoint("TOPLEFT", QuestLogFrame, "TOPLEFT", 178, -58)
+QTR_ToggleButton1:SetPoint("TOPLEFT", QuestLogFrame, "TOPLEFT", 178, -78)
 QTR_ToggleButton1:SetScript("OnClick", function()
    if (QTR_curr_trans=="1") then
       QTR_curr_trans="0";
@@ -4065,13 +4065,13 @@ end
 -- 1. Buton: QuestLogFrame için
 local toggleButton1 = CreateFrame("Button", "QTR_ToggleButton1", QuestLogFrame, "UIPanelButtonTemplate")
 toggleButton1:SetSize(70, 22)
-toggleButton1:SetPoint("TOP", QuestLogFrame, "TOP", 0, -13)
+toggleButton1:SetPoint("TOP", QuestLogFrame, "TOPLEFT", 295, -12)
 toggleButton1:SetText(WoWTR_Localization.WoWTR_enDESC)
 
 -- 2. Buton: QuestFrame için
 local toggleButton2 = CreateFrame("Button", "QTR_ToggleButton2", QuestFrame, "UIPanelButtonTemplate")
 toggleButton2:SetSize(70, 22)
-toggleButton2:SetPoint("TOP", QuestFrame, "TOP", 0, -40)
+toggleButton2:SetPoint("TOP", QuestLogFrame, "TOPLEFT", 295, -12)
 toggleButton2:SetText(WoWTR_Localization.WoWTR_enDESC)
 toggleButton2:SetFrameStrata("HIGH")
 function UpdateToggleButton2Visibility()
