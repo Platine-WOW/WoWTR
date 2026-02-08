@@ -708,19 +708,19 @@ function QTR_START()
    QTR_ToggleButton0:SetWidth(150)
    QTR_ToggleButton0:SetHeight(20)
    QTR_ToggleButton0:SetText("Quest ID=?")
-   QTR_ToggleButton0:Hide()
+   QTR_ToggleButton0:Show()
    QTR_ToggleButton0:ClearAllPoints()
-   QTR_ToggleButton0:SetPoint("TOPLEFT", QuestFrame, "TOPLEFT", 120, -80)
+   QTR_ToggleButton0:SetPoint("TOP", QuestFrame, "TOP", 0, -27)
    QTR_ToggleButton0:SetScript("OnClick", QTR_ON_OFF)
 
    -- Button in QuestLogFrame
 QTR_ToggleButton1 = CreateFrame("Button", nil, QuestLogFrame, "UIPanelButtonTemplate")
-QTR_ToggleButton1:SetWidth(250)
+QTR_ToggleButton1:SetWidth(150)
 QTR_ToggleButton1:SetHeight(20)
 QTR_ToggleButton1:SetText("Quest ID=?")
-QTR_ToggleButton1:Hide()
+QTR_ToggleButton1:Show()
 QTR_ToggleButton1:ClearAllPoints()
-QTR_ToggleButton1:SetPoint("TOPLEFT", QuestLogFrame, "TOPLEFT", 178, -78)
+QTR_ToggleButton1:SetPoint("TOP", QuestLogFrame, "TOP", 0, -27)
 QTR_ToggleButton1:SetScript("OnClick", function()
    if (QTR_curr_trans=="1") then
       QTR_curr_trans="0";
@@ -747,7 +747,7 @@ end)
    QTR_ToggleButtonGS1:SetHeight(20)
    QTR_ToggleButtonGS1:SetText("Gossip-Hash=?")
    QTR_ToggleButtonGS1:ClearAllPoints()
-   QTR_ToggleButtonGS1:SetPoint("CENTER", GossipFrame, "TOP", 0, -50)
+   QTR_ToggleButtonGS1:SetPoint("TOP", GossipFrame, "TOP", 0, -27)
    QTR_ToggleButtonGS1:Disable()
    QTR_ToggleButtonGS1:Show()
    QTR_ToggleButtonGS1:SetScript("OnClick", GS_ON_OFF)
@@ -817,6 +817,7 @@ end)
    QuestFrameAcceptButton:HookScript("OnClick", QTR_QuestFrameButton_OnClick)
    QuestFrameCompleteQuestButton:HookScript("OnClick", QTR_QuestFrameButton_OnClick)
    QuestLogFrame:HookScript("OnShow", QTR_QuestLogPopupShow)
+   hooksecurefunc("QuestLog_Update", QTR_QuestLogPopupShow)
 
    -- local versionString = select(4, GetBuildInfo())
    -- local versionNumber = tonumber(versionString)
@@ -896,10 +897,45 @@ function QTR_QuestLogPopupShow()
       -- Classic Era için quest ID'yi doğru şekilde al
       local selectedIndex = GetQuestLogSelection()
       if selectedIndex and selectedIndex > 0 then
-         local _, _, _, _, _, _, _, questID = GetQuestLogTitle(selectedIndex)
+         local title, _, _, _, _, _, _, questID = GetQuestLogTitle(selectedIndex)
          if questID then
             QTR_quest_ID = questID
-            QTR_QuestPrepare("QUEST_DETAIL")
+            
+            -- Orijinal EN verilerini yakala (Henüz TR'ye dönmeden önce)
+            if not QTR_quest_EN[questID] then
+                QTR_quest_EN[questID] = {}
+            end
+            if not QTR_quest_LG[questID] then
+                QTR_quest_LG[questID] = {}
+            end
+            
+            -- Eğer veriler henüz kaydedilmemişse veya boşsa kaydet
+            if not QTR_quest_EN[questID].title or QTR_quest_EN[questID].title == "" then
+                QTR_quest_EN[questID].title = title or ""
+            end
+            
+            local description, objectives = GetQuestLogQuestText()
+            if not QTR_quest_EN[questID].details or QTR_quest_EN[questID].details == "" then
+                QTR_quest_EN[questID].details = description or ""
+            end
+            if not QTR_quest_EN[questID].objectives or QTR_quest_EN[questID].objectives == "" then
+                QTR_quest_EN[questID].objectives = objectives or ""
+            end
+
+             QTR_QuestPrepare("QUEST_DETAIL")
+             
+             -- Başlığı Blizzard'ın üzerine yazmasından sonra tekrar zorla setle
+             if QTR_PS["transtitle"] == "1" and QTR_curr_trans == "1" then
+                if QTR_quest_LG[QTR_quest_ID] and QTR_quest_LG[QTR_quest_ID].title then
+                    QuestLogQuestTitle:SetFont(WOWTR_Font1, C_AddOns.IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtitle.size or 18);
+                    QuestLogQuestTitle:SetText(QTR_ExpandUnitInfo(QTR_quest_LG[QTR_quest_ID].title, false, QuestLogQuestTitle, WOWTR_Font1, -30));
+                end
+             elseif QTR_curr_trans == "0" then
+                if QTR_quest_EN[QTR_quest_ID] and QTR_quest_EN[QTR_quest_ID].title then
+                    QuestLogQuestTitle:SetFont(Original_Font1, C_AddOns.IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtitle.size or 18);
+                    QuestLogQuestTitle:SetText(QTR_quest_EN[QTR_quest_ID].title);
+                end
+             end
          end
       end
    end
@@ -1529,6 +1565,8 @@ function QTR_QuestPrepare(zdarzenie)
    str_ID = tostring(q_ID);
    if ( not (QTR_quest_EN[QTR_quest_ID])) then
       QTR_quest_EN[QTR_quest_ID] = { };
+   end
+   if ( not (QTR_quest_LG[QTR_quest_ID])) then
       QTR_quest_LG[QTR_quest_ID] = { };
    end
    
@@ -1578,8 +1616,11 @@ function QTR_QuestPrepare(zdarzenie)
       QTR_quest_EN[QTR_quest_ID].itemreceive = QTR_MessOrig.itemreceiv0;
       
       if ( QTR_QuestData[str_ID] ) then
-         if (QTR_quest_EN[QTR_quest_ID].title == nil) then
+         if (QTR_quest_LG[QTR_quest_ID].title == nil) then
             QTR_quest_LG[QTR_quest_ID].title = QTR_QuestData[str_ID]["Title"];
+         end
+         
+         if (QTR_quest_EN[QTR_quest_ID].title == nil) then
             QTR_quest_EN[QTR_quest_ID].title = GetTitleText();
             if (QTR_quest_EN[QTR_quest_ID].title=="") then
                QTR_quest_EN[QTR_quest_ID].title=QuestInfoTitleHeader:GetText();
@@ -1908,7 +1949,7 @@ function QTR_Translate_On(typ,event)
             QuestLogObjectivesText:SetText(QTR_ExpandUnitInfo(QTR_quest_LG[QTR_quest_ID].objectives,true,QuestLogObjectivesText,WOWTR_Font2,-10));
          
 			--QuestLogQuestTitle - Görev Başlığı TR
-			QuestLogQuestTitle:SetFont(WOWTR_Font1, C_AddOns.IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtitle.size or 18);
+			   QuestLogQuestTitle:SetFont(WOWTR_Font1, C_AddOns.IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtitle.size or 18);
             QuestLogQuestTitle:SetText(QTR_ExpandUnitInfo(QTR_quest_LG[QTR_quest_ID].title, false, QuestLogQuestTitle, WOWTR_Font1, -30));
 
 			--QuestLogDescriptionTitle - Açıklama Başlığı TR
@@ -1995,6 +2036,18 @@ function QTR_Translate_Off(typ,event)
          QuestInfoObjectivesText:SetText(QTR_quest_EN[QTR_quest_ID].objectives);
          QuestProgressText:SetText(QTR_quest_EN[QTR_quest_ID].progress);
          QuestInfoRewardText:SetText(QTR_quest_EN[QTR_quest_ID].completion);
+
+         -- QuestLogFrame sıfırlama (L tuşu ile açılan pencere)
+         QuestLogQuestTitle:SetFont(Original_Font1, C_AddOns.IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtitle.size or 18);
+         QuestLogQuestTitle:SetText(QTR_quest_EN[QTR_quest_ID].title);
+         QuestLogDescriptionTitle:SetFont(Original_Font1, C_AddOns.IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtitle.size or 18);
+         QuestLogDescriptionTitle:SetText(QTR_MessOrig.details);
+         QuestLogQuestDescription:SetFont(Original_Font2, C_AddOns.IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtext.size or tonumber(QTR_PS["fontsize"]));
+         QuestLogQuestDescription:SetText(QTR_quest_EN[QTR_quest_ID].details);
+         QuestLogObjectivesText:SetFont(Original_Font2, C_AddOns.IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtext.size or tonumber(QTR_PS["fontsize"]));
+         QuestLogObjectivesText:SetText(QTR_quest_EN[QTR_quest_ID].objectives);
+         QuestLogRewardTitleText:SetFont(Original_Font1, C_AddOns.IsAddOnLoaded("ElvUI") and ElvUI[1].db.general.fonts.questtext.enable and ElvUI[1].db.general.fonts.questtitle.size or 18);
+         QuestLogRewardTitleText:SetText(QTR_MessOrig.rewards);
 
          -- Reset text alignment and justification for all languages
          QuestInfoDescriptionText:SetJustifyH("LEFT");
@@ -2498,6 +2551,18 @@ function QTR_ResetQuestToOriginal()
    QuestInfoRewardsFrame.ItemReceiveText:SetFont(Original_Font2, 13);
    QuestInfoRewardsFrame.ItemChooseText:SetText(QTR_quest_EN[QTR_quest_ID].itemchoose);
    QuestInfoRewardsFrame.ItemReceiveText:SetText(QTR_quest_EN[QTR_quest_ID].itemreceive);
+
+   -- QuestLogFrame sıfırlama (L tuşu ile açılan pencere)
+   QuestLogQuestTitle:SetFont(Original_Font1, 18);
+   QuestLogQuestTitle:SetText(QTR_quest_EN[QTR_quest_ID].title);
+   QuestLogDescriptionTitle:SetFont(Original_Font1, 18);
+   QuestLogDescriptionTitle:SetText(QTR_MessOrig.details);
+   QuestLogQuestDescription:SetFont(Original_Font2, 13);
+   QuestLogQuestDescription:SetText(QTR_quest_EN[QTR_quest_ID].details);
+   QuestLogObjectivesText:SetFont(Original_Font2, 13);
+   QuestLogObjectivesText:SetText(QTR_quest_EN[QTR_quest_ID].objectives);
+   QuestLogRewardTitleText:SetFont(Original_Font1, 18);
+   QuestLogRewardTitleText:SetText(QTR_MessOrig.rewards);
 
    QuestInfoSpellObjectiveLearnLabel:SetFont(Original_Font2, 13);
    QuestInfoSpellObjectiveLearnLabel:SetText(QTR_MessOrig.learnspell);
@@ -4056,85 +4121,8 @@ function QTR_OverrideObjectiveTrackerHeader(tracker, quest, directID)
    end
 end
 
--------------------------------------------------------------------------------------------------------
--- QTR_PS tablosunu kontrol et, yoksa oluştur
-if not QTR_PS then
-    QTR_PS = { ["active"] = "1" } -- Varsayılan olarak TR aktif (1)
-end
 
--- 1. Buton: QuestLogFrame için
-local toggleButton1 = CreateFrame("Button", "QTR_ToggleButton1", QuestLogFrame, "UIPanelButtonTemplate")
-toggleButton1:SetSize(70, 22)
-toggleButton1:SetPoint("TOP", QuestLogFrame, "TOPLEFT", 295, -12)
-toggleButton1:SetText(WoWTR_Localization.WoWTR_enDESC)
 
--- 2. Buton: QuestFrame için
-local toggleButton2 = CreateFrame("Button", "QTR_ToggleButton2", QuestFrame, "UIPanelButtonTemplate")
-toggleButton2:SetSize(70, 22)
-toggleButton2:SetPoint("TOP", QuestLogFrame, "TOPLEFT", 295, -12)
-toggleButton2:SetText(WoWTR_Localization.WoWTR_enDESC)
-toggleButton2:SetFrameStrata("HIGH")
-function UpdateToggleButton2Visibility()
-    if GreetingText:IsVisible() then
-        toggleButton2:Hide()
-    else
-        toggleButton2:Show()
-    end
-end
-QuestFrame:HookScript("OnShow", UpdateToggleButton2Visibility)
-
--- Seçili questin indexini bulma fonksiyonu
-local function GetSelectedQuestIndex()
-    for i = 1, GetNumQuestLogEntries() do
-        if GetQuestLogSelection() == i then
-            return i
-        end
-    end
-    return nil
-end
-
--- Ortak tıklama fonksiyonu
-local function ToggleLanguage(self)
-    -- Önceki durumu kaydet
-    local wasSelected = GetQuestLogSelection()
-    
-    if QTR_PS["active"] == "1" then
-        -- TR'den EN'e geçiş
-        QTR_PS["active"] = "0"
-        QTR_curr_trans="0";
-        QTR_Translate_Off(1);
-        toggleButton1:SetText(WoWTR_Localization.WoWTR_enDESC)
-        toggleButton2:SetText(WoWTR_Localization.WoWTR_enDESC)
-    else
-        -- EN'den TR'ye geçiş
-        QTR_PS["active"] = "1"
-        QTR_curr_trans="1";
-        QTR_Translate_On(1);
-        toggleButton1:SetText(WoWTR_Localization.WoWTR_trDESC)
-        toggleButton2:SetText(WoWTR_Localization.WoWTR_trDESC)
-    end
-    
-    -- Seçili quest varsa yenile
-    if wasSelected and wasSelected > 0 then
-        QuestLog_SetSelection(wasSelected)
-        QuestLog_Update()
-    end
-end
-
--- Butonlara tıklama fonksiyonlarını ata
-toggleButton1:SetScript("OnClick", ToggleLanguage)
-toggleButton2:SetScript("OnClick", ToggleLanguage)
-
--- Oyun yüklendiğinde buton metinlerini ayarla
-local function OnEvent(self, event, ...)
-    if QTR_PS["active"] == "1" then
-        toggleButton1:SetText(WoWTR_Localization.WoWTR_trDESC)
-        toggleButton2:SetText(WoWTR_Localization.WoWTR_trDESC)
-    else
-        toggleButton1:SetText(WoWTR_Localization.WoWTR_enDESC)
-        toggleButton2:SetText(WoWTR_Localization.WoWTR_enDESC)
-    end
-end
 
 local frame = CreateFrame("Frame")
 frame:RegisterEvent("PLAYER_ENTERING_WORLD")
