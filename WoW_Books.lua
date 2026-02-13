@@ -127,7 +127,11 @@ function BookTranslator_ShowTranslation()
                ItemTextPageText:SetFont("H3", WOWTR_Font2, a2, a3);
             end
 
-            ItemTextPageText:SetText(QTR_ExpandUnitInfo(BT_tekst_tr, false, ItemTextPageText, WOWTR_Font2, -10));
+            if string.find(BT_tekst_tr, "^%s*<HTML>") then
+               ItemTextPageText:SetText(BT_tekst_tr);
+            else
+               ItemTextPageText:SetText(QTR_ExpandUnitInfo(BT_tekst_tr, false, ItemTextPageText, WOWTR_Font2, -10));
+            end
 
             -- ID Gösterme Ayarı (Show Book ID Option) (Opcja pokazywania ID książki)
             if (BT_PM["showID"] == "1") then
@@ -189,7 +193,11 @@ function BT_ON_OFF()
       if ((BT_PM["title"] == "1") and BT_tytul_tr) then            -- wyświetlaj tłumaczenie tytułu
          ItemTextFrameTitleText:SetText(BT_tytul_tr);
       end
-      ItemTextPageText:SetText(QTR_ExpandUnitInfo(BT_tekst_tr,false,ItemTextPageText,WOWTR_Font2,-10));
+      if string.find(BT_tekst_tr, "^%s*<HTML>") then
+         ItemTextPageText:SetText(BT_tekst_tr);
+      else
+         ItemTextPageText:SetText(QTR_ExpandUnitInfo(BT_tekst_tr,false,ItemTextPageText,WOWTR_Font2,-10));
+      end
       if (BT_PM["showID"]=="1") then             -- pokaż ID książki
          if (WoWTR_Localization.lang == 'AR') then
             BT_ToggleButton0:SetText("("..WoWTR_Localization.lang..") "..BT_bookID.." "..QTR_ReverseIfAR(WoWTR_Localization.bookID));
