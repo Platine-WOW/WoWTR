@@ -195,7 +195,7 @@ WOWTR_Options:SetBackdropBorderColor(0, 0, 0, 1);
 WOWTR_Options:Hide(); -- Start hidden
 
 -- Slash Command Handler
-SLASH_WOWTR1 = "/wowtr";
+SLASH_WOWTR1 = "/wowjp";
 SlashCmdList["WOWTR"] = function(msg)
     if WOWTR_Options:IsShown() then
         WOWTR_Options:Hide();
@@ -1986,7 +1986,7 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_CheckButton40:SetPoint("TOPLEFT", WOWTR_CheckButton49, "TOPLEFT", 0, -28);
 end
-WOWTR_CheckButton40.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.displayTranslationUI8).."|r");   -- Display translation of user interface (Friend List)
+WOWTR_CheckButton40.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.displayTranslationUI8).."|r");   -- Achievement
 WOWTR_CheckButton40.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton40:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
@@ -2004,8 +2004,8 @@ WOWTR_CheckButton40:HookScript("OnEnter", function(self)
 WOWTR_CheckButton40:SetScript("OnLeave", function(self)
    GameTooltip:Hide()   -- Hide the tooltip
    end);
-   WOWTR_CheckButton40:Hide(); -- Hide button
-   TT_PS["ui8"]="0";
+   --WOWTR_CheckButton40:Hide(); -- Hide button
+   --TT_PS["ui8"]="0";
 
 WOWTR_ReloadButtonUI = CreateFrame("BUTTON", nil, WOWTR_OptionPanel4, "UIPanelButtonTemplate");
 WOWTR_ReloadButtonUI:SetWidth(350);

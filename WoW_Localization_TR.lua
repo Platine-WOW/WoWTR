@@ -220,8 +220,8 @@ WoWTR_Config_Interface = {
    displayTranslationUI6DESC = "Friend List içeriği artık Türkçe görünecektir.",                      -- If enabled, user interface will be displayed in translation
    displayTranslationUI7 = "Meslekler",                                                               -- Display translation of Profession
    displayTranslationUI7DESC = "Profession ve içeriği artık Türkçe görünecektir.",                    -- If enabled, user interface will be displayed in translation
-   displayTranslationUI8 = "Filtre ve Açılır Menüler",                                                -- Display translation of Filter & Open List
-   displayTranslationUI8DESC = "Filter & Open List Menüler artık Türkçe görünecektir.",               -- If enabled, user interface will be displayed in translation
+   displayTranslationUI8 = "Başarımlar (Achievements)",                                               -- Display translation of Filter & Open List
+   displayTranslationUI8DESC = "Achievement sayfasındaki metinleri Türkçe gösterir.",                 -- If enabled, user interface will be displayed in translation
 
    titleTab5 = "Kitaplar",                                                                            -- Books (TR:Kitaplar)
    generalMainHeaderBT = "KİTAP ÇEVİRİLERİ - Books",                                                  -- Books translations (TR:KİTAP ÇEVİRİLERİ)

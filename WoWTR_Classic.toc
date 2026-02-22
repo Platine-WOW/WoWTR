@@ -1,6 +1,6 @@
 ﻿## Interface: 11507, 11508
-## Title: |TInterface\AddOns\WoWTR\Images\icon.png:16:16|t WoWTR|cFF00FF00 v26.0208|r by hknylmz
-## Version: 26.0208
+## Title: |TInterface\AddOns\WoWTR\Images\icon.png:16:16|t WoWTR|cFF00FF00 v26.0222|r by hknylmz
+## Version: 26.0222
 ## Notes: Görev, Diyalog, Sinematik ve Arayüz metinleri Türkçe olarak görüntülenir.
 ## Notes_en: Translates the texts in the play into Turkish.
 ## Author: Platine & Hakan YILMAZ

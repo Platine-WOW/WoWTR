@@ -554,7 +554,8 @@ function WOWTR_onEvent(self, event, name, ...)
       MailFrame:HookScript("OnShow", function() StartTicker(MailFrame, ST_MailFrame, 0.1) end);
       CommunitiesFrame:HookScript("OnShow", function() StartTicker(CommunitiesFrame, ST_GuildFrame, 0.02) end);
       SettingsPanel:HookScript("OnShow", function() StartTicker(SettingsPanel, ST_SettingsPanel, 0.02) end);
-      
+      LFDRoleCheckPopup:HookScript("OnShow", function() StartTicker(LFDRoleCheckPopup, ST_CheckRoleDungeon, 0.02) end);
+      LFGDungeonReadyDialog:HookScript("OnShow", function() StartTicker(LFGDungeonReadyDialog, ST_DungeonReadyDialogPopup, 0.02) end);
       -- Hook for Quest Details Display (Map/Log)
       hooksecurefunc("QuestInfo_Display", function()
           if (QTR_QuestMap_Check) then QTR_QuestMap_Check(); end

@@ -161,7 +161,7 @@ local ignoreSettings = {
         "|cFFFFFF00%[",
         "|cFFFF8040%[",
         "|cFFFF1A1A%[",
-        "Requires ",
+        --"Requires ",
         "Classes: ",
         "|cnIQ4:|",
         "Flame Leviathan pursues ",
@@ -961,10 +961,10 @@ function ST_GameTooltipOnShow_Original(tooltip)
                        shouldSave = false
                    end
 
-                   -- [FIX] Turuncu (Gold) Quest Başlıklarını Kaydetme (h@ prefix için)
-                   if shouldSave and (ST_prefix == "h") and (ST_color == "c7") then
-                       shouldSave = false
-                   end
+                   -- -- [FIX] Turuncu (Gold) Quest Başlıklarını Kaydetme (h@ prefix için)
+                   -- if shouldSave and (ST_prefix == "h") and (ST_color == "c7") then
+                       -- shouldSave = false
+                   -- end
 
                    if shouldSave and ST_IsValidForSave(ST_saveText, ST_hash) then
                     local savePrefix = ST_prefix
@@ -1633,6 +1633,18 @@ end
 function ST_SuggestTabClick()
 --print("SuggestTab clicked");
    if (TT_PS["ui5"] == "1") then
+
+      local function processRegion(frame)
+      	ST_CheckAndReplaceTranslationTextUI(frame, true, "ui")
+      end
+
+      processRegion(select(10, EncounterJournalJourneysFrame.JourneyProgress.OverviewBtn:GetRegions()));
+      processRegion(EncounterJournalJourneysFrame.JourneyProgress.ProgressDetailsFrame.JourneyLevelProgress);
+
+      local JourneyName = WOWTR_SafeGetText(EncounterJournalJourneysFrame.JourneyOverview.JourneyName); -- Get the Faction Name
+      local objJourneyDescription = EncounterJournalJourneysFrame.JourneyOverview.JourneyDescription;
+      ST_CheckAndReplaceTranslationText(objJourneyDescription, true, "Factions:" .. ST_RenkKoduSil(JourneyName));
+	  
       local obj0 = EncounterJournalInstanceSelect.Title;
       ST_CheckAndReplaceTranslationText(obj0, true, "Dungeon&Raid:Suggest:SuggestTittle",false,false);
       
@@ -3788,7 +3800,7 @@ end)
 -------------------------------------------------------------------------------------------------------
 -- Achievement
 function ST_Achievement()
-  if (TT_PS["ui1"] == "1") then
+  if (TT_PS["ui1"] == "1") and (TT_PS["ui8"] == "1") then
     local scrollBoxAchievements = AchievementFrameAchievements and AchievementFrameAchievements.ScrollBox
     local scrollTargetAchievements = scrollBoxAchievements and scrollBoxAchievements.ScrollTarget
 
@@ -3882,8 +3894,39 @@ f:RegisterEvent("ADDON_LOADED")
 f:SetScript("OnEvent", function(_, _, addonName)
     if addonName == "Blizzard_AchievementUI" then
         AchievementFrame:HookScript("OnShow", function() StartTicker(AchievementFrame, ST_Achievement, 0.01) end)
+		AchievementFrame:HookScript("OnShow", ST_Achievementbutton)
+		
     end
 end)
+
+local isAchievementButtonCreated = false
+local AchievementUpdateVisibility
+
+function ST_Achievementbutton()
+    if not isAchievementButtonCreated then
+        TT_PS = TT_PS or { ui8 = "1" }
+
+        AchievementUpdateVisibility = CreateToggleButton(
+            AchievementFrame,
+            TT_PS,
+            "ui8",
+            WoWTR_Localization.WoWTR_enDESC,
+            WoWTR_Localization.WoWTR_trDESC,
+            {"TOPLEFT", AchievementFrame, "TOPRIGHT", -215, 40},
+            function()
+                ST_Achievement()
+                -- You can add any necessary refresh logic here for the mount journal.
+            end
+        )
+
+        isAchievementButtonCreated = true -- Mark that the button has been created to avoid duplication.
+    end
+
+    -- Adjust visibility of the existing button
+    if AchievementUpdateVisibility then
+        AchievementUpdateVisibility()
+    end
+end
 
 -------------------------------------------------------------------------------------------------------
 -- HousingDashboard
@@ -3974,6 +4017,45 @@ function ST_AlliedRacesFrame()
     processRegion(AlliedRacesFrame.RaceInfoFrame.ScrollFrame.Child.ObjectivesFrame.Title)
     processRegion(AlliedRacesFrame.RaceInfoFrame.ScrollFrame.Child.RaceDescriptionText)
     processRegion(AlliedRacesFrame.RaceInfoFrame.ScrollFrame.Child.RacialTraitsLabel)
+
+	
+  end
+end
+
+-------------------------------------------------------------------------------------------------------
+-- CheckRole Dungeon
+function ST_CheckRoleDungeon()
+  if (TT_PS["ui1"] == "1") then
+
+    local function processRegion(frame)
+        ST_CheckAndReplaceTranslationTextUI(frame, true, "ui")
+    end
+
+    --processRegion(select(2, AchievementFrameSummaryAchievementsHeader:GetRegions()))
+    --processRegion(select(2, AchievementFrameSummaryCategoriesHeader:GetRegions()))
+    processRegion(LFDRoleCheckPopup.Text)
+    processRegion(LFDRoleCheckPopupAcceptButtonText)
+    processRegion(LFDRoleCheckPopupDeclineButtonText)
+
+	
+  end
+end
+
+-------------------------------------------------------------------------------------------------------
+-- Dungeon Ready Dialog Popup
+function ST_DungeonReadyDialogPopup()
+  if (TT_PS["ui1"] == "1") then
+
+    local function processRegion(frame)
+        ST_CheckAndReplaceTranslationTextUI(frame, true, "ui")
+    end
+
+    processRegion(select(4, LFGDungeonReadyDialog:GetRegions()))
+    processRegion(select(5, LFGDungeonReadyDialog:GetRegions()))
+    processRegion(LFGDungeonReadyDialogEnterDungeonButton.Text)
+    processRegion(LFGDungeonReadyDialogLeaveQueueButton.Text)
+    processRegion(LFGDungeonReadyDialog.label)
+    processRegion(LFGDungeonReadyDialog.instanceInfo.statusText)
 
 	
   end
