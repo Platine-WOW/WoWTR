@@ -1,6 +1,6 @@
 -- Description: The AddOn displays the translated text information in chosen language
 -- Author: Platine [platine.wow@gmail.com]
--- Co-Author: Dragonarab[WoWAR], Hakan YILMAZ[WoWTR]
+-- Co-Author: Hakan YILMAZ [hknylmz@gmail.com]
 -------------------------------------------------------------------------------------------------------
 
 -- local WOWTR_ConfigFirstTime = true;
@@ -39,12 +39,6 @@ function WOWTR_SetCheckButtonState()
    WOWTR_CheckButton33:SetChecked(MF_PM["movie"]=="1");
    WOWTR_CheckButton34:SetChecked(MF_PM["cinematic"]=="1");
    WOWTR_CheckButton35:SetChecked(MF_PM["save"]=="1");
-   
-   if (WoWTR_Localization.lang == 'AR') then          -- part: Chat
-      WOWTR_CheckButton36:SetChecked(CH_PM["active"]=="1");
-      WOWTR_CheckButton37:SetChecked(CH_PM["setsize"]=="1");
-      WOWTR_slider6:SetValue(tonumber(CH_PM["fontsize"]));
-   end
    
    WOWTR_CheckButton40:SetChecked(TT_PS["ui8"]=="1");
    WOWTR_CheckButton41:SetChecked(TT_PS["active"]=="1");
@@ -126,7 +120,7 @@ function WOWTR_SetDungeonFrames(obj, tryb, horiz)
       obj:ClearAllPoints();
       obj:SetPoint("CENTER", horiz, obj.vertical);
       obj:ClearLines();
-      obj:AddLine(QTR_ReverseIfAR(WoWTR_Localization.moveFrameUpDown), 1, 1, 1, true);
+      obj:AddLine((WoWTR_Localization.moveFrameUpDown), 1, 1, 1, true);
       if (BB_PM["setsize"]=="1") then              -- jest włączona wielkość czcionki dymku
          _G[obj:GetName().."TextLeft1"]:SetFont(WOWTR_Font2, tonumber(BB_PM["fontsize"]));      -- wielkość czcionki
       else
@@ -195,7 +189,7 @@ WOWTR_Options:SetBackdropBorderColor(0, 0, 0, 1);
 WOWTR_Options:Hide(); -- Start hidden
 
 -- Slash Command Handler
-SLASH_WOWTR1 = "/wowjp";
+SLASH_WOWTR1 = "/wowtr";
 SlashCmdList["WOWTR"] = function(msg)
     if WOWTR_Options:IsShown() then
         WOWTR_Options:Hide();
@@ -283,27 +277,16 @@ end);
 -- There is an addon icon inside the config frame 
 local WOWTR_OptionsHeaderIcon = WOWTR_Options:CreateTexture(nil, "OVERLAY");
 WOWTR_OptionsHeaderIcon:SetPoint("TOPLEFT", 20, -15);
-
-if (WoWTR_Localization.lang == 'AR') then
-   WOWTR_OptionsHeaderIcon:SetWidth(48);
-   WOWTR_OptionsHeaderIcon:SetHeight(48);
-else
-   WOWTR_OptionsHeaderIcon:SetWidth(32);
-   WOWTR_OptionsHeaderIcon:SetHeight(32);
-end
+WOWTR_OptionsHeaderIcon:SetWidth(32);
+WOWTR_OptionsHeaderIcon:SetHeight(32);
 WOWTR_OptionsHeaderIcon:SetTexture(WoWTR_Localization.mainFolder.."\\Images\\icon.png");
 
 -- Main text inside the option frame 
 local WOWTR_OptionsHeaderText = WOWTR_Options:CreateFontString(nil, "OVERLAY", "GameFontNormal");
 WOWTR_OptionsHeaderText:SetFont(WOWTR_Font2, 18);
 WOWTR_OptionsHeaderText:SetWidth(600);
-if (WoWTR_Localization.lang == 'AR') then
-   WOWTR_OptionsHeaderText:SetPoint("LEFT", WOWTR_OptionsHeaderIcon, "RIGHT", 50, 10);
-   WOWTR_OptionsHeaderText:SetText(AS_UTF8reverse(WoWTR_Localization.optionTitleAR));
-else
-   WOWTR_OptionsHeaderText:SetPoint("LEFT", WOWTR_OptionsHeaderIcon, "RIGHT", 10, 5); -- Adjusted for icon position
-   WOWTR_OptionsHeaderText:SetText(" "..WoWTR_Localization.optionTitle.." |cff8080ffv"..WOWTR_version.."|r      by Platine, Hknylmz © 2026");
-end
+WOWTR_OptionsHeaderText:SetPoint("LEFT", WOWTR_OptionsHeaderIcon, "RIGHT", 10, 5); -- Adjusted for icon position
+WOWTR_OptionsHeaderText:SetText(" "..WoWTR_Localization.optionTitle.." |cff8080ffv"..WOWTR_version.."|r      by Platine, Hknylmz © 2026");
 
 -- Sidebar Divider (Visual separator)
 local WOWTR_SidebarDivider = WOWTR_Options:CreateTexture(nil, "ARTWORK");
@@ -451,21 +434,13 @@ WOWTR_SplashWebsite:SetText(WoWTR_Localization.addressWWW);
 -- Adjust CheckButton00 (Minimap Icon) position in Standalone Frame
 local WOWTR_CheckButton00 = WOWTR_CreateModernCheckbox("WOWTR_CheckButton00", WOWTR_Options, "", nil);
 WOWTR_CheckButton00:SetScript("OnClick", function(self) if (QTR_PS["icon"]=="1") then QTR_PS["icon"]="0"; WOWTR.db.profile.minimap.hide=true; LibDBIcon10_WOWTR_LDB:Hide(); else QTR_PS["icon"]="1"; WOWTR.db.profile.minimap.hide=false; LibDBIcon10_WOWTR_LDB:Show(); end; end);
-if (WoWTR_Localization.lang == 'AR') then
-   WOWTR_CheckButton00:SetPoint("TOPLEFT", WOWTR_OptionsHeaderText, "TOPLEFT", 525, -20);
-   WOWTR_CheckButton00.Text:SetText("|cffffffff"..AS_UTF8reverse(WoWTR_Config_Interface.showMinimapIcon).."|r");   -- Show then addon setting icon next to the minimap
-   WOWTR_CheckButton00.Text:SetPoint("TOPLEFT", WOWTR_OptionsHeaderText, "TOPLEFT", 265, -30);
---   WOWTR_CheckButton00:SetWidth(260);
-else
-   WOWTR_CheckButton00:SetPoint("TOPLEFT", WOWTR_OptionsHeaderText, "TOPLEFT", 20, -20);
-   WOWTR_CheckButton00.Text:SetText("|cffffffff"..WoWTR_Config_Interface.showMinimapIcon.."|r");   -- Show then addon setting icon next to the minimap
---   WOWTR_CheckButton00:SetWidth(340);
-end
+WOWTR_CheckButton00:SetPoint("TOPLEFT", WOWTR_OptionsHeaderText, "TOPLEFT", 20, -20);
+WOWTR_CheckButton00.Text:SetText("|cffffffff"..WoWTR_Config_Interface.showMinimapIcon.."|r");   -- Show then addon setting icon next to the minimap
 WOWTR_CheckButton00.Text:SetFont(WOWTR_Font2, 13);
 WOWTR_CheckButton00:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT");
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.showMinimapIcon).." ", false);               -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.showMinimapIcon).." ", false);               -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    GameTooltip:AddLine(QTR_ExpandUnitInfo(WoWTR_Config_Interface.showMinimapIconDESC,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2).." ", 1, 1, 1, true);   -- white color, wrap
    getglobal("GameTooltipTextLeft2"):SetFont(WOWTR_Font2, 13);
@@ -477,25 +452,25 @@ WOWTR_CheckButton00:SetScript("OnLeave", function(self)
 
 
 -- Modern Tabs Logic (Replaces old A/B Buttons)
-local WOWTR_Tab1 = WOWTR_CreateModernTab(WOWTR_Options, 1, QTR_ReverseIfAR(WoWTR_Config_Interface.titleTab1), "Interface\\GossipFrame\\AvailableQuestIcon", function() WOWTR_SelectTab(1) end)
+local WOWTR_Tab1 = WOWTR_CreateModernTab(WOWTR_Options, 1, (WoWTR_Config_Interface.titleTab1), "Interface\\GossipFrame\\AvailableQuestIcon", function() WOWTR_SelectTab(1) end)
 WOWTR_Tab1:SetPoint("TOPLEFT", WOWTR_Options, "TOPLEFT", 0, -70)
 
-local WOWTR_Tab2 = WOWTR_CreateModernTab(WOWTR_Options, 2, QTR_ReverseIfAR(WoWTR_Config_Interface.titleTab2), "Interface\\Icons\\UI_Chat", function() WOWTR_SelectTab(2) end)
+local WOWTR_Tab2 = WOWTR_CreateModernTab(WOWTR_Options, 2, (WoWTR_Config_Interface.titleTab2), "Interface\\Icons\\UI_Chat", function() WOWTR_SelectTab(2) end)
 WOWTR_Tab2:SetPoint("TOPLEFT", WOWTR_Tab1, "BOTTOMLEFT", 0, -1)
 
-local WOWTR_Tab3 = WOWTR_CreateModernTab(WOWTR_Options, 3, QTR_ReverseIfAR(WoWTR_Config_Interface.titleTab3), "Interface\\Icons\\INV_Misc_Film_01", function() WOWTR_SelectTab(3) end)
+local WOWTR_Tab3 = WOWTR_CreateModernTab(WOWTR_Options, 3, (WoWTR_Config_Interface.titleTab3), "Interface\\Icons\\INV_Misc_Film_01", function() WOWTR_SelectTab(3) end)
 WOWTR_Tab3:SetPoint("TOPLEFT", WOWTR_Tab2, "BOTTOMLEFT", 0, -1)
 
-local WOWTR_Tab4 = WOWTR_CreateModernTab(WOWTR_Options, 4, QTR_ReverseIfAR(WoWTR_Config_Interface.titleTab4), "Interface\\Icons\\INV_Misc_Note_02", function() WOWTR_SelectTab(4) end)
+local WOWTR_Tab4 = WOWTR_CreateModernTab(WOWTR_Options, 4, (WoWTR_Config_Interface.titleTab4), "Interface\\Icons\\INV_Misc_Note_02", function() WOWTR_SelectTab(4) end)
 WOWTR_Tab4:SetPoint("TOPLEFT", WOWTR_Tab3, "BOTTOMLEFT", 0, -1)
 
-local WOWTR_Tab5 = WOWTR_CreateModernTab(WOWTR_Options, 5, QTR_ReverseIfAR(WoWTR_Config_Interface.titleTab5), "Interface\\Icons\\INV_Misc_Book_09", function() WOWTR_SelectTab(5) end)
+local WOWTR_Tab5 = WOWTR_CreateModernTab(WOWTR_Options, 5, (WoWTR_Config_Interface.titleTab5), "Interface\\Icons\\INV_Misc_Book_09", function() WOWTR_SelectTab(5) end)
 WOWTR_Tab5:SetPoint("TOPLEFT", WOWTR_Tab4, "BOTTOMLEFT", 0, -1)
 
-local WOWTR_Tab6 = WOWTR_CreateModernTab(WOWTR_Options, 6, QTR_ReverseIfAR(WoWTR_Config_Interface.titleTab6), "Interface\\Icons\\INV_Scroll_03", function() WOWTR_SelectTab(6) end)
+local WOWTR_Tab6 = WOWTR_CreateModernTab(WOWTR_Options, 6, (WoWTR_Config_Interface.titleTab6), "Interface\\Icons\\INV_Scroll_03", function() WOWTR_SelectTab(6) end)
 WOWTR_Tab6:SetPoint("TOPLEFT", WOWTR_Tab5, "BOTTOMLEFT", 0, -1)
 
-local WOWTR_Tab9 = WOWTR_CreateModernTab(WOWTR_Options, 9, QTR_ReverseIfAR(WoWTR_Config_Interface.titleTab9), "Interface\\Icons\\INV_Misc_QuestionMark", function() WOWTR_SelectTab(9) end)
+local WOWTR_Tab9 = WOWTR_CreateModernTab(WOWTR_Options, 9, (WoWTR_Config_Interface.titleTab9), "Interface\\Icons\\INV_Misc_QuestionMark", function() WOWTR_SelectTab(9) end)
 WOWTR_Tab9:SetPoint("TOPLEFT", WOWTR_Tab6, "BOTTOMLEFT", 0, -1)
 
 -- Compatibility Redirection (Override legacy functions)
@@ -590,13 +565,9 @@ WOWTR_Panel1Header1:SetFontObject(GameFontNormal);
 WOWTR_Panel1Header1:SetJustifyH("LEFT"); 
 WOWTR_Panel1Header1:SetJustifyV("TOP");
 WOWTR_Panel1Header1:ClearAllPoints();
-WOWTR_Panel1Header1:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.generalMainHeaderQS));   -- Quest translations
+WOWTR_Panel1Header1:SetText((WoWTR_Config_Interface.generalMainHeaderQS));   -- Quest translations
 WOWTR_Panel1Header1:SetFont(WOWTR_Font2, 15);
-if (WoWTR_Localization.lang == 'AR') then
-   WOWTR_Panel1Header1:SetPoint("TOPLEFT", WOWTR_OptionPanel1, "TOPLEFT", 525, 0);
-else
-   WOWTR_Panel1Header1:SetPoint("TOPLEFT", WOWTR_OptionPanel1, "TOPLEFT", 20, 0);
-end
+WOWTR_Panel1Header1:SetPoint("TOPLEFT", WOWTR_OptionPanel1, "TOPLEFT", 20, 0);
 
 local WOWTR_CheckButton11 = WOWTR_CreateModernCheckbox("WOWTR_CheckButton11", WOWTR_OptionPanel1, "", nil);
 WOWTR_CheckButton11:SetScript("OnClick", function(self) if (QTR_PS["active"]=="1") then QTR_PS["active"]="0" else QTR_PS["active"]="1" end; if WOWTR_ShowReloadButton then WOWTR_ShowReloadButton() end end);
@@ -606,12 +577,12 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_CheckButton11:SetPoint("TOPLEFT", WOWTR_Panel1Header1, "TOPLEFT", 10, -20);
 end
-WOWTR_CheckButton11.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.activateQuestsTranslations).."|r");   -- Activate quest translations
+WOWTR_CheckButton11.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.activateQuestsTranslations).."|r");   -- Activate quest translations
 WOWTR_CheckButton11.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton11:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT");
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.activateQuestsTranslations).." ", false);               -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.activateQuestsTranslations).." ", false);               -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    GameTooltip:AddLine(QTR_ExpandUnitInfo(WoWTR_Config_Interface.activateQuestsTranslationsDESC,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2).." ", 1, 1, 1, true);   -- white color, wrap
    getglobal("GameTooltipTextLeft2"):SetFont(WOWTR_Font2, 13);
@@ -629,12 +600,12 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_CheckButton12:SetPoint("TOPLEFT", WOWTR_CheckButton11, "BOTTOMLEFT", 0, -20);
 end
-WOWTR_CheckButton12.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.translateQuestTitles).."|r");   -- Display translation of quest TITLES
+WOWTR_CheckButton12.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.translateQuestTitles).."|r");   -- Display translation of quest TITLES
 WOWTR_CheckButton12.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton12:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.translateQuestTitles).." ", false);                -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.translateQuestTitles).." ", false);                -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    GameTooltip:AddLine(QTR_ExpandUnitInfo(WoWTR_Config_Interface.translateQuestTitlesDESC,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2).." ", 1, 1, 1, true);   -- white color, wrap
    getglobal("GameTooltipTextLeft2"):SetFont(WOWTR_Font2, 13);
@@ -652,12 +623,12 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_CheckButton13:SetPoint("TOPLEFT", WOWTR_CheckButton12, "BOTTOMLEFT", 0, 5);
 end
-WOWTR_CheckButton13.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.translateGossipTexts).."|r");   -- Display translation of GOSSIP texts
+WOWTR_CheckButton13.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.translateGossipTexts).."|r");   -- Display translation of GOSSIP texts
 WOWTR_CheckButton13.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton13:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.translateGossipTexts).." ", false);                -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.translateGossipTexts).." ", false);                -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    GameTooltip:AddLine(QTR_ExpandUnitInfo(WoWTR_Config_Interface.translateGossipTextsDESC,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2).." ", 1, 1, 1, true);   -- white color, wrap
    getglobal("GameTooltipTextLeft2"):SetFont(WOWTR_Font2, 13);
@@ -669,26 +640,13 @@ WOWTR_CheckButton13:SetScript("OnLeave", function(self)
  
 local WOWTR_CheckButton1a = WOWTR_CreateModernCheckbox("WOWTR_CheckButton1a", WOWTR_OptionPanel1, "", nil);
 WOWTR_CheckButton1a:SetScript("OnClick", function(self) if (QTR_PS["ownnames"]=="1") then QTR_PS["ownnames"]="0" else QTR_PS["ownnames"]="1" end; end);
-if (WoWTR_Localization.lang == 'AR') then
-   WOWTR_CheckButton1a:SetPoint("TOPLEFT", WOWTR_Panel1Header1, "TOPLEFT", 110, -130);
-   WOWTR_CheckButton1a.Text:SetPoint("TOPLEFT", WOWTR_Panel1Header1, "TOPLEFT", -148, -140);
-else
-   WOWTR_CheckButton1a:SetPoint("TOPLEFT", WOWTR_CheckButton13, "BOTTOMLEFT", 0, 5);
-end
-if (WoWTR_Localization.lang == 'AR') then
-   WOWTR_CheckButton1a.Text:SetText(QTR_ReverseIfAR(WOW_ZmienKody(WoWTR_Config_Interface.translateOwnNames)..""));   -- Display translation of GOSSIP texts
-else
-   WOWTR_CheckButton1a.Text:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.translateOwnNames));   -- Display translation of GOSSIP texts
-end
+WOWTR_CheckButton1a:SetPoint("TOPLEFT", WOWTR_CheckButton13, "BOTTOMLEFT", 0, 5);
+WOWTR_CheckButton1a.Text:SetText((WoWTR_Config_Interface.translateOwnNames));   -- Display translation of GOSSIP texts
 WOWTR_CheckButton1a.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton1a:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   if (WoWTR_Localization.lang == 'AR') then
-      GameTooltip:AddLine(QTR_ReverseIfAR(WOW_ZmienKody(WoWTR_Config_Interface.translateOwnNames)).." ", false);
-   else
-      GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.translateOwnNames).." ", false);
-   end
+   GameTooltip:AddLine((WoWTR_Config_Interface.translateOwnNames).." ", false);
    getglobal("GameTooltipTextLeft2"):SetFont(WOWTR_Font2, 13);
    GameTooltip:Show()   -- Show the tooltip
    end);
@@ -710,12 +668,12 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_CheckButton14:SetPoint("TOPLEFT", WOWTR_CheckButton1a, "BOTTOMLEFT", 0, 5);
 end
-WOWTR_CheckButton14.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.translateTrackObjectives).."|r");   -- Display translation of GOSSIP texts
+WOWTR_CheckButton14.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.translateTrackObjectives).."|r");   -- Display translation of GOSSIP texts
 WOWTR_CheckButton14.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton14:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.translateTrackObjectives).." ", false);                -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.translateTrackObjectives).." ", false);                -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    GameTooltip:AddLine(QTR_ExpandUnitInfo(WoWTR_Config_Interface.translateTrackObjectivesDESC,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2).." ", 1, 1, 1, true);    -- white color, wrap
    getglobal("GameTooltipTextLeft2"):SetFont(WOWTR_Font2, 13);
@@ -741,7 +699,7 @@ WOWTR_slider4:SetMinMaxValues(11, 14);
 WOWTR_slider4.minValue, WOWTR_slider4.maxValue = WOWTR_slider4:GetMinMaxValues();
 WOWTR_slider4.Low:SetText(WOWTR_slider4.minValue);
 WOWTR_slider4.High:SetText(WOWTR_slider4.maxValue);
-WOWTR_slider4.Text:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.fontsizeBubbles));
+WOWTR_slider4.Text:SetText((WoWTR_Config_Interface.fontsizeBubbles));
 WOWTR_slider4.Text:SetFont(WOWTR_Font2, 11);
 WOWTR_slider4:SetValue(tonumber(QTR_PS["fontsize"]));
 WOWTR_slider4:SetValueStep(1);
@@ -764,29 +722,20 @@ WOWTR_Opis4:SetFontObject(GameFontNormalLarge);
 WOWTR_Opis4:SetJustifyH("LEFT");
 WOWTR_Opis4:SetJustifyV("TOP");
 WOWTR_Opis4:ClearAllPoints();
-if (WoWTR_Localization.lang == 'AR') then
-   WOWTR_Opis4:SetPoint("TOPLEFT", WOWTR_slider4, "BOTTOMLEFT", -230, 20);
-else
-   WOWTR_Opis4:SetPoint("TOPLEFT", WOWTR_slider4, "BOTTOMLEFT", 180, 30);
-end
+WOWTR_Opis4:SetPoint("TOPLEFT", WOWTR_slider4, "BOTTOMLEFT", 180, 30);
 local fontsize = tonumber(QTR_PS["fontsize"]);
 WOWTR_Opis4:SetFont(WOWTR_Font2, fontsize);
-WOWTR_Opis4:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.sampleGossipText));
+WOWTR_Opis4:SetText((WoWTR_Config_Interface.sampleGossipText));
 
 local WOWTR_CheckButton1c = WOWTR_CreateModernCheckbox("WOWTR_CheckButton1c", WOWTR_OptionPanel1, "", nil);
 WOWTR_CheckButton1c:SetScript("OnClick", function(self) if (QTR_PS["en_first"]=="1") then QTR_PS["en_first"]="0" else QTR_PS["en_first"]="1" end; end);
-if (WoWTR_Localization.lang == 'AR') then
-   WOWTR_CheckButton1c:SetPoint("TOPLEFT", WOWTR_slider4, "BOTTOMLEFT", 160, -20);
-   WOWTR_CheckButton1c.Text:SetPoint("TOPLEFT", WOWTR_slider4, "BOTTOMLEFT", 20, -30);
-else
-   WOWTR_CheckButton1c:SetPoint("TOPLEFT", WOWTR_slider4, "BOTTOMLEFT", 0, -20);
-end
-WOWTR_CheckButton1c.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.displayENfirst).."|r");   -- Display text in English first
+WOWTR_CheckButton1c:SetPoint("TOPLEFT", WOWTR_slider4, "BOTTOMLEFT", 0, -20);
+WOWTR_CheckButton1c.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.displayENfirst).."|r");   -- Display text in English first
 WOWTR_CheckButton1c.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton1c:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.displayENfirst).." ", false);                -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.displayENfirst).." ", false);                -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    GameTooltip:AddLine(QTR_ExpandUnitInfo(WoWTR_Config_Interface.displayENfirstDESC,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2).." ", 1, 1, 1, true);   -- white color, wrap
    getglobal("GameTooltipTextLeft2"):SetFont(WOWTR_Font2, 13);
@@ -801,28 +750,19 @@ WOWTR_Panel1Header2:SetFontObject(GameFontNormal);
 WOWTR_Panel1Header2:SetJustifyH("LEFT"); 
 WOWTR_Panel1Header2:SetJustifyV("TOP");
 WOWTR_Panel1Header2:ClearAllPoints();
-if (WoWTR_Localization.lang == 'AR') then
-   WOWTR_Panel1Header2:SetPoint("TOPLEFT", WOWTR_OptionPanel1, "TOPLEFT", 580, -290);
-else
-   WOWTR_Panel1Header2:SetPoint("TOPLEFT", WOWTR_OptionPanel1, "TOPLEFT", 20, -290);
-end
-WOWTR_Panel1Header2:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.savingUntranslatedQuests));   -- Saving untranslated quests and gossip texts
+WOWTR_Panel1Header2:SetPoint("TOPLEFT", WOWTR_OptionPanel1, "TOPLEFT", 20, -290);
+WOWTR_Panel1Header2:SetText((WoWTR_Config_Interface.savingUntranslatedQuests));   -- Saving untranslated quests and gossip texts
 WOWTR_Panel1Header2:SetFont(WOWTR_Font2, 15);
 
 local WOWTR_CheckButton15 = WOWTR_CreateModernCheckbox("WOWTR_CheckButton15", WOWTR_OptionPanel1, "", nil);
 WOWTR_CheckButton15:SetScript("OnClick", function(self) if (QTR_PS["saveQS"]=="1") then QTR_PS["saveQS"]="0" else QTR_PS["saveQS"]="1" end; end);
-if (WoWTR_Localization.lang == 'AR') then
-   WOWTR_CheckButton15:SetPoint("TOPLEFT", WOWTR_Panel1Header2, "TOPLEFT", 55, -20);
-   WOWTR_CheckButton15.Text:SetPoint("TOPLEFT", WOWTR_Panel1Header2, "TOPLEFT", -95, -30);
-else
-   WOWTR_CheckButton15:SetPoint("TOPLEFT", WOWTR_Panel1Header2, "TOPLEFT", 10, -20);
-end
-WOWTR_CheckButton15.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.saveUntranslatedQuests).."|r");   -- Save untranslated quests
+WOWTR_CheckButton15:SetPoint("TOPLEFT", WOWTR_Panel1Header2, "TOPLEFT", 10, -20);
+WOWTR_CheckButton15.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.saveUntranslatedQuests).."|r");   -- Save untranslated quests
 WOWTR_CheckButton15.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton15:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.saveUntranslatedQuests).." ", false);                -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.saveUntranslatedQuests).." ", false);                -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    GameTooltip:AddLine(QTR_ExpandUnitInfo(WoWTR_Config_Interface.saveUntranslatedQuestsDESC,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2).." ", 1, 1, 1, true);   -- white color, wrap
    getglobal("GameTooltipTextLeft2"):SetFont(WOWTR_Font2, 13);
@@ -840,12 +780,12 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_CheckButton16:SetPoint("TOPLEFT", WOWTR_CheckButton15, "BOTTOMLEFT", 0, 0);
 end
-WOWTR_CheckButton16.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.saveUntranslatedGossip).."|r");   -- Save untranslated gossip texts
+WOWTR_CheckButton16.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.saveUntranslatedGossip).."|r");   -- Save untranslated gossip texts
 WOWTR_CheckButton16.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton16:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.saveUntranslatedGossip).." ", false);                -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.saveUntranslatedGossip).." ", false);                -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    GameTooltip:AddLine(QTR_ExpandUnitInfo(WoWTR_Config_Interface.saveUntranslatedGossipDESC,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2).." ", 1, 1, 1, true);   -- white color, wrap
    getglobal("GameTooltipTextLeft2"):SetFont(WOWTR_Font2, 13);
@@ -865,7 +805,7 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_Panel1Header3:SetPoint("TOPLEFT", WOWTR_OptionPanel1, "TOPLEFT", 20, -400);
 end
-WOWTR_Panel1Header3:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.integrationWithOtherAddons));   -- Integration with other addons
+WOWTR_Panel1Header3:SetText((WoWTR_Config_Interface.integrationWithOtherAddons));   -- Integration with other addons
 WOWTR_Panel1Header3:SetFont(WOWTR_Font2, 15);
 
 local WOWTR_CheckButton17 = WOWTR_CreateModernCheckbox("WOWTR_CheckButton17", WOWTR_OptionPanel1, "", nil);
@@ -876,12 +816,12 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_CheckButton17:SetPoint("TOPLEFT", WOWTR_Panel1Header3, "TOPLEFT", 10, -20);
 end
-WOWTR_CheckButton17.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.translateImmersion).."|r");   -- Display translation in Immersion addon
+WOWTR_CheckButton17.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.translateImmersion).."|r");   -- Display translation in Immersion addon
 WOWTR_CheckButton17.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton17:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.translateImmersion).." ", false);                -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.translateImmersion).." ", false);                -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    GameTooltip:AddLine(QTR_ExpandUnitInfo(WoWTR_Config_Interface.translateImmersionDESC,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2).." ", 1, 1, 1, true);   -- white color, wrap
    getglobal("GameTooltipTextLeft2"):SetFont(WOWTR_Font2, 13);
@@ -899,12 +839,12 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_CheckButton18:SetPoint("TOPLEFT", WOWTR_CheckButton17, "BOTTOMLEFT", 0, 5);
 end
-WOWTR_CheckButton18.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.translateStoryLine).."|r");   -- Display translation in StoryLine addon
+WOWTR_CheckButton18.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.translateStoryLine).."|r");   -- Display translation in StoryLine addon
 WOWTR_CheckButton18.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton18:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.translateStoryLine).." ", false);                -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.translateStoryLine).." ", false);                -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    GameTooltip:AddLine(QTR_ExpandUnitInfo(WoWTR_Config_Interface.translateStoryLineDESC,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2).." ", 1, 1, 1, true);   -- white color, wrap
    getglobal("GameTooltipTextLeft2"):SetFont(WOWTR_Font2, 13);
@@ -922,12 +862,12 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_CheckButton19:SetPoint("TOPLEFT", WOWTR_CheckButton18, "BOTTOMLEFT", 0, 5);
 end
-WOWTR_CheckButton19.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.translateQuestLog).."|r");   -- Display translation in StoryLine addon
+WOWTR_CheckButton19.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.translateQuestLog).."|r");   -- Display translation in StoryLine addon
 WOWTR_CheckButton19.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton19:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.translateQuestLog).." ", false);                -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.translateQuestLog).." ", false);                -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    GameTooltip:AddLine(QTR_ExpandUnitInfo(WoWTR_Config_Interface.translateQuestLogDESC,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2).." ", 1, 1, 1, true);   -- white color, wrap
    getglobal("GameTooltipTextLeft2"):SetFont(WOWTR_Font2, 13);
@@ -945,12 +885,12 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_CheckButton1b:SetPoint("TOPLEFT", WOWTR_CheckButton19, "BOTTOMLEFT", 0, 5);
 end
-WOWTR_CheckButton1b.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.translateDialogueUI).."|r");   -- Display translation in StoryLine addon
+WOWTR_CheckButton1b.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.translateDialogueUI).."|r");   -- Display translation in StoryLine addon
 WOWTR_CheckButton1b.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton1b:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.translateDialogueUI).." ", false);                -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.translateDialogueUI).." ", false);                -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    GameTooltip:AddLine(QTR_ExpandUnitInfo(WoWTR_Config_Interface.translateDialogueUIDESC,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2).." ", 1, 1, 1, true);   -- white color, wrap
    getglobal("GameTooltipTextLeft2"):SetFont(WOWTR_Font2, 13);
@@ -982,7 +922,7 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_Panel2Header1:SetPoint("TOPLEFT", WOWTR_OptionPanel2, "TOPLEFT", 20, 0);
 end
-WOWTR_Panel2Header1:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.generalMainHeaderBB));   -- Bubbles translations
+WOWTR_Panel2Header1:SetText((WoWTR_Config_Interface.generalMainHeaderBB));   -- Bubbles translations
 WOWTR_Panel2Header1:SetFont(WOWTR_Font2, 15);
 
 local WOWTR_CheckButton21 = WOWTR_CreateModernCheckbox("WOWTR_CheckButton21", WOWTR_OptionPanel2, "", nil);
@@ -993,12 +933,12 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_CheckButton21:SetPoint("TOPLEFT", WOWTR_Panel2Header1, "TOPLEFT", 10, -20);
 end
-WOWTR_CheckButton21.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.activateBubblesTranslations).."|r");   -- Activate bubble translations
+WOWTR_CheckButton21.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.activateBubblesTranslations).."|r");   -- Activate bubble translations
 WOWTR_CheckButton21.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton21:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.activateBubblesTranslations).." ", false);                -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.activateBubblesTranslations).." ", false);                -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    GameTooltip:AddLine(QTR_ExpandUnitInfo(WoWTR_Config_Interface.activateBubblesTranslationsDESC,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2).." ", 1, 1, 1, true);   -- white color, wrap
    getglobal("GameTooltipTextLeft2"):SetFont(WOWTR_Font2, 13);
@@ -1016,12 +956,12 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_CheckButton22:SetPoint("TOPLEFT", WOWTR_CheckButton21, "BOTTOMLEFT", 0, -20);
 end
-WOWTR_CheckButton22.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.displayOriginalTexts).."|r");   -- Display original text in chat frame
+WOWTR_CheckButton22.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.displayOriginalTexts).."|r");   -- Display original text in chat frame
 WOWTR_CheckButton22.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton22:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.displayOriginalTexts).." ", false);                -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.displayOriginalTexts).." ", false);                -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    GameTooltip:AddLine(QTR_ExpandUnitInfo(WoWTR_Config_Interface.displayOriginalTextsDESC,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2).." ", 1, 1, 1, true);   -- white color, wrap
    getglobal("GameTooltipTextLeft2"):SetFont(WOWTR_Font2, 13);
@@ -1039,12 +979,12 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_CheckButton23:SetPoint("TOPLEFT", WOWTR_CheckButton22, "BOTTOMLEFT", 0, 0);
 end
-WOWTR_CheckButton23.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.displayTranslatedTexts).."|r");   -- Display translated text in chat frame
+WOWTR_CheckButton23.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.displayTranslatedTexts).."|r");   -- Display translated text in chat frame
 WOWTR_CheckButton23.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton23:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.displayTranslatedTexts).." ", false);                -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.displayTranslatedTexts).." ", false);                -- red color, no wrap
    GameTooltip:AddLine(QTR_ExpandUnitInfo(WoWTR_Config_Interface.displayTranslatedTextsDESC,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2).." ", 1, 1, 1, true);   -- white color, wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    getglobal("GameTooltipTextLeft2"):SetFont(WOWTR_Font2, 13);
@@ -1063,12 +1003,12 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_CheckButton24:SetPoint("TOPLEFT", WOWTR_CheckButton23, "BOTTOMLEFT", 0, -20);
 end
-WOWTR_CheckButton24.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.choiceGender1OfPlayer).."|r");   -- Choice of male expression
+WOWTR_CheckButton24.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.choiceGender1OfPlayer).."|r");   -- Choice of male expression
 WOWTR_CheckButton24.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton24:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.choiceGender1OfPlayer).." ", false);                -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.choiceGender1OfPlayer).." ", false);                -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    GameTooltip:AddLine(QTR_ExpandUnitInfo(WoWTR_Config_Interface.choiceGender1OfPlayerDESC,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2).." ", 1, 1, 1, true);   -- white color, wrap
    getglobal("GameTooltipTextLeft2"):SetFont(WOWTR_Font2, 13);
@@ -1087,12 +1027,12 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_CheckButton25:SetPoint("TOPLEFT", WOWTR_CheckButton24, "BOTTOMLEFT", 0, 0);
 end
-WOWTR_CheckButton25.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.choiceGender2OfPlayer).."|r");   -- Choice of female expression
+WOWTR_CheckButton25.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.choiceGender2OfPlayer).."|r");   -- Choice of female expression
 WOWTR_CheckButton25.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton25:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.choiceGender2OfPlayer).." ", false);                -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.choiceGender2OfPlayer).." ", false);                -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    GameTooltip:AddLine(QTR_ExpandUnitInfo(WoWTR_Config_Interface.choiceGender2OfPlayerDESC,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2).." ", 1, 1, 1, true);   -- white color, wrap
    getglobal("GameTooltipTextLeft2"):SetFont(WOWTR_Font2, 13);
@@ -1111,12 +1051,12 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_CheckButton26:SetPoint("TOPLEFT", WOWTR_CheckButton25, "BOTTOMLEFT", 0, 0);
 end
-WOWTR_CheckButton26.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.choiceGender3OfPlayer).."|r");   -- Choice of expression for the player depending
+WOWTR_CheckButton26.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.choiceGender3OfPlayer).."|r");   -- Choice of expression for the player depending
 WOWTR_CheckButton26.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton26:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.choiceGender3OfPlayer).." ", false);                -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.choiceGender3OfPlayer).." ", false);                -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    GameTooltip:AddLine(QTR_ExpandUnitInfo(WoWTR_Config_Interface.choiceGender3OfPlayerDESC,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2).." ", 1, 1, 1, true);   -- white color, wrap
    getglobal("GameTooltipTextLeft2"):SetFont(WOWTR_Font2, 13);
@@ -1136,12 +1076,12 @@ elseif ((WoWTR_Localization.lang == 'TR') or (WoWTR_Localization.lang == 'UA')) 
 else
    WOWTR_CheckButton2d1:SetPoint("TOPLEFT", WOWTR_CheckButton26, "BOTTOMLEFT", 400, 0);
 end
-WOWTR_CheckButton2d1.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.showBubblesInDungeon).."|r");   -- show bubbles in dungeon
+WOWTR_CheckButton2d1.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.showBubblesInDungeon).."|r");   -- show bubbles in dungeon
 WOWTR_CheckButton2d1.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton2d1:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.showBubblesInDungeon).." ", false);                -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.showBubblesInDungeon).." ", false);                -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    GameTooltip:AddLine(QTR_ExpandUnitInfo(WoWTR_Config_Interface.showBubblesInDungeonDESC,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2).." ", 1, 1, 1, true);   -- white color, wrap
    getglobal("GameTooltipTextLeft2"):SetFont(WOWTR_Font2, 13);
@@ -1172,12 +1112,12 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_CheckButton2d2:SetPoint("TOPLEFT", WOWTR_CheckButton2d1, "BOTTOMLEFT", 0, 0);
 end
-WOWTR_CheckButton2d2.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.setDungeonFrames).."|r");   -- show bubbles in dungeon
+WOWTR_CheckButton2d2.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.setDungeonFrames).."|r");   -- show bubbles in dungeon
 WOWTR_CheckButton2d2.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton2d2:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.setDungeonFrames).." ", false);                -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.setDungeonFrames).." ", false);                -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    GameTooltip:AddLine(QTR_ExpandUnitInfo(WoWTR_Config_Interface.setDungeonFramesDESC,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2).." ", 1, 1, 1, true);   -- white color, wrap
    getglobal("GameTooltipTextLeft2"):SetFont(WOWTR_Font2, 13);
@@ -1197,7 +1137,7 @@ WOWTR_slider5:SetMinMaxValues(3, 10);
 WOWTR_slider5.minValue, WOWTR_slider5.maxValue = WOWTR_slider5:GetMinMaxValues();
 WOWTR_slider5.Low:SetText(WOWTR_slider5.minValue);
 WOWTR_slider5.High:SetText(WOWTR_slider5.maxValue);
-WOWTR_slider5.Text:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.timerDisplay));
+WOWTR_slider5.Text:SetText((WoWTR_Config_Interface.timerDisplay));
 WOWTR_slider5.Text:SetFont(WOWTR_Font2, 11);
 WOWTR_slider5:SetValue(tonumber(BB_PM["timeDisplay"]));
 WOWTR_slider5:SetValueStep(1);
@@ -1224,7 +1164,7 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_Panel2Header2:SetPoint("TOPLEFT", WOWTR_OptionPanel2, "TOPLEFT", 20, -290);
 end
-WOWTR_Panel2Header2:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.savingUntranslatedBubbles));   -- Saving untranslated bubble texts
+WOWTR_Panel2Header2:SetText((WoWTR_Config_Interface.savingUntranslatedBubbles));   -- Saving untranslated bubble texts
 WOWTR_Panel2Header2:SetFont(WOWTR_Font2, 15);
 
 local WOWTR_CheckButton27 = WOWTR_CreateModernCheckbox("WOWTR_CheckButton27", WOWTR_OptionPanel2, "", nil);
@@ -1235,12 +1175,12 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_CheckButton27:SetPoint("TOPLEFT", WOWTR_Panel2Header2, "TOPLEFT", 10, -20);
 end
-WOWTR_CheckButton27.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.saveUntranslatedBubbles).."|r");   -- Save untranslated bubbles
+WOWTR_CheckButton27.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.saveUntranslatedBubbles).."|r");   -- Save untranslated bubbles
 WOWTR_CheckButton27.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton27:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.saveUntranslatedBubbles).." ", false);                -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.saveUntranslatedBubbles).." ", false);                -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    GameTooltip:AddLine(QTR_ExpandUnitInfo(WoWTR_Config_Interface.saveUntranslatedBubblesDESC,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2).." ", 1, 1, 1, true);   -- white color, wrap
    getglobal("GameTooltipTextLeft2"):SetFont(WOWTR_Font2, 13);
@@ -1260,7 +1200,7 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_Panel2Header3:SetPoint("TOPLEFT", WOWTR_OptionPanel2, "TOPLEFT", 20, -370);
 end
-WOWTR_Panel2Header3:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.fontSizeHeader));    -- Font size of bubbles
+WOWTR_Panel2Header3:SetText((WoWTR_Config_Interface.fontSizeHeader));    -- Font size of bubbles
 WOWTR_Panel2Header3:SetFont(WOWTR_Font2, 15);
 
 local WOWTR_CheckButton28 = WOWTR_CreateModernCheckbox("WOWTR_CheckButton28", WOWTR_OptionPanel2, "", nil);
@@ -1271,12 +1211,12 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_CheckButton28:SetPoint("TOPLEFT", WOWTR_Panel2Header3, "TOPLEFT", 10, -20);
 end
-WOWTR_CheckButton28.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.setFontActivate).."|r");   -- Activate font size changes
+WOWTR_CheckButton28.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.setFontActivate).."|r");   -- Activate font size changes
 WOWTR_CheckButton28.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton28:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.setFontActivate).." ", false);                -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.setFontActivate).." ", false);                -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    GameTooltip:AddLine(QTR_ExpandUnitInfo(WoWTR_Config_Interface.setFontActivateDESC,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2).." ", 1, 1, 1, true);   -- white color, wrap
    getglobal("GameTooltipTextLeft2"):SetFont(WOWTR_Font2, 13);
@@ -1296,7 +1236,7 @@ WOWTR_slider1:SetMinMaxValues(10, 20);
 WOWTR_slider1.minValue, WOWTR_slider1.maxValue = WOWTR_slider1:GetMinMaxValues();
 WOWTR_slider1.Low:SetText(WOWTR_slider1.minValue);
 WOWTR_slider1.High:SetText(WOWTR_slider1.maxValue);
-WOWTR_slider1.Text:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.fontsizeBubbles));
+WOWTR_slider1.Text:SetText((WoWTR_Config_Interface.fontsizeBubbles));
 WOWTR_slider1.Text:SetFont(WOWTR_Font2, 11);
 WOWTR_slider1:SetValue(tonumber(BB_PM["fontsize"]));
 WOWTR_slider1:SetValueStep(1);
@@ -1330,7 +1270,7 @@ if (BB_PM["setsize"]=="1") then
 else
    WOWTR_Opis1:SetFont(WOWTR_Font2, 13);
 end
-WOWTR_Opis1:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.sampleText));
+WOWTR_Opis1:SetText((WoWTR_Config_Interface.sampleText));
 
 ----- TAB 3
 
@@ -1354,7 +1294,7 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_Panel3Header1:SetPoint("TOPLEFT", WOWTR_OptionPanel3, "TOPLEFT", 20, 0);
 end
-WOWTR_Panel3Header1:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.generalMainHeaderMF));    -- Subtitle translations
+WOWTR_Panel3Header1:SetText((WoWTR_Config_Interface.generalMainHeaderMF));    -- Subtitle translations
 WOWTR_Panel3Header1:SetFont(WOWTR_Font2, 15);
 
 local WOWTR_CheckButton31 = WOWTR_CreateModernCheckbox("WOWTR_CheckButton31", WOWTR_OptionPanel3, "", nil);
@@ -1365,12 +1305,12 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_CheckButton31:SetPoint("TOPLEFT", WOWTR_Panel3Header1, "TOPLEFT", 10, -20);
 end
-WOWTR_CheckButton31.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.activateSubtitleTranslations).."|r");   -- Activate subtitle translations
+WOWTR_CheckButton31.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.activateSubtitleTranslations).."|r");   -- Activate subtitle translations
 WOWTR_CheckButton31.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton31:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.activateSubtitleTranslations).." ", false);                -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.activateSubtitleTranslations).." ", false);                -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    GameTooltip:AddLine(QTR_ExpandUnitInfo(WoWTR_Config_Interface.activateSubtitleTranslationsDESC,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2).." ", 1, 1, 1, true);   -- white color, wrap
    getglobal("GameTooltipTextLeft2"):SetFont(WOWTR_Font2, 13);
@@ -1388,12 +1328,12 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_CheckButton32:SetPoint("TOPLEFT", WOWTR_CheckButton31, "BOTTOMLEFT", 0, -20);
 end
-WOWTR_CheckButton32.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.subtitleIntro).."|r");   -- Display translated subtitles of Intro
+WOWTR_CheckButton32.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.subtitleIntro).."|r");   -- Display translated subtitles of Intro
 WOWTR_CheckButton32.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton32:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.subtitleIntro).." ", false);                -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.subtitleIntro).." ", false);                -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    GameTooltip:AddLine(QTR_ExpandUnitInfo(WoWTR_Config_Interface.subtitleIntroDESC,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2).." ", 1, 1, 1, true);   -- white color, wrap
    getglobal("GameTooltipTextLeft2"):SetFont(WOWTR_Font2, 13);
@@ -1411,12 +1351,12 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_CheckButton33:SetPoint("TOPLEFT", WOWTR_CheckButton32, "BOTTOMLEFT", 0, 0);
 end
-WOWTR_CheckButton33.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.subtitleMovies).."|r");   -- Display translated subtitle of Movies
+WOWTR_CheckButton33.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.subtitleMovies).."|r");   -- Display translated subtitle of Movies
 WOWTR_CheckButton33.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton33:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.subtitleMovies).." ", false);                -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.subtitleMovies).." ", false);                -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    GameTooltip:AddLine(QTR_ExpandUnitInfo(WoWTR_Config_Interface.subtitleMoviesDESC,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2).." ", 1, 1, 1, true);   -- white color, wrap
    getglobal("GameTooltipTextLeft2"):SetFont(WOWTR_Font2, 13);
@@ -1434,12 +1374,12 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_CheckButton34:SetPoint("TOPLEFT", WOWTR_CheckButton33, "BOTTOMLEFT", 0, 0);
 end
-WOWTR_CheckButton34.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.subtitleCinematics).."|r");   -- Display translated sybtitles of Cinematics
+WOWTR_CheckButton34.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.subtitleCinematics).."|r");   -- Display translated sybtitles of Cinematics
 WOWTR_CheckButton34.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton34:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.subtitleCinematics).." ", false);                -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.subtitleCinematics).." ", false);                -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    GameTooltip:AddLine(QTR_ExpandUnitInfo(WoWTR_Config_Interface.subtitleCinematicsDESC,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2).." ", 1, 1, 1, true);   -- white color, wrap
    getglobal("GameTooltipTextLeft2"):SetFont(WOWTR_Font2, 13);
@@ -1459,23 +1399,18 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_Panel3Header2:SetPoint("TOPLEFT", WOWTR_OptionPanel3, "TOPLEFT", 20, -210);
 end
-WOWTR_Panel3Header2:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.savingUntranslatedSubtitles));   -- Saving untranslated subtitles
+WOWTR_Panel3Header2:SetText((WoWTR_Config_Interface.savingUntranslatedSubtitles));   -- Saving untranslated subtitles
 WOWTR_Panel3Header2:SetFont(WOWTR_Font2, 15);
 
 local WOWTR_CheckButton35 = WOWTR_CreateModernCheckbox("WOWTR_CheckButton35", WOWTR_OptionPanel3, "", nil);
 WOWTR_CheckButton35:SetScript("OnClick", function(self) if (MF_PM["save"]=="1") then MF_PM["save"]="0" else MF_PM["save"]="1" end; end);
-if (WoWTR_Localization.lang == 'AR') then
-   WOWTR_CheckButton35:SetPoint("TOPLEFT", WOWTR_Panel3Header2, "TOPLEFT", 55, -20);
-   WOWTR_CheckButton35.Text:SetPoint("TOPLEFT", WOWTR_Panel3Header2, "TOPLEFT", -115, -30);
-else
-   WOWTR_CheckButton35:SetPoint("TOPLEFT", WOWTR_Panel3Header2, "TOPLEFT", 10, -20);
-end
-WOWTR_CheckButton35.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.saveUntranslatedSubtitles).."|r");   -- Save untranslated subtitles
+WOWTR_CheckButton35:SetPoint("TOPLEFT", WOWTR_Panel3Header2, "TOPLEFT", 10, -20);
+WOWTR_CheckButton35.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.saveUntranslatedSubtitles).."|r");   -- Save untranslated subtitles
 WOWTR_CheckButton35.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton35:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.saveUntranslatedSubtitles).." ", false);                -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.saveUntranslatedSubtitles).." ", false);                -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    GameTooltip:AddLine(QTR_ExpandUnitInfo(WoWTR_Config_Interface.saveUntranslatedSubtitlesDESC,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2).." ", 1, 1, 1, true);   -- white color, wrap
    getglobal("GameTooltipTextLeft2"):SetFont(WOWTR_Font2, 13);
@@ -1484,110 +1419,6 @@ WOWTR_CheckButton35:HookScript("OnEnter", function(self)
 WOWTR_CheckButton35:SetScript("OnLeave", function(self)
    GameTooltip:Hide()   -- Hide the tooltip
    end);
-
-if (WoWTR_Localization.lang == 'AR') then          -- part: Chat
-   local WOWTR_Panel3Separator = WOWTR_OptionPanel4:CreateFontString(nil, "ARTWORK");
-   WOWTR_Panel3Separator:SetFontObject(GameFontWhite);
-   WOWTR_Panel3Separator:SetJustifyH("LEFT"); 
-   WOWTR_Panel3Separator:SetJustifyV("TOP");
-   WOWTR_Panel3Separator:ClearAllPoints();
-   WOWTR_Panel3Separator:SetPoint("TOPLEFT", WOWTR_OptionPanel4, "TOPLEFT", 50, -300);
-   local frame3 = WOWTR_OptionPanel3:CreateTexture(nil, "BACKGROUND")
-   frame3:SetSize(684, 1)
-   frame3:SetPoint("TOPLEFT", 0, -300)
-   frame3:SetColorTexture(0.2, 0.2, 0.2, 1)
-
-   local WOWTR_OptionsHeaderIcon8 = WOWTR_OptionPanel3:CreateTexture(nil, "OVERLAY");
-   WOWTR_OptionsHeaderIcon8:SetWidth(200);
-   WOWTR_OptionsHeaderIcon8:SetHeight(200);
-   WOWTR_OptionsHeaderIcon8:SetTexture(WoWTR_Localization.mainFolder.."\\Images\\archat.jpg");
-   WOWTR_OptionsHeaderIcon8:SetPoint("CENTER", -230, -150);
-
-   local WOWTR_Panel3Header3 = WOWTR_OptionPanel3:CreateFontString(nil, "ARTWORK");
-   WOWTR_Panel3Header3:SetFontObject(GameFontNormal);
-   WOWTR_Panel3Header3:SetJustifyH("LEFT"); 
-   WOWTR_Panel3Header3:SetJustifyV("TOP");
-   WOWTR_Panel3Header3:ClearAllPoints();
-   WOWTR_Panel3Header3:SetPoint("TOPLEFT", WOWTR_Panel3Separator, "TOPLEFT", 400, -20);
-   WOWTR_Panel3Header3:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.chatService));
-   WOWTR_Panel3Header3:SetFont(WOWTR_Font2, 15);
-
-   local WOWTR_CheckButton36 = WOWTR_CreateModernCheckbox("WOWTR_CheckButton36", WOWTR_OptionPanel3, "", nil);
-   WOWTR_CheckButton36:SetScript("OnClick", function(self) if (CH_PM["active"]=="1") then CH_PM["active"]="0";CH_ToggleButton:SetText("EN");CH_ToggleButton:Hide() else CH_PM["active"]="1";CH_ToggleButton:Show() end; end);
-   WOWTR_CheckButton36:SetPoint("TOPLEFT", WOWTR_Panel3Header3, "TOPLEFT", 185, -20);
-   WOWTR_CheckButton36.Text:SetPoint("TOPLEFT", WOWTR_Panel3Header3, "TOPLEFT", -10, -30);
-   WOWTR_CheckButton36.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.activateChatService).."|r");   -- Activate service of arabic chat
-   WOWTR_CheckButton36.Text:SetFont(WOWTR_Font2, 15);
-   WOWTR_CheckButton36:HookScript("OnEnter", function(self)
-      GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
-      GameTooltip:ClearLines();
-      GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.activateChatService).." ", false);                -- red color, no wrap
-      getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
-      GameTooltip:AddLine(QTR_ExpandUnitInfo(WoWTR_Config_Interface.activateChatServiceDESC,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2).." ", 1, 1, 1, true);   -- white color, wrap
-      getglobal("GameTooltipTextLeft2"):SetFont(WOWTR_Font2, 13);
-      GameTooltip:Show()   -- Show the tooltip
-      end);
-   WOWTR_CheckButton36:SetScript("OnLeave", function(self)
-      GameTooltip:Hide()   -- Hide the tooltip
-      end);
-
-   local WOWTR_CheckButton37 = WOWTR_CreateModernCheckbox("WOWTR_CheckButton37", WOWTR_OptionPanel3, "", nil);
-   WOWTR_CheckButton37:SetScript("OnClick", function(self) if (CH_PM["setsize"]=="1") then CH_PM["setsize"]="0" else CH_PM["setsize"]="1" end; end);
-   WOWTR_CheckButton37:SetPoint("TOPLEFT", WOWTR_Panel3Header3, "TOPLEFT", 185, -50);
-   WOWTR_CheckButton37.Text:SetPoint("TOPLEFT", WOWTR_Panel3Header3, "TOPLEFT", 48, -60);
-   WOWTR_CheckButton37.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.chatFontActivate).."|r");   -- Activate font size changes
-   WOWTR_CheckButton37.Text:SetFont(WOWTR_Font2, 15);
-   WOWTR_CheckButton37:HookScript("OnEnter", function(self)
-   GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
-   GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.chatFontActivate).." ", false);                -- red color, no wrap
-   getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
-   GameTooltip:AddLine(QTR_ExpandUnitInfo(WoWTR_Config_Interface.chatFontActivateDESC,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2).." ", 1, 1, 1, true);   -- white color, wrap
-   getglobal("GameTooltipTextLeft2"):SetFont(WOWTR_Font2, 13);
-   GameTooltip:Show()   -- Show the tooltip
-   end);
-   WOWTR_CheckButton37:SetScript("OnLeave", function(self)
-   GameTooltip:Hide()   -- Hide the tooltip
-   end);
-
-   local WOWTR_slider6 = WOWTR_CreateModernSlider("WOWTR_slider6", WOWTR_OptionPanel3, "", 10, 20, 1, nil);
-   WOWTR_slider6:SetPoint("TOPLEFT", WOWTR_CheckButton37, "BOTTOMLEFT", -150, -30);
-   WOWTR_slider6:SetMinMaxValues(10, 20);
-   WOWTR_slider6.minValue, WOWTR_slider6.maxValue = WOWTR_slider6:GetMinMaxValues();
-   WOWTR_slider6.Low:SetText(WOWTR_slider6.minValue);
-   WOWTR_slider6.High:SetText(WOWTR_slider6.maxValue);
-   WOWTR_slider6.Text:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.fontsizeBubbles));
-   WOWTR_slider6.Text:SetFont(WOWTR_Font2, 11);
-   if WoWTR_Localization.lang == 'AR' then
-      local WOWTR_slider6 = WOWTR_CreateModernSlider("WOWTR_slider6", WOWTR_OptionPanel3, "", 10, 20, 1, nil);
-      -- rest of WOWTR_slider6 setup code
-      
-      if CH_PM and CH_PM["fontsize"] then
-          local fontsize = tonumber(CH_PM["fontsize"])
-          if fontsize then
-              WOWTR_slider6:SetValue(fontsize);
-          else
-              WOWTR_slider6:SetValue(13);
-          end
-      else
-          WOWTR_slider6:SetValue(13);
-      end
-  end
-   WOWTR_slider6:SetValueStep(1);
-   WOWTR_slider6:SetScript("OnValueChanged", function(self,event,arg1) 
-                                      BB_PM["fontsize"]=string.format("%d",event); 
-                                      WOWTR_sliderVal6:SetText(BB_PM["fontsize"]);
-                                      end);
-   WOWTR_sliderVal6 = WOWTR_OptionPanel3:CreateFontString(nil, "ARTWORK");
-   WOWTR_sliderVal6:SetFontObject(GameFontNormal);
-   WOWTR_sliderVal6:SetJustifyH("CENTER");
-   WOWTR_sliderVal6:SetJustifyV("TOP");
-   WOWTR_sliderVal6:ClearAllPoints();
-   WOWTR_sliderVal6:SetPoint("CENTER", WOWTR_slider6, "CENTER", 0, -12);
-   WOWTR_sliderVal6:SetText(BB_PM["fontsize"]);   
-   WOWTR_sliderVal6:SetFont(WOWTR_Font2, 13);
-   
-end
 
 ----- TAB 4
 
@@ -1611,23 +1442,18 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_Panel4Header1:SetPoint("TOPLEFT", WOWTR_OptionPanel4, "TOPLEFT", 20, 0);
 end
-WOWTR_Panel4Header1:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.generalMainHeaderTT));     -- Tutorial translations
+WOWTR_Panel4Header1:SetText((WoWTR_Config_Interface.generalMainHeaderTT));     -- Tutorial translations
 WOWTR_Panel4Header1:SetFont(WOWTR_Font2, 15);
 
 local WOWTR_CheckButton41 = WOWTR_CreateModernCheckbox("WOWTR_CheckButton41", WOWTR_OptionPanel4, "", nil);
 WOWTR_CheckButton41:SetScript("OnClick", function(self) if (TT_PS["active"]=="1") then TT_PS["active"]="0" else TT_PS["active"]="1" end; end);
-if (WoWTR_Localization.lang == 'AR') then
-   WOWTR_CheckButton41:SetPoint("TOPLEFT", WOWTR_Panel4Header1, "TOPLEFT", 190, -20);
-   WOWTR_CheckButton41.Text:SetPoint("TOPLEFT", WOWTR_Panel4Header1, "TOPLEFT", 5, -30);
-else
-   WOWTR_CheckButton41:SetPoint("TOPLEFT", WOWTR_Panel4Header1, "TOPLEFT", 10, -20);
-end
-WOWTR_CheckButton41.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.activateTutorialTranslations).."|r");   -- Activate subtitle translations
+WOWTR_CheckButton41:SetPoint("TOPLEFT", WOWTR_Panel4Header1, "TOPLEFT", 10, -20);
+WOWTR_CheckButton41.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.activateTutorialTranslations).."|r");   -- Activate subtitle translations
 WOWTR_CheckButton41.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton41:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.activateTutorialTranslations), false);                -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.activateTutorialTranslations), false);                -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    GameTooltip:AddLine(QTR_ExpandUnitInfo(WoWTR_Config_Interface.activateTutorialTranslationsDESC,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2).." ", 1, 1, 1, true);   -- white color, wrap
    getglobal("GameTooltipTextLeft2"):SetFont(WOWTR_Font2, 13);
@@ -1642,28 +1468,19 @@ WOWTR_Panel4Header2:SetFontObject(GameFontNormal);
 WOWTR_Panel4Header2:SetJustifyH("LEFT"); 
 WOWTR_Panel4Header2:SetJustifyV("TOP");
 WOWTR_Panel4Header2:ClearAllPoints();
-if (WoWTR_Localization.lang == 'AR') then
-   WOWTR_Panel4Header2:SetPoint("TOPLEFT", WOWTR_OptionPanel4, "TOPLEFT", 580, -100);
-else
-   WOWTR_Panel4Header2:SetPoint("TOPLEFT", WOWTR_OptionPanel4, "TOPLEFT", 20, -100);
-end
-WOWTR_Panel4Header2:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.savingUntranslatedTutorials));   -- Saving untranslated tutorials
+WOWTR_Panel4Header2:SetPoint("TOPLEFT", WOWTR_OptionPanel4, "TOPLEFT", 20, -100);
+WOWTR_Panel4Header2:SetText((WoWTR_Config_Interface.savingUntranslatedTutorials));   -- Saving untranslated tutorials
 WOWTR_Panel4Header2:SetFont(WOWTR_Font2, 15);
 
 local WOWTR_CheckButton42 = WOWTR_CreateModernCheckbox("WOWTR_CheckButton42", WOWTR_OptionPanel4, "", nil);
 WOWTR_CheckButton42:SetScript("OnClick", function(self) if (TT_PS["save"]=="1") then TT_PS["save"]="0" else TT_PS["save"]="1" end; end);
-if (WoWTR_Localization.lang == 'AR') then
-   WOWTR_CheckButton42:SetPoint("TOPLEFT", WOWTR_Panel4Header2, "TOPLEFT", 55, -20);
-   WOWTR_CheckButton42.Text:SetPoint("TOPLEFT", WOWTR_Panel4Header2, "TOPLEFT", -155, -30);
-else
-   WOWTR_CheckButton42:SetPoint("TOPLEFT", WOWTR_Panel4Header2, "TOPLEFT", 10, -20);
-end
-WOWTR_CheckButton42.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.saveUntranslatedTutorials).."|r");   -- Save untranslated tutorials
+WOWTR_CheckButton42:SetPoint("TOPLEFT", WOWTR_Panel4Header2, "TOPLEFT", 10, -20);
+WOWTR_CheckButton42.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.saveUntranslatedTutorials).."|r");   -- Save untranslated tutorials
 WOWTR_CheckButton42.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton42:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.saveUntranslatedTutorials).." ", false);               -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.saveUntranslatedTutorials).." ", false);               -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    GameTooltip:AddLine(QTR_ExpandUnitInfo(WoWTR_Config_Interface.saveUntranslatedTutorialsDESC,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2).." ", 1, 1, 1, true);   -- white color, wrap
    getglobal("GameTooltipTextLeft2"):SetFont(WOWTR_Font2, 13);
@@ -1679,12 +1496,8 @@ if (#WOWTR_Fonts > 1) then
    WOWTR_Panel4Header2f:SetJustifyH("LEFT"); 
    WOWTR_Panel4Header2f:SetJustifyV("TOP");
    WOWTR_Panel4Header2f:ClearAllPoints();
-   if (WoWTR_Localization.lang == 'AR') then
-      WOWTR_Panel4Header2f:SetPoint("TOPLEFT", WOWTR_OptionPanel4, "TOPLEFT", 545, -170);
-   else
-      WOWTR_Panel4Header2f:SetPoint("TOPLEFT", WOWTR_OptionPanel4, "TOPLEFT", 20, -170);
-   end
-   WOWTR_Panel4Header2f:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.fontSelectingFontHeader));   -- Select a font header
+   WOWTR_Panel4Header2f:SetPoint("TOPLEFT", WOWTR_OptionPanel4, "TOPLEFT", 20, -170);
+   WOWTR_Panel4Header2f:SetText((WoWTR_Config_Interface.fontSelectingFontHeader));   -- Select a font header
    WOWTR_Panel4Header2f:SetFont(WOWTR_Font2, 15);
 
    local WOWTR_Panel4Header2g = WOWTR_OptionPanel4:CreateFontString(nil, "ARTWORK");
@@ -1692,12 +1505,8 @@ if (#WOWTR_Fonts > 1) then
    WOWTR_Panel4Header2g:SetJustifyH("LEFT"); 
    WOWTR_Panel4Header2g:SetJustifyV("TOP");
    WOWTR_Panel4Header2g:ClearAllPoints();
-   if (WoWTR_Localization.lang == 'AR') then
-      WOWTR_Panel4Header2g:SetPoint("TOPLEFT", WOWTR_OptionPanel4, "TOPLEFT", 300, -170);
-   else
-      WOWTR_Panel4Header2g:SetPoint("TOPLEFT", WOWTR_OptionPanel4, "TOPLEFT", 290, -170);
-   end
-   WOWTR_Panel4Header2g:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.fontCurrentFont));   -- Current font:
+   WOWTR_Panel4Header2g:SetPoint("TOPLEFT", WOWTR_OptionPanel4, "TOPLEFT", 290, -170);
+   WOWTR_Panel4Header2g:SetText((WoWTR_Config_Interface.fontCurrentFont));   -- Current font:
    WOWTR_Panel4Header2g:SetFont(WOWTR_Font2, 15);
 
    local WOWTR_Panel4Header2h = WOWTR_OptionPanel4:CreateFontString(nil, "ARTWORK");
@@ -1705,21 +1514,13 @@ if (#WOWTR_Fonts > 1) then
    WOWTR_Panel4Header2h:SetJustifyH("LEFT"); 
    WOWTR_Panel4Header2h:SetJustifyV("TOP");
    WOWTR_Panel4Header2h:ClearAllPoints();
-   if (WoWTR_Localization.lang == 'AR') then
-      WOWTR_Panel4Header2h:SetPoint("TOPLEFT", WOWTR_Panel4Header2g, "TOPLEFT", 0, -30);
-   else
-      WOWTR_Panel4Header2h:SetPoint("TOPLEFT", WOWTR_Panel4Header2g, "TOPLEFT", 0, -30);
-   end
+   WOWTR_Panel4Header2h:SetPoint("TOPLEFT", WOWTR_Panel4Header2g, "TOPLEFT", 0, -30);
    WOWTR_Panel4Header2h:SetText(QTR_PS["FontFile"]);   -- current font file
    WOWTR_Panel4Header2h:SetFont(WOWTR_Font2, 13);
 
    local WOWTR_Panel4SelectF = CreateFrame("Frame", "WOWTR_Panel4SelectF", WOWTR_OptionPanel4, "UIDropDownMenuTemplate");
    WOWTR_Panel4SelectF:ClearAllPoints();
-   if (WoWTR_Localization.lang == 'AR') then
-      WOWTR_Panel4SelectF:SetPoint("TOPLEFT", WOWTR_OptionPanel4, "TOPLEFT", 460, -195);
-   else
-      WOWTR_Panel4SelectF:SetPoint("TOPLEFT", WOWTR_OptionPanel4, "TOPLEFT", 0, -195);
-   end
+   WOWTR_Panel4SelectF:SetPoint("TOPLEFT", WOWTR_OptionPanel4, "TOPLEFT", 0, -195);
    UIDropDownMenu_SetWidth(WOWTR_Panel4SelectF, 170);
    UIDropDownMenu_SetText(WOWTR_Panel4SelectF, WoWTR_Config_Interface.fontSelectFontFile);        -- Select a font file
    UIDropDownMenu_Initialize(WOWTR_Panel4SelectF, function(self, level, _)
@@ -1772,7 +1573,7 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_Panel4Header3:SetPoint("TOPLEFT", WOWTR_Panel4Separator, "TOPLEFT", 0, -10);
 end
-WOWTR_Panel4Header3:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.translationUI));   -- Translation of user interface
+WOWTR_Panel4Header3:SetText((WoWTR_Config_Interface.translationUI));   -- Translation of user interface
 WOWTR_Panel4Header3:SetFont(WOWTR_Font2, 15);
 
 local WOWTR_Panel4Text1 = WOWTR_OptionPanel4:CreateFontString(nil, "ARTWORK");
@@ -1786,7 +1587,7 @@ else
    WOWTR_Panel4Text1:SetPoint("TOPLEFT", WOWTR_Panel4Separator, "TOPLEFT", 0, -30);
 end
 WOWTR_Panel4Text1:SetWidth(640);
-WOWTR_Panel4Text1:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.displayTranslationtxt));
+WOWTR_Panel4Text1:SetText((WoWTR_Config_Interface.displayTranslationtxt));
 WOWTR_Panel4Text1:SetFont(WOWTR_Font2, 12);
 
 local WOWTR_CheckButton43 = WOWTR_CreateModernCheckbox("WOWTR_CheckButton43", WOWTR_OptionPanel4, "", nil);
@@ -1797,12 +1598,12 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_CheckButton43:SetPoint("TOPLEFT", WOWTR_Panel4Header3, "TOPLEFT", 10, -45);
 end
-WOWTR_CheckButton43.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.displayTranslationUI1).."|r");
+WOWTR_CheckButton43.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.displayTranslationUI1).."|r");
 WOWTR_CheckButton43.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton43:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.displayTranslationUI1).." ", false);               -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.displayTranslationUI1).." ", false);               -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    getglobal("GameTooltipTextLeft1"):SetWidth(150);
    if (WoWTR_Localization.lang == 'AR') then
@@ -1824,12 +1625,12 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_CheckButton45:SetPoint("TOPLEFT", WOWTR_CheckButton43, "TOPLEFT", 0, -28);
 end
-WOWTR_CheckButton45.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.displayTranslationUI2).."|r");   -- Display translation of user interface (Character Info)
+WOWTR_CheckButton45.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.displayTranslationUI2).."|r");   -- Display translation of user interface (Character Info)
 WOWTR_CheckButton45.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton45:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.displayTranslationUI2).." ", false);               -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.displayTranslationUI2).." ", false);               -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    getglobal("GameTooltipTextLeft1"):SetWidth(150);
    if (WoWTR_Localization.lang == 'AR') then
@@ -1851,12 +1652,12 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_CheckButton46:SetPoint("TOPLEFT", WOWTR_CheckButton45, "TOPLEFT", 0, -28);
 end
-WOWTR_CheckButton46.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.displayTranslationUI3).."|r");   -- Display translation of user interface (Group Finder)
+WOWTR_CheckButton46.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.displayTranslationUI3).."|r");   -- Display translation of user interface (Group Finder)
 WOWTR_CheckButton46.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton46:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.displayTranslationUI3).." ", false);               -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.displayTranslationUI3).." ", false);               -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    getglobal("GameTooltipTextLeft1"):SetWidth(150);
    if (WoWTR_Localization.lang == 'AR') then
@@ -1878,12 +1679,12 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_CheckButton50:SetPoint("TOPLEFT", WOWTR_CheckButton46, "TOPLEFT", 0, -28);
 end
-WOWTR_CheckButton50.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.displayTranslationUI7).."|r");   -- Display translation of user interface (Group Finder)
+WOWTR_CheckButton50.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.displayTranslationUI7).."|r");   -- Display translation of user interface (Group Finder)
 WOWTR_CheckButton50.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton50:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.displayTranslationUI7).." ", false);               -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.displayTranslationUI7).." ", false);               -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    getglobal("GameTooltipTextLeft1"):SetWidth(150);
    if (WoWTR_Localization.lang == 'AR') then
@@ -1905,12 +1706,12 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_CheckButton47:SetPoint("TOPLEFT", WOWTR_Panel4Header3, "TOPLEFT", 230, -45);
 end
-WOWTR_CheckButton47.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.displayTranslationUI4).."|r");   -- Display translation of user interface (Collections Frame)
+WOWTR_CheckButton47.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.displayTranslationUI4).."|r");   -- Display translation of user interface (Collections Frame)
 WOWTR_CheckButton47.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton47:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.displayTranslationUI4).." ", false);               -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.displayTranslationUI4).." ", false);               -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    getglobal("GameTooltipTextLeft1"):SetWidth(150);
    if (WoWTR_Localization.lang == 'AR') then
@@ -1932,12 +1733,12 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_CheckButton48:SetPoint("TOPLEFT", WOWTR_CheckButton47, "TOPLEFT", 0, -28);
 end
-WOWTR_CheckButton48.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.displayTranslationUI5).."|r");   -- Display translation of user interface (Advanture Guide)
+WOWTR_CheckButton48.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.displayTranslationUI5).."|r");   -- Display translation of user interface (Advanture Guide)
 WOWTR_CheckButton48.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton48:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.displayTranslationUI5).." ", false);               -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.displayTranslationUI5).." ", false);               -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    getglobal("GameTooltipTextLeft1"):SetWidth(150);
    if (WoWTR_Localization.lang == 'AR') then
@@ -1959,12 +1760,12 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_CheckButton49:SetPoint("TOPLEFT", WOWTR_CheckButton48, "TOPLEFT", 0, -28);
 end
-WOWTR_CheckButton49.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.displayTranslationUI6).."|r");   -- Display translation of user interface (Friend List)
+WOWTR_CheckButton49.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.displayTranslationUI6).."|r");   -- Display translation of user interface (Friend List)
 WOWTR_CheckButton49.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton49:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.displayTranslationUI6).." ", false);               -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.displayTranslationUI6).." ", false);               -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    getglobal("GameTooltipTextLeft1"):SetWidth(150);
    if (WoWTR_Localization.lang == 'AR') then
@@ -1986,12 +1787,12 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_CheckButton40:SetPoint("TOPLEFT", WOWTR_CheckButton49, "TOPLEFT", 0, -28);
 end
-WOWTR_CheckButton40.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.displayTranslationUI8).."|r");   -- Achievement
+WOWTR_CheckButton40.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.displayTranslationUI8).."|r");   -- Achievement
 WOWTR_CheckButton40.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton40:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.displayTranslationUI8).." ", false);               -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.displayTranslationUI8).." ", false);               -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    getglobal("GameTooltipTextLeft1"):SetWidth(150);
    if (WoWTR_Localization.lang == 'AR') then
@@ -2013,10 +1814,10 @@ WOWTR_ReloadButtonUI:SetHeight(32);
 if (WoWTR_Localization.lang == 'AR') then
    local fo = WOWTR_ReloadButtonUI:CreateFontString();
    fo:SetFont(WOWTR_Font2, 13);
-   fo:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.ReloadButtonUI));
+   fo:SetText((WoWTR_Config_Interface.ReloadButtonUI));
    WOWTR_ReloadButtonUI:SetFontString(fo);
 end
-WOWTR_ReloadButtonUI:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.ReloadButtonUI));     -- Przywróć ustawienia domyślne dodatku
+WOWTR_ReloadButtonUI:SetText((WoWTR_Config_Interface.ReloadButtonUI));     -- Przywróć ustawienia domyślne dodatku
 WOWTR_ReloadButtonUI:ClearAllPoints();
 if (WoWTR_Localization.lang == 'AR') then
    WOWTR_ReloadButtonUI:SetPoint("TOPLEFT", WOWTR_CheckButton46, "TOPLEFT", -320, -60);
@@ -2044,7 +1845,7 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_Panel4Header4:SetPoint("TOPLEFT", WOWTR_Panel4Separator, "TOPLEFT", 0, -220);
 end
-WOWTR_Panel4Header4:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.savingTranslationUI));   -- Saving untranslated user interface
+WOWTR_Panel4Header4:SetText((WoWTR_Config_Interface.savingTranslationUI));   -- Saving untranslated user interface
 WOWTR_Panel4Header4:SetFont(WOWTR_Font2, 15);
 
 local WOWTR_CheckButton44 = WOWTR_CreateModernCheckbox("WOWTR_CheckButton44", WOWTR_OptionPanel4, "", nil);
@@ -2055,12 +1856,12 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_CheckButton44:SetPoint("TOPLEFT", WOWTR_Panel4Header4, "TOPLEFT", 10, -20);
 end
-WOWTR_CheckButton44.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.saveTranslationUI).."|r");   -- Save untranslated user interface
+WOWTR_CheckButton44.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.saveTranslationUI).."|r");   -- Save untranslated user interface
 WOWTR_CheckButton44.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton44:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.saveTranslationUI).." ", false);               -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.saveTranslationUI).." ", false);               -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    GameTooltip:AddLine(QTR_ExpandUnitInfo(WoWTR_Config_Interface.saveTranslationUIDESC,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2).." ", 1, 1, 1, true);   -- white color, wrap
    getglobal("GameTooltipTextLeft2"):SetFont(WOWTR_Font2, 13);
@@ -2079,7 +1880,7 @@ if (WoWTR_Localization.lang == 'AR') then
    fo:SetText(WoWTR_Localization.resetButton2);
    WOWTR_ResetButton2:SetFontString(fo);
 end
-WOWTR_ResetButton2:SetText(QTR_ReverseIfAR(WoWTR_Localization.resetButton2));     -- Przywróć ustawienia domyślne dodatku
+WOWTR_ResetButton2:SetText((WoWTR_Localization.resetButton2));     -- Przywróć ustawienia domyślne dodatku
 WOWTR_ResetButton2:ClearAllPoints();
 if (WoWTR_Localization.lang == 'AR') then
    WOWTR_ResetButton2:SetPoint("TOPLEFT", WOWTR_Panel4Header1, "TOPLEFT", -435, -470);
@@ -2091,7 +1892,7 @@ WOWTR_ResetButton2:SetScript("OnClick", function() WOWTR_Confirmation1:Hide(); W
 WOWTR_ResetButton2:SetScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Localization.resetButton2Opis).." ", false);               -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Localization.resetButton2Opis).." ", false);               -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    GameTooltip:AddLine(QTR_ExpandUnitInfo(WoWTR_Localization.resetButton2OpisDESC,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2).." ", 1, 1, 1, true);   -- white color, wrap
    getglobal("GameTooltipTextLeft2"):SetFont(WOWTR_Font2, 13);
@@ -2123,7 +1924,7 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_Panel5Header1:SetPoint("TOPLEFT", WOWTR_OptionPanel5, "TOPLEFT", 20, 0);
 end
-WOWTR_Panel5Header1:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.generalMainHeaderBT));     -- Books translations
+WOWTR_Panel5Header1:SetText((WoWTR_Config_Interface.generalMainHeaderBT));     -- Books translations
 WOWTR_Panel5Header1:SetFont(WOWTR_Font2, 15);
 
 local WOWTR_CheckButton51 = WOWTR_CreateModernCheckbox("WOWTR_CheckButton51", WOWTR_OptionPanel5, "", nil);
@@ -2134,12 +1935,12 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_CheckButton51:SetPoint("TOPLEFT", WOWTR_Panel5Header1, "TOPLEFT", 10, -20);
 end
-WOWTR_CheckButton51.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.activateBooksTranslations).."|r");   -- Activate subtitle translations
+WOWTR_CheckButton51.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.activateBooksTranslations).."|r");   -- Activate subtitle translations
 WOWTR_CheckButton51.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton51:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.activateBooksTranslations).." ", false);                -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.activateBooksTranslations).." ", false);                -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    GameTooltip:AddLine(QTR_ExpandUnitInfo(WoWTR_Config_Interface.activateBooksTranslationsDESC,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2).." ", 1, 1, 1, true);   -- white color, wrap
    getglobal("GameTooltipTextLeft2"):SetFont(WOWTR_Font2, 13);
@@ -2157,12 +1958,12 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_CheckButton52:SetPoint("TOPLEFT", WOWTR_CheckButton51, "BOTTOMLEFT", 0, -20);
 end
-WOWTR_CheckButton52.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.translateBookTitles).."|r");   -- translate book tltles
+WOWTR_CheckButton52.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.translateBookTitles).."|r");   -- translate book tltles
 WOWTR_CheckButton52.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton52:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.translateBookTitles).." ", false);                -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.translateBookTitles).." ", false);                -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    GameTooltip:AddLine(QTR_ExpandUnitInfo(WoWTR_Config_Interface.translateBookTitlesDESC,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2).." ", 1, 1, 1, true);   -- white color, wrap
    getglobal("GameTooltipTextLeft2"):SetFont(WOWTR_Font2, 13);
@@ -2180,12 +1981,12 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_CheckButton53:SetPoint("TOPLEFT", WOWTR_CheckButton52, "BOTTOMLEFT", 0, 0);
 end
-WOWTR_CheckButton53.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.showBookID).."|r");   -- Show ID of book
+WOWTR_CheckButton53.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.showBookID).."|r");   -- Show ID of book
 WOWTR_CheckButton53.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton53:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.showBookID).." ", false);                -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.showBookID).." ", false);                -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    GameTooltip:AddLine(QTR_ExpandUnitInfo(WoWTR_Config_Interface.showBookIDDESC,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2).." ", 1, 1, 1, true);   -- white color, wrap
    getglobal("GameTooltipTextLeft2"):SetFont(WOWTR_Font2, 13);
@@ -2205,7 +2006,7 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_Panel5Header2:SetPoint("TOPLEFT", WOWTR_OptionPanel5, "TOPLEFT", 20, -190);
 end
-WOWTR_Panel5Header2:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.savingUntranslatedBooks));    -- Saving untranslated books
+WOWTR_Panel5Header2:SetText((WoWTR_Config_Interface.savingUntranslatedBooks));    -- Saving untranslated books
 WOWTR_Panel5Header2:SetFont(WOWTR_Font2, 14);
 
 local WOWTR_CheckButton55 = WOWTR_CreateModernCheckbox("WOWTR_CheckButton55", WOWTR_OptionPanel5, "", nil);
@@ -2216,12 +2017,12 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_CheckButton55:SetPoint("TOPLEFT", WOWTR_Panel5Header2, "TOPLEFT", 10, -20);
 end
-WOWTR_CheckButton55.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.saveUntranslatedBooks).."|r");   -- Save untranslated books
+WOWTR_CheckButton55.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.saveUntranslatedBooks).."|r");   -- Save untranslated books
 WOWTR_CheckButton55.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton55:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.saveUntranslatedBooks).." ", false);                -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.saveUntranslatedBooks).." ", false);                -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    GameTooltip:AddLine(QTR_ExpandUnitInfo(WoWTR_Config_Interface.saveUntranslatedBooksDESC,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2).." ", 1, 1, 1, true);   -- white color, wrap
    getglobal("GameTooltipTextLeft2"):SetFont(WOWTR_Font2, 13);
@@ -2241,7 +2042,7 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_Panel5Header3:SetPoint("TOPLEFT", WOWTR_OptionPanel5, "TOPLEFT", 20, -270);
 end
-WOWTR_Panel5Header3:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.fontSizeHeader));                  -- Font size of books
+WOWTR_Panel5Header3:SetText((WoWTR_Config_Interface.fontSizeHeader));                  -- Font size of books
 WOWTR_Panel5Header3:SetFont(WOWTR_Font2, 14);
 
 local WOWTR_CheckButton58 = WOWTR_CreateModernCheckbox("WOWTR_CheckButton58", WOWTR_OptionPanel5, "", nil);
@@ -2252,12 +2053,12 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_CheckButton58:SetPoint("TOPLEFT", WOWTR_Panel5Header3, "TOPLEFT", 10, -20);
 end
-WOWTR_CheckButton58.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.setFontActivate).."|r");   -- Activate font size changes
+WOWTR_CheckButton58.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.setFontActivate).."|r");   -- Activate font size changes
 WOWTR_CheckButton58.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton58:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.setFontActivate).." ", false);                -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.setFontActivate).." ", false);                -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    GameTooltip:AddLine(QTR_ExpandUnitInfo(WoWTR_Config_Interface.setFontActivateDESC,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2).." ", 1, 1, 1, true);   -- white color, wrap
    getglobal("GameTooltipTextLeft2"):SetFont(WOWTR_Font2, 13);
@@ -2277,7 +2078,7 @@ WOWTR_slider2:SetMinMaxValues(10, 20);
 WOWTR_slider2.minValue, WOWTR_slider2.maxValue = WOWTR_slider2:GetMinMaxValues();
 WOWTR_slider2.Low:SetText(WOWTR_slider2.minValue);
 WOWTR_slider2.High:SetText(WOWTR_slider2.maxValue);
-WOWTR_slider2.Text:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.fontsizeBubbles));
+WOWTR_slider2.Text:SetText((WoWTR_Config_Interface.fontsizeBubbles));
 WOWTR_slider2.Text:SetFont(WOWTR_Font2, 11);
 WOWTR_slider2:SetValue(tonumber(BT_PM["fontsize"]));
 WOWTR_slider2:SetValueStep(1);
@@ -2311,7 +2112,7 @@ if (BT_PM["setsize"]=="1") then
 else
    WOWTR_Opis2:SetFont(WOWTR_Font2, 13);
 end
-WOWTR_Opis2:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.sampleText));
+WOWTR_Opis2:SetText((WoWTR_Config_Interface.sampleText));
 
 ----- TAB 6
 
@@ -2335,7 +2136,7 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_Panel6Header1:SetPoint("TOPLEFT", WOWTR_OptionPanel6, "TOPLEFT", 20, 0);
 end
-WOWTR_Panel6Header1:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.generalMainHeaderST));     -- Tooltips translations
+WOWTR_Panel6Header1:SetText((WoWTR_Config_Interface.generalMainHeaderST));     -- Tooltips translations
 WOWTR_Panel6Header1:SetFont(WOWTR_Font2, 15);
 
 local WOWTR_CheckButton61 = WOWTR_CreateModernCheckbox("WOWTR_CheckButton61", WOWTR_OptionPanel6, "", nil);
@@ -2346,12 +2147,12 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_CheckButton61:SetPoint("TOPLEFT", WOWTR_Panel6Header1, "TOPLEFT", 10, -20);
 end
-WOWTR_CheckButton61.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.activateTooltipTranslations).."|r");   -- Activate tooltip translations
+WOWTR_CheckButton61.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.activateTooltipTranslations).."|r");   -- Activate tooltip translations
 WOWTR_CheckButton61.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton61:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.activateTooltipTranslations).." ", false);                -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.activateTooltipTranslations).." ", false);                -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    GameTooltip:AddLine(QTR_ExpandUnitInfo(WoWTR_Config_Interface.activateTooltipTranslationsDESC,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2).." ", 1, 1, 1, true);   -- white color, wrap
    getglobal("GameTooltipTextLeft2"):SetFont(WOWTR_Font2, 13);
@@ -2369,12 +2170,12 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_CheckButton62:SetPoint("TOPLEFT", WOWTR_CheckButton61, "BOTTOMLEFT", 0, -20);
 end
-WOWTR_CheckButton62.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.translateItems).."|r");   -- Display translated tooltips for items
+WOWTR_CheckButton62.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.translateItems).."|r");   -- Display translated tooltips for items
 WOWTR_CheckButton62.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton62:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.translateItems).." ", false);                -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.translateItems).." ", false);                -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    GameTooltip:AddLine(QTR_ExpandUnitInfo(WoWTR_Config_Interface.translateItemsDESC,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2).." ", 1, 1, 1, true);   -- white color, wrap
    getglobal("GameTooltipTextLeft2"):SetFont(WOWTR_Font2, 13);
@@ -2392,12 +2193,12 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_CheckButton63:SetPoint("TOPLEFT", WOWTR_CheckButton62, "BOTTOMLEFT", 0, 0);
 end
-WOWTR_CheckButton63.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.translateSpells).."|r");   -- Display translated tooltips for spells
+WOWTR_CheckButton63.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.translateSpells).."|r");   -- Display translated tooltips for spells
 WOWTR_CheckButton63.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton63:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.translateSpells).." ", false);                -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.translateSpells).." ", false);                -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    GameTooltip:AddLine(QTR_ExpandUnitInfo(WoWTR_Config_Interface.translateSpellsDESC,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2).." ", 1, 1, 1, true);   -- white color, wrap
    getglobal("GameTooltipTextLeft2"):SetFont(WOWTR_Font2, 13);
@@ -2415,12 +2216,12 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_CheckButton64:SetPoint("TOPLEFT", WOWTR_CheckButton63, "BOTTOMLEFT", 0, 0);
 end
-WOWTR_CheckButton64.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.translateTalents).."|r");   -- Display translated tooltips for talents
+WOWTR_CheckButton64.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.translateTalents).."|r");   -- Display translated tooltips for talents
 WOWTR_CheckButton64.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton64:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.translateTalents).." ", false);                -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.translateTalents).." ", false);                -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    GameTooltip:AddLine(QTR_ExpandUnitInfo(WoWTR_Config_Interface.translateTalentsDESC,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2).." ", 1, 1, 1, true);   -- white color, wrap
    getglobal("GameTooltipTextLeft2"):SetFont(WOWTR_Font2, 13);
@@ -2433,18 +2234,13 @@ WOWTR_CheckButton64:SetScript("OnLeave", function(self)
 if (ST_TooltipsID) then
    local WOWTR_CheckButton6A = WOWTR_CreateModernCheckbox("WOWTR_CheckButton6A", WOWTR_OptionPanel6, "", nil);
    WOWTR_CheckButton6A:SetScript("OnClick", function(self) if (ST_PM["transtitle"]=="1") then ST_PM["transtitle"]="0" else ST_PM["transtitle"]="1" end; end);
-   if (WoWTR_Localization.lang == 'AR') then
-      WOWTR_CheckButton6A:SetPoint("TOPLEFT", WOWTR_Panel6Header1, "TOPLEFT", 143, -140);
-      WOWTR_CheckButton6A.Text:SetPoint("TOPLEFT", WOWTR_Panel6Header1, "TOPLEFT", -147, -150);
-   else
-      WOWTR_CheckButton6A:SetPoint("TOPLEFT", WOWTR_CheckButton64, "BOTTOMLEFT", 0, 0);
-   end
-   WOWTR_CheckButton6A.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.translateTooltipTitle).."|r");   -- Display translated title of tooltips
+   WOWTR_CheckButton6A:SetPoint("TOPLEFT", WOWTR_CheckButton64, "BOTTOMLEFT", 0, 0);
+   WOWTR_CheckButton6A.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.translateTooltipTitle).."|r");   -- Display translated title of tooltips
    WOWTR_CheckButton6A.Text:SetFont(WOWTR_Font2, 15);
    WOWTR_CheckButton6A:HookScript("OnEnter", function(self)
       GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
       GameTooltip:ClearLines();
-      GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.translateTooltipTitle).." ", false);               -- red color, no wrap
+      GameTooltip:AddLine((WoWTR_Config_Interface.translateTooltipTitle).." ", false);               -- red color, no wrap
       getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
       GameTooltip:AddLine(QTR_ExpandUnitInfo(WoWTR_Config_Interface.translateTooltipTitleDESC,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2).." ", 1, 1, 1, true);   -- white color, wrap
       getglobal("GameTooltipTextLeft2"):SetFont(WOWTR_Font2, 13);
@@ -2463,18 +2259,14 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_CheckButton65:SetPoint("TOPLEFT", WOWTR_CheckButton64, "BOTTOMLEFT", 0, -28);
 end
-WOWTR_CheckButton65.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.showTooltipID).."|r");   -- Display tooltips ID
+WOWTR_CheckButton65.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.showTooltipID).."|r");   -- Display tooltips ID
 WOWTR_CheckButton65.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton65:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.showTooltipID).." ", false);                -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.showTooltipID).." ", false);                -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
-   if (WoWTR_Localization.lang == 'AR') then
-      GameTooltip:AddLine(QTR_ExpandUnitInfo(WoWTR_Config_Interface.showTooltipIDDESC,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2,-5).." ", 1, 1, 1, true);   -- white color, wrap
-   else
-      GameTooltip:AddLine(QTR_ExpandUnitInfo(WoWTR_Config_Interface.showTooltipIDDESC,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2).." ", 1, 1, 1, true);   -- white color, wrap
-   end
+   GameTooltip:AddLine(QTR_ExpandUnitInfo(WoWTR_Config_Interface.showTooltipIDDESC,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2).." ", 1, 1, 1, true);   -- white color, wrap
    getglobal("GameTooltipTextLeft2"):SetFont(WOWTR_Font2, 13);
    GameTooltip:Show()   -- Show the tooltip
    end);
@@ -2490,12 +2282,12 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_CheckButton66:SetPoint("TOPLEFT", WOWTR_CheckButton65, "BOTTOMLEFT", 0, 0);
 end
-WOWTR_CheckButton66.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.showTooltipHash).."|r");   -- Display tooltips Hash
+WOWTR_CheckButton66.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.showTooltipHash).."|r");   -- Display tooltips Hash
 WOWTR_CheckButton66.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton66:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.showTooltipHash).." ", false);                -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.showTooltipHash).." ", false);                -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    GameTooltip:AddLine(QTR_ExpandUnitInfo(WoWTR_Config_Interface.showTooltipHashDESC,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2).." ", 1, 1, 1, true);   -- white color, wrap
    getglobal("GameTooltipTextLeft2"):SetFont(WOWTR_Font2, 13);
@@ -2513,12 +2305,12 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_CheckButton67:SetPoint("TOPLEFT", WOWTR_CheckButton66, "BOTTOMLEFT", 0, 0);
 end
-WOWTR_CheckButton67.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.hideSellPrice).."|r");   -- Hide sell price
+WOWTR_CheckButton67.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.hideSellPrice).."|r");   -- Hide sell price
 WOWTR_CheckButton67.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton67:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.hideSellPrice).." ", false);                -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.hideSellPrice).." ", false);                -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    GameTooltip:AddLine(QTR_ExpandUnitInfo(WoWTR_Config_Interface.hideSellPriceDESC,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2).." ", 1, 1, 1, true);   -- white color, wrap
    getglobal("GameTooltipTextLeft2"):SetFont(WOWTR_Font2, 13);
@@ -2538,7 +2330,7 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_Panel6Header2:SetPoint("TOPLEFT", WOWTR_OptionPanel6, "TOPLEFT", 20, -330);
 end
-WOWTR_Panel6Header2:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.timerHoldTranslation));   -- Select a translation hold time
+WOWTR_Panel6Header2:SetText((WoWTR_Config_Interface.timerHoldTranslation));   -- Select a translation hold time
 WOWTR_Panel6Header2:SetFont(WOWTR_Font2, 14);
 
 local WOWTR_CheckButton68 = WOWTR_CreateModernCheckbox("WOWTR_CheckButton68", WOWTR_OptionPanel6, "", nil);
@@ -2549,12 +2341,12 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_CheckButton68:SetPoint("TOPLEFT", WOWTR_Panel6Header2, "TOPLEFT", 10, -20);
 end
-WOWTR_CheckButton68.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.displayTranslationConstantly).."|r");   -- Display translation constantly
+WOWTR_CheckButton68.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.displayTranslationConstantly).."|r");   -- Display translation constantly
 WOWTR_CheckButton68.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton68:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.displayTranslationConstantly).." ", false);               -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.displayTranslationConstantly).." ", false);               -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    GameTooltip:AddLine(QTR_ExpandUnitInfo(WoWTR_Config_Interface.displayTranslationConstantlyDESC,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2).." ", 1, 1, 1, true);   -- white color, wrap
    getglobal("GameTooltipTextLeft2"):SetFont(WOWTR_Font2, 13);
@@ -2574,7 +2366,7 @@ WOWTR_slider3:SetMinMaxValues(5, 30);
 WOWTR_slider3.minValue, WOWTR_slider3.maxValue = WOWTR_slider3:GetMinMaxValues();
 WOWTR_slider3.Low:SetText(WOWTR_slider3.minValue);
 WOWTR_slider3.High:SetText(WOWTR_slider3.maxValue);
-WOWTR_slider3.Text:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.timerLimitSeconds));
+WOWTR_slider3.Text:SetText((WoWTR_Config_Interface.timerLimitSeconds));
 WOWTR_slider3.Text:SetFont(WOWTR_Font2, 11);
 WOWTR_slider3:SetValue(tonumber(ST_PM["timer"]));
 WOWTR_slider3:SetValueStep(1);
@@ -2601,7 +2393,7 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_Panel6Header3:SetPoint("TOPLEFT", WOWTR_OptionPanel6, "TOPLEFT", 20, -460);
 end
-WOWTR_Panel6Header3:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.savingUntranslatedTooltips));   -- Saving untranslated tooltips
+WOWTR_Panel6Header3:SetText((WoWTR_Config_Interface.savingUntranslatedTooltips));   -- Saving untranslated tooltips
 WOWTR_Panel6Header3:SetFont(WOWTR_Font2, 14);
 
 local WOWTR_CheckButton69 = WOWTR_CreateModernCheckbox("WOWTR_CheckButton69", WOWTR_OptionPanel6, "", nil);
@@ -2612,12 +2404,12 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_CheckButton69:SetPoint("TOPLEFT", WOWTR_Panel6Header3, "TOPLEFT", 10, -20);
 end
-WOWTR_CheckButton69.Text:SetText("|cffffffff"..QTR_ReverseIfAR(WoWTR_Config_Interface.saveUntranslatedTooltips).."|r");   -- Save untranslated tooltips
+WOWTR_CheckButton69.Text:SetText("|cffffffff"..(WoWTR_Config_Interface.saveUntranslatedTooltips).."|r");   -- Save untranslated tooltips
 WOWTR_CheckButton69.Text:SetFont(WOWTR_Font2, 15);
 WOWTR_CheckButton69:HookScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.saveUntranslatedTooltips).." ", false);                -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Config_Interface.saveUntranslatedTooltips).." ", false);                -- red color, no wrap
    GameTooltip:AddLine(QTR_ExpandUnitInfo(WoWTR_Config_Interface.saveUntranslatedTooltipsDESC,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2).." ", 1, 1, 1, true);   -- white color, wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    getglobal("GameTooltipTextLeft2"):SetFont(WOWTR_Font2, 13);
@@ -2653,7 +2445,7 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_Panel9Header1:SetPoint("TOPLEFT", WOWTR_Panel9Text, "BOTTOMLEFT", -10, -35);
 end
-WOWTR_Panel9Header1:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.authorHeader));     -- Author info
+WOWTR_Panel9Header1:SetText((WoWTR_Config_Interface.authorHeader));     -- Author info
 WOWTR_Panel9Header1:SetFont(WOWTR_Font2, 15);
 
 local WOWTR_Panel9Author1 = WOWTR_OptionPanel9:CreateFontString(nil, "ARTWORK");
@@ -2666,7 +2458,7 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_Panel9Author1:SetPoint("TOPLEFT", WOWTR_Panel9Header1, "BOTTOMLEFT", 20, -15);
 end
-WOWTR_Panel9Author1:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.author));           -- Author:
+WOWTR_Panel9Author1:SetText((WoWTR_Config_Interface.author));           -- Author:
 WOWTR_Panel9Author1:SetFont(WOWTR_Font2, 13);
 
 local WOWTR_Panel9Author2 = WOWTR_OptionPanel9:CreateFontString(nil, "ARTWORK");
@@ -2693,7 +2485,7 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_Panel9Email1:SetPoint("TOPLEFT", WOWTR_Panel9Header1, "BOTTOMLEFT", 20, -35);
 end
-WOWTR_Panel9Email1:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.email));             -- E-mail:
+WOWTR_Panel9Email1:SetText((WoWTR_Config_Interface.email));             -- E-mail:
 WOWTR_Panel9Email1:SetFont(WOWTR_Font2, 13);
 
 local WOWTR_Panel9Email2 = WOWTR_OptionPanel9:CreateFontString(nil, "ARTWORK");
@@ -2732,25 +2524,21 @@ end
 WOWTR_ResetButton1 = CreateFrame("BUTTON", nil, WOWTR_OptionPanel9, "UIPanelButtonTemplate");
 WOWTR_ResetButton1:SetWidth(300);
 WOWTR_ResetButton1:SetHeight(32);
-if ((WoWTR_Localization.lang == 'AR') or (WoWTR_Localization.lang == 'PL')) then
+if (WoWTR_Localization.lang == 'PL') then
    local fo = WOWTR_ResetButton1:CreateFontString();
    fo:SetFont(WOWTR_Font2, 12);
-   fo:SetText(QTR_ReverseIfAR(WoWTR_Localization.resetButton1));
+   fo:SetText((WoWTR_Localization.resetButton1));
    WOWTR_ResetButton1:SetFontString(fo);
 end
-WOWTR_ResetButton1:SetText(QTR_ReverseIfAR(WoWTR_Localization.resetButton1));      -- Wyczyść zapisane nieprzetłumaczone teksty
+WOWTR_ResetButton1:SetText((WoWTR_Localization.resetButton1));      -- Wyczyść zapisane nieprzetłumaczone teksty
 WOWTR_ResetButton1:ClearAllPoints();
-if (WoWTR_Localization.lang == 'AR') then
-   WOWTR_ResetButton1:SetPoint("BOTTOMRIGHT", WOWTR_Panel9Header1, "TOPRIGHT", 5, 15);
-else
-   WOWTR_ResetButton1:SetPoint("TOPLEFT", WOWTR_Panel9Header1, "TOPLEFT", 360, 5);
-end
+WOWTR_ResetButton1:SetPoint("TOPLEFT", WOWTR_Panel9Header1, "TOPLEFT", 360, 5);
 WOWTR_ResetButton1:Show();
 WOWTR_ResetButton1:SetScript("OnClick", function() WOWTR_Confirmation2:Hide(); WOWTR_Confirmation1:Show(); end);
 WOWTR_ResetButton1:SetScript("OnEnter", function(self)
    GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
    GameTooltip:ClearLines();
-   GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Localization.resetButton1Opis).." ", false);               -- red color, no wrap
+   GameTooltip:AddLine((WoWTR_Localization.resetButton1Opis).." ", false);               -- red color, no wrap
    getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
    GameTooltip:AddLine(QTR_ExpandUnitInfo(WoWTR_Localization.resetButton1OpisDESC,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2).." ", 1, 1, 1, true);   -- white color, wrap
    getglobal("GameTooltipTextLeft2"):SetFont(WOWTR_Font2, 13);
@@ -2770,7 +2558,7 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_Panel9Header2:SetPoint("TOPLEFT", WOWTR_Panel9Header1, "BOTTOMLEFT", 0, -75);
 end
-WOWTR_Panel9Header2:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.teamHeader));       -- WoWTR project team
+WOWTR_Panel9Header2:SetText((WoWTR_Config_Interface.teamHeader));       -- WoWTR project team
 WOWTR_Panel9Header2:SetFont(WOWTR_Font2, 15);
 
 local WOWTR_Panel9TextContact = WOWTR_OptionPanel9:CreateFontString(nil, "ARTWORK");
@@ -2797,7 +2585,7 @@ WOWTR_LinkFrame:SetHeight(120);
 WOWTR_LinkFrame:ClearAllPoints();
 WOWTR_LinkFrame:SetPoint("CENTER", 0, 108);
 WOWTR_LinkFrame:SetFrameStrata("TOOLTIP");
-WOWTR_LinkFrame.Title:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.linkWWWTitle));       -- Header of the link frame
+WOWTR_LinkFrame.Title:SetText((WoWTR_Config_Interface.linkWWWTitle));       -- Header of the link frame
 WOWTR_LinkFrame.Title:SetFont(WOWTR_Font2, 13);
 WOWTR_LinkFrame.Input = CreateFrame("EditBox", nil, WOWTR_LinkFrame, "InputBoxTemplate");
 WOWTR_LinkFrame.Input:ClearAllPoints();
@@ -2815,16 +2603,16 @@ WOWTR_LinkFrame.Text:SetJustifyV("TOP");
 WOWTR_LinkFrame.Text:ClearAllPoints();
 WOWTR_LinkFrame.Text:SetPoint("TOPLEFT", WOWTR_LinkFrame, "TOPLEFT", 15, -55);
 WOWTR_LinkFrame.Text:SetWidth(280);
-WOWTR_LinkFrame.Text:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.linkCopy));   -- Wciśnij CTRL+C aby skopiować link do schowka Windowsa
+WOWTR_LinkFrame.Text:SetText((WoWTR_Config_Interface.linkCopy));   -- Wciśnij CTRL+C aby skopiować link do schowka Windowsa
 WOWTR_LinkFrame.Text:SetFont(WOWTR_Font2, 12);
 WOWTR_LinkFrame.ButtonOK = CreateFrame("Button",nil, WOWTR_LinkFrame, "UIPanelButtonTemplate");
 WOWTR_LinkFrame.ButtonOK:SetWidth(150);
 WOWTR_LinkFrame.ButtonOK:SetHeight(20);
 local fo = WOWTR_LinkFrame.ButtonOK:CreateFontString();
 fo:SetFont(WOWTR_Font2, 13);
-fo:SetText(QTR_ReverseIfAR(QTR_ReverseIfAR(WoWTR_Config_Interface.linkCloseFrame)));
+fo:SetText(((WoWTR_Config_Interface.linkCloseFrame)));
 WOWTR_LinkFrame.ButtonOK:SetFontString(fo);
-WOWTR_LinkFrame.ButtonOK:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.linkCloseFrame));
+WOWTR_LinkFrame.ButtonOK:SetText((WoWTR_Config_Interface.linkCloseFrame));
 WOWTR_LinkFrame.ButtonOK:ClearAllPoints();
 WOWTR_LinkFrame.ButtonOK:SetPoint("CENTER", 0, -38);
 WOWTR_LinkFrame.ButtonOK:Show();
@@ -2836,12 +2624,7 @@ local WOW_interPlace = 20;
 if (string.len(WoWTR_Localization.addressWWW) > 1) then
    local WOWTR_linkButtonWWW = CreateFrame("Button", nil, WOWTR_OptionPanel9)
    WOWTR_linkButtonWWW:SetSize(32, 32);
-   if (WoWTR_Localization.lang == 'AR') then
-      WOW_interPlace = 0;
-      WOWTR_linkButtonWWW:SetPoint("TOPRIGHT", WOWTR_Panel9Header2, "BOTTOMRIGHT", WOW_interPlace, -35);
-   else
-      WOWTR_linkButtonWWW:SetPoint("TOPLEFT", WOWTR_Panel9Header2, "BOTTOMLEFT", WOW_interPlace, -35);
-   end
+   WOWTR_linkButtonWWW:SetPoint("TOPLEFT", WOWTR_Panel9Header2, "BOTTOMLEFT", WOW_interPlace, -35);
    WOWTR_linkButtonWWW.icon = WOWTR_linkButtonWWW:CreateTexture()
    WOWTR_linkButtonWWW.icon:SetTexture(WoWTR_Localization.mainFolder.."\\Images\\icon_www.png")
    WOWTR_linkButtonWWW.icon:SetSize(32, 32);
@@ -2850,21 +2633,17 @@ if (string.len(WoWTR_Localization.addressWWW) > 1) then
    WOWTR_linkButtonWWW:SetScript("OnEnter", function(self)
       GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
       GameTooltip:ClearLines();
-      GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.linkWWWShow), 1, 1, 1, true);   -- white color, wrap
+      GameTooltip:AddLine((WoWTR_Config_Interface.linkWWWShow), 1, 1, 1, true);   -- white color, wrap
       getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
       GameTooltip:Show() -- Show the tooltip
-      if (WoWTR_Localization.lang == 'AR') then
-         getglobal("GameTooltipTextLeft1"):SetText(QTR_ExpandUnitInfo(WoWTR_Config_Interface.linkWWWShow,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2, -20));   -- white color, wrap
-      else
-         getglobal("GameTooltipTextLeft1"):SetText(QTR_ExpandUnitInfo(WoWTR_Config_Interface.linkWWWShow,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2));   -- white color, wrap
-      end
+      getglobal("GameTooltipTextLeft1"):SetText(QTR_ExpandUnitInfo(WoWTR_Config_Interface.linkWWWShow,false,getglobal("GameTooltipTextLeft1"),WOWTR_Font2));   -- white color, wrap
       end);
    WOWTR_linkButtonWWW:SetScript("OnLeave", function(self)
       GameTooltip:Hide() -- Hide the tooltip
       end);
    WOWTR_linkButtonWWW:SetScript("OnClick", function(self)
       WOWTR_LinkFrame:Hide();
-      WOWTR_LinkFrame.Title:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.linkWWWTitle));
+      WOWTR_LinkFrame.Title:SetText((WoWTR_Config_Interface.linkWWWTitle));
       WOWTR_LinkFrame.Input:SetText(WoWTR_Localization.addressWWW);
       WOWTR_LinkFrame.Text:SetFont(WOWTR_Font2, 12);
       WOWTR_LinkFrame:Show();
@@ -2875,13 +2654,7 @@ if (string.len(WoWTR_Localization.addressDiscord) > 1) then
    local WOWTR_linkButtonDISC = CreateFrame("Button", nil, WOWTR_OptionPanel9)
    WOWTR_linkButtonDISC:SetSize(64, 32);
    WOW_interPlace = WOW_interPlace + WOW_interSpace;
-   if (WoWTR_Localization.lang == 'AR') then
-      WOW_interPlace = WOW_interPlace - 40;
-      WOWTR_linkButtonDISC:SetPoint("TOPRIGHT", WOWTR_Panel9Header2, "BOTTOMRIGHT", -WOW_interPlace, -35);
-      WOW_interPlace = WOW_interPlace + 10;
-   else
-      WOWTR_linkButtonDISC:SetPoint("TOPLEFT", WOWTR_Panel9Header2, "BOTTOMLEFT", WOW_interPlace, -35);
-   end
+   WOWTR_linkButtonDISC:SetPoint("TOPLEFT", WOWTR_Panel9Header2, "BOTTOMLEFT", WOW_interPlace, -35);
    WOW_interPlace = WOW_interPlace + 10;
    WOWTR_linkButtonDISC.icon = WOWTR_linkButtonDISC:CreateTexture()
    WOWTR_linkButtonDISC.icon:SetTexture(WoWTR_Localization.mainFolder.."\\Images\\icon_discord.png")
@@ -2891,7 +2664,7 @@ if (string.len(WoWTR_Localization.addressDiscord) > 1) then
    WOWTR_linkButtonDISC:SetScript("OnEnter", function(self)
       GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
       GameTooltip:ClearLines();
-      GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.linkDISCShow), 1, 1, 1, true);   -- white color, wrap
+      GameTooltip:AddLine((WoWTR_Config_Interface.linkDISCShow), 1, 1, 1, true);   -- white color, wrap
       getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
       GameTooltip:Show() -- Show the tooltip
       end);
@@ -2900,60 +2673,18 @@ if (string.len(WoWTR_Localization.addressDiscord) > 1) then
       end);
    WOWTR_linkButtonDISC:SetScript("OnClick", function(self)
       WOWTR_LinkFrame:Hide();
-      WOWTR_LinkFrame.Title:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.linkDISCTitle));
+      WOWTR_LinkFrame.Title:SetText((WoWTR_Config_Interface.linkDISCTitle));
       WOWTR_LinkFrame.Input:SetText(WoWTR_Localization.addressDiscord);
       WOWTR_LinkFrame.Text:SetFont(WOWTR_Font2, 12);
       WOWTR_LinkFrame:Show();
       end);
 end
 
-if (WoWTR_Localization.lang == 'AR') then
-   if (string.len(WoWTR_Config_Interface.addressCOM) > 1) then
-      local WOWTR_linkButtonDISC = CreateFrame("Button", nil, WOWTR_OptionPanel9)
-      WOWTR_linkButtonDISC:SetSize(64, 32);
-      WOW_interPlace = WOW_interPlace + WOW_interSpace;
-      if (WoWTR_Localization.lang == 'AR') then
-         WOW_interPlace = WOW_interPlace - 40;
-         WOWTR_linkButtonDISC:SetPoint("TOPRIGHT", WOWTR_Panel9Header2, "BOTTOMRIGHT", -WOW_interPlace, -35);
-         WOW_interPlace = WOW_interPlace + 10;
-      else
-         WOWTR_linkButtonDISC:SetPoint("TOPLEFT", WOWTR_Panel9Header2, "BOTTOMLEFT", WOW_interPlace, -35);
-      end
-      WOW_interPlace = WOW_interPlace + 10;
-      WOWTR_linkButtonDISC.icon = WOWTR_linkButtonDISC:CreateTexture()
-      WOWTR_linkButtonDISC.icon:SetTexture(WoWTR_Localization.mainFolder.."\\Images\\Abosarah.png")
-      WOWTR_linkButtonDISC.icon:SetSize(32, 32);
-      WOWTR_linkButtonDISC.icon:SetPoint("LEFT", 0, 0);
-
-      WOWTR_linkButtonDISC:SetScript("OnEnter", function(self)
-         GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
-         GameTooltip:ClearLines();
-         GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.linkDISCShowCOM), 1, 1, 1, true);   -- white color, wrap
-         getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
-         GameTooltip:Show() -- Show the tooltip
-         end);
-      WOWTR_linkButtonDISC:SetScript("OnLeave", function(self)
-         GameTooltip:Hide() -- Hide the tooltip
-         end);
-      WOWTR_linkButtonDISC:SetScript("OnClick", function(self)
-         WOWTR_LinkFrame:Hide();
-         WOWTR_LinkFrame.Title:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.linkCOM));
-         WOWTR_LinkFrame.Input:SetText(WoWTR_Config_Interface.addressCOM);
-         WOWTR_LinkFrame.Text:SetFont(WOWTR_Font2, 12);
-         WOWTR_LinkFrame:Show();
-         end);
-   end
-end
-
 if (string.len(WoWTR_Localization.addressTwitch) > 1) then
    local WOWTR_linkButtonTWITCH = CreateFrame("Button", nil, WOWTR_OptionPanel9)
    WOWTR_linkButtonTWITCH:SetSize(32, 32);
    WOW_interPlace = WOW_interPlace + WOW_interSpace;
-   if (WoWTR_Localization.lang == 'AR') then
-      WOWTR_linkButtonTWITCH:SetPoint("TOPRIGHT", WOWTR_Panel9Header2, "BOTTOMRIGHT", -WOW_interPlace, -35);
-   else
-      WOWTR_linkButtonTWITCH:SetPoint("TOPLEFT", WOWTR_Panel9Header2, "BOTTOMLEFT", WOW_interPlace, -35);
-   end
+   WOWTR_linkButtonTWITCH:SetPoint("TOPLEFT", WOWTR_Panel9Header2, "BOTTOMLEFT", WOW_interPlace, -35);
    WOWTR_linkButtonTWITCH.icon = WOWTR_linkButtonTWITCH:CreateTexture()
    WOWTR_linkButtonTWITCH.icon:SetTexture(WoWTR_Localization.mainFolder.."\\Images\\icon_twitch.png")
    WOWTR_linkButtonTWITCH.icon:SetSize(32, 32);
@@ -2962,7 +2693,7 @@ if (string.len(WoWTR_Localization.addressTwitch) > 1) then
    WOWTR_linkButtonTWITCH:SetScript("OnEnter", function(self)
       GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
       GameTooltip:ClearLines();
-      GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.linkTWITCHShow), 1, 1, 1, true);   -- white color, wrap
+      GameTooltip:AddLine((WoWTR_Config_Interface.linkTWITCHShow), 1, 1, 1, true);   -- white color, wrap
       getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
       GameTooltip:Show() -- Show the tooltip
       end);
@@ -2971,7 +2702,7 @@ if (string.len(WoWTR_Localization.addressTwitch) > 1) then
       end);
    WOWTR_linkButtonTWITCH:SetScript("OnClick", function(self)
       WOWTR_LinkFrame:Hide();
-      WOWTR_LinkFrame.Title:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.linkTWITCHTitle));
+      WOWTR_LinkFrame.Title:SetText((WoWTR_Config_Interface.linkTWITCHTitle));
       WOWTR_LinkFrame.Input:SetText(WoWTR_Localization.addressTwitch);
       WOWTR_LinkFrame.Text:SetFont(WOWTR_Font2, 12);
       WOWTR_LinkFrame:Show();
@@ -2982,11 +2713,7 @@ if (string.len(WoWTR_Localization.addressFanPage) > 1) then
    local WOWTR_linkButtonFB = CreateFrame("Button", nil, WOWTR_OptionPanel9)
    WOWTR_linkButtonFB:SetSize(32, 32);
    WOW_interPlace = WOW_interPlace + WOW_interSpace;
-   if (WoWTR_Localization.lang == 'AR') then
-      WOWTR_linkButtonFB:SetPoint("TOPRIGHT", WOWTR_Panel9Header2, "BOTTOMRIGHT", -WOW_interPlace, -35);
-   else
-      WOWTR_linkButtonFB:SetPoint("TOPLEFT", WOWTR_Panel9Header2, "BOTTOMLEFT", WOW_interPlace, -35);
-   end
+   WOWTR_linkButtonFB:SetPoint("TOPLEFT", WOWTR_Panel9Header2, "BOTTOMLEFT", WOW_interPlace, -35);
    WOWTR_linkButtonFB.icon = WOWTR_linkButtonFB:CreateTexture()
    WOWTR_linkButtonFB.icon:SetTexture(WoWTR_Localization.mainFolder.."\\Images\\icon_fb.png")
    WOWTR_linkButtonFB.icon:SetSize(32, 32);
@@ -2995,7 +2722,7 @@ if (string.len(WoWTR_Localization.addressFanPage) > 1) then
    WOWTR_linkButtonFB:SetScript("OnEnter", function(self)
       GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
       GameTooltip:ClearLines();
-      GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.linkFBShow), 1, 1, 1, true);   -- white color, wrap
+      GameTooltip:AddLine((WoWTR_Config_Interface.linkFBShow), 1, 1, 1, true);   -- white color, wrap
       getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
       GameTooltip:Show() -- Show the tooltip
       end);
@@ -3004,7 +2731,7 @@ if (string.len(WoWTR_Localization.addressFanPage) > 1) then
       end);
    WOWTR_linkButtonFB:SetScript("OnClick", function(self)
       WOWTR_LinkFrame:Hide();
-      WOWTR_LinkFrame.Title:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.linkFBTitle));
+      WOWTR_LinkFrame.Title:SetText((WoWTR_Config_Interface.linkFBTitle));
       WOWTR_LinkFrame.Input:SetText(WoWTR_Localization.addressFanPage);
       WOWTR_LinkFrame.Text:SetFont(WOWTR_Font2, 12);
       WOWTR_LinkFrame:Show();
@@ -3015,11 +2742,7 @@ if (string.len(WoWTR_Localization.addressEmail) > 1) then
    local WOWTR_linkButtonEMAIL = CreateFrame("Button", nil, WOWTR_OptionPanel9)
    WOWTR_linkButtonEMAIL:SetSize(32, 32);
    WOW_interPlace = WOW_interPlace + WOW_interSpace;
-   if (WoWTR_Localization.lang == 'AR') then
-      WOWTR_linkButtonEMAIL:SetPoint("TOPRIGHT", WOWTR_Panel9Header2, "BOTTOMRIGHT", -WOW_interPlace, -35);
-   else
-      WOWTR_linkButtonEMAIL:SetPoint("TOPLEFT", WOWTR_Panel9Header2, "BOTTOMLEFT", WOW_interPlace, -35);
-   end
+   WOWTR_linkButtonEMAIL:SetPoint("TOPLEFT", WOWTR_Panel9Header2, "BOTTOMLEFT", WOW_interPlace, -35);
    WOWTR_linkButtonEMAIL.icon = WOWTR_linkButtonEMAIL:CreateTexture()
    WOWTR_linkButtonEMAIL.icon:SetTexture(WoWTR_Localization.mainFolder.."\\Images\\icon_email.png")
    WOWTR_linkButtonEMAIL.icon:SetSize(32, 32);
@@ -3028,7 +2751,7 @@ if (string.len(WoWTR_Localization.addressEmail) > 1) then
    WOWTR_linkButtonEMAIL:SetScript("OnEnter", function(self)
       GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
       GameTooltip:ClearLines();
-      GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.linkEMAILShow), 1, 1, 1, true);   -- white color, wrap
+      GameTooltip:AddLine((WoWTR_Config_Interface.linkEMAILShow), 1, 1, 1, true);   -- white color, wrap
       getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
       GameTooltip:Show() -- Show the tooltip
       end);
@@ -3037,7 +2760,7 @@ if (string.len(WoWTR_Localization.addressEmail) > 1) then
       end);
    WOWTR_linkButtonEMAIL:SetScript("OnClick", function(self)
       WOWTR_LinkFrame:Hide();
-      WOWTR_LinkFrame.Title:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.linkEMAILTitle));
+      WOWTR_LinkFrame.Title:SetText((WoWTR_Config_Interface.linkEMAILTitle));
       WOWTR_LinkFrame.Input:SetText(WoWTR_Localization.addressEmail);
       WOWTR_LinkFrame.Text:SetFont(WOWTR_Font2, 12);
       WOWTR_LinkFrame:Show();
@@ -3048,13 +2771,7 @@ if (string.len(WoWTR_Localization.addressCurse) > 1) then
    local WOWTR_linkButtonCURSE = CreateFrame("Button", nil, WOWTR_OptionPanel9)
    WOWTR_linkButtonCURSE:SetSize(64, 32);
    WOW_interPlace = WOW_interPlace + WOW_interSpace;
-   if (WoWTR_Localization.lang == 'AR') then
-      WOW_interPlace = WOW_interPlace - 30;
-      WOWTR_linkButtonCURSE:SetPoint("TOPRIGHT", WOWTR_Panel9Header2, "BOTTOMRIGHT", -WOW_interPlace, -35);
-      WOW_interPlace = WOW_interPlace + 10;
-   else
-      WOWTR_linkButtonCURSE:SetPoint("TOPLEFT", WOWTR_Panel9Header2, "BOTTOMLEFT", WOW_interPlace, -35);
-   end
+   WOWTR_linkButtonCURSE:SetPoint("TOPLEFT", WOWTR_Panel9Header2, "BOTTOMLEFT", WOW_interPlace, -35);
    WOW_interPlace = WOW_interPlace + 10;
    WOWTR_linkButtonCURSE.icon = WOWTR_linkButtonCURSE:CreateTexture()
    WOWTR_linkButtonCURSE.icon:SetTexture(WoWTR_Localization.mainFolder.."\\Images\\icon_curseforge.png")
@@ -3064,7 +2781,7 @@ if (string.len(WoWTR_Localization.addressCurse) > 1) then
    WOWTR_linkButtonCURSE:SetScript("OnEnter", function(self)
       GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
       GameTooltip:ClearLines();
-      GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.linkCURSEShow), 1, 1, 1, true);   -- white color, wrap
+      GameTooltip:AddLine((WoWTR_Config_Interface.linkCURSEShow), 1, 1, 1, true);   -- white color, wrap
       getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
       GameTooltip:Show() -- Show the tooltip
       end);
@@ -3073,7 +2790,7 @@ if (string.len(WoWTR_Localization.addressCurse) > 1) then
       end);
    WOWTR_linkButtonCURSE:SetScript("OnClick", function(self)
       WOWTR_LinkFrame:Hide();
-      WOWTR_LinkFrame.Title:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.linkCURSETitle));
+      WOWTR_LinkFrame.Title:SetText((WoWTR_Config_Interface.linkCURSETitle));
       WOWTR_LinkFrame.Input:SetText(WoWTR_Localization.addressCurse);
       WOWTR_LinkFrame.Text:SetFont(WOWTR_Font2, 12);
       WOWTR_LinkFrame:Show();
@@ -3084,11 +2801,7 @@ if (string.len(WoWTR_Localization.addressPayPal) > 1) then
    local WOWTR_linkButtonPP = CreateFrame("Button", nil, WOWTR_OptionPanel9)
    WOWTR_linkButtonPP:SetSize(32, 32);
    WOW_interPlace = WOW_interPlace + WOW_interSpace;
-   if (WoWTR_Localization.lang == 'AR') then
-      WOWTR_linkButtonPP:SetPoint("TOPRIGHT", WOWTR_Panel9Header2, "BOTTOMRIGHT", -WOW_interPlace, -35);
-   else
-      WOWTR_linkButtonPP:SetPoint("TOPLEFT", WOWTR_Panel9Header2, "BOTTOMLEFT", WOW_interPlace, -35);
-   end
+   WOWTR_linkButtonPP:SetPoint("TOPLEFT", WOWTR_Panel9Header2, "BOTTOMLEFT", WOW_interPlace, -35);
    WOWTR_linkButtonPP.icon = WOWTR_linkButtonPP:CreateTexture()
    WOWTR_linkButtonPP.icon:SetTexture(WoWTR_Localization.mainFolder.."\\Images\\icon_paypal.png")
    WOWTR_linkButtonPP.icon:SetSize(32, 32);
@@ -3097,7 +2810,7 @@ if (string.len(WoWTR_Localization.addressPayPal) > 1) then
    WOWTR_linkButtonPP:SetScript("OnEnter", function(self)
       GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
       GameTooltip:ClearLines();
-      GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.linkPPShow), 1, 1, 1, true);   -- white color, wrap
+      GameTooltip:AddLine((WoWTR_Config_Interface.linkPPShow), 1, 1, 1, true);   -- white color, wrap
       getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
       GameTooltip:Show() -- Show the tooltip
       end);
@@ -3106,7 +2819,7 @@ if (string.len(WoWTR_Localization.addressPayPal) > 1) then
       end);
    WOWTR_linkButtonPP:SetScript("OnClick", function(self)
       WOWTR_LinkFrame:Hide();
-      WOWTR_LinkFrame.Title:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.linkPPTitle));
+      WOWTR_LinkFrame.Title:SetText((WoWTR_Config_Interface.linkPPTitle));
       WOWTR_LinkFrame.Input:SetText(WoWTR_Localization.addressPayPal);
       WOWTR_LinkFrame.Text:SetFont(WOWTR_Font2, 12);
       WOWTR_LinkFrame:Show();
@@ -3121,11 +2834,7 @@ if (string.len(WoWTR_Localization.addressBlik) > 1) then
       WOWTR_linkButtonBLIK:SetSize(64, 32);
    end
    WOW_interPlace = WOW_interPlace + WOW_interSpace - 10;
-   if (WoWTR_Localization.lang == 'AR') then
-      WOWTR_linkButtonBLIK:SetPoint("TOPRIGHT", WOWTR_Panel9Header2, "BOTTOMRIGHT", -WOW_interPlace, -35);
-   else
-      WOWTR_linkButtonBLIK:SetPoint("TOPLEFT", WOWTR_Panel9Header2, "BOTTOMLEFT", WOW_interPlace, -35);
-   end
+   WOWTR_linkButtonBLIK:SetPoint("TOPLEFT", WOWTR_Panel9Header2, "BOTTOMLEFT", WOW_interPlace, -35);
    WOWTR_linkButtonBLIK.icon = WOWTR_linkButtonBLIK:CreateTexture()
    WOWTR_linkButtonBLIK.icon:SetTexture(WoWTR_Localization.mainFolder.."\\Images\\icon_blik.png")
    if (WoWTR_Localization.lang == 'TR') then
@@ -3138,7 +2847,7 @@ if (string.len(WoWTR_Localization.addressBlik) > 1) then
    WOWTR_linkButtonBLIK:SetScript("OnEnter", function(self)
       GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
       GameTooltip:ClearLines();
-      GameTooltip:AddLine(QTR_ReverseIfAR(WoWTR_Config_Interface.linkBLIKShow), 1, 1, 1, true);   -- white color, wrap
+      GameTooltip:AddLine((WoWTR_Config_Interface.linkBLIKShow), 1, 1, 1, true);   -- white color, wrap
       getglobal("GameTooltipTextLeft1"):SetFont(WOWTR_Font2, 13);
       GameTooltip:Show() -- Show the tooltip
       end);
@@ -3147,7 +2856,7 @@ if (string.len(WoWTR_Localization.addressBlik) > 1) then
       end);
    WOWTR_linkButtonBLIK:SetScript("OnClick", function(self)
       WOWTR_LinkFrame:Hide();
-      WOWTR_LinkFrame.Title:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.linkBLIKTitle));
+      WOWTR_LinkFrame.Title:SetText((WoWTR_Config_Interface.linkBLIKTitle));
       WOWTR_LinkFrame.Input:SetText(WoWTR_Localization.addressBlik);
       WOWTR_LinkFrame.Text:SetFont(WOWTR_Font2, 12);
       WOWTR_LinkFrame:Show();
@@ -3159,12 +2868,8 @@ WOWTR_Panel9Header3:SetFontObject(GameFontNormal);
 WOWTR_Panel9Header3:SetJustifyH("LEFT"); 
 WOWTR_Panel9Header3:SetJustifyV("TOP");
 WOWTR_Panel9Header3:ClearAllPoints();
-if (WoWTR_Localization.lang == 'AR') then
-   WOWTR_Panel9Header3:SetPoint("TOPLEFT", WOWTR_Panel9Header1, "BOTTOMLEFT", 50, -185);
-else
-   WOWTR_Panel9Header3:SetPoint("TOPLEFT", WOWTR_Panel9Header1, "BOTTOMLEFT", 0, -185);
-end
-WOWTR_Panel9Header3:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.betaTestersHeader));       -- Beta Testers:
+WOWTR_Panel9Header3:SetPoint("TOPLEFT", WOWTR_Panel9Header1, "BOTTOMLEFT", 0, -185);
+WOWTR_Panel9Header3:SetText((WoWTR_Config_Interface.betaTestersHeader));       -- Beta Testers:
 WOWTR_Panel9Header3:SetFont(WOWTR_Font2, 15);
 
 
@@ -3179,9 +2884,9 @@ if (string.len(WoWTR_Config_Interface.welcomeText) > 1) then
    WOWTR_ShowWelcomePanel:SetHeight(20);
    local fo = WOWTR_ShowWelcomePanel:CreateFontString();
    fo:SetFont(WOWTR_Font2, 12);
-   fo:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.showWelcome));
+   fo:SetText((WoWTR_Config_Interface.showWelcome));
    WOWTR_ShowWelcomePanel:SetFontString(fo);
-   WOWTR_ShowWelcomePanel:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.showWelcome));
+   WOWTR_ShowWelcomePanel:SetText((WoWTR_Config_Interface.showWelcome));
    WOWTR_ShowWelcomePanel:ClearAllPoints();
    WOWTR_ShowWelcomePanel:SetPoint("BOTTOMLEFT", WOWTR_OptionPanel9, "BOTTOMLEFT", 20, 20);
    WOWTR_ShowWelcomePanel:Show();
@@ -3203,16 +2908,16 @@ WOWTR_Confirmation1.Text:SetJustifyV("TOP");
 WOWTR_Confirmation1.Text:ClearAllPoints();
 WOWTR_Confirmation1.Text:SetPoint("TOPLEFT", WOWTR_Confirmation1, "TOPLEFT", 20, -40);
 WOWTR_Confirmation1.Text:SetWidth(280);
-WOWTR_Confirmation1.Text:SetText(QTR_ReverseIfAR(WoWTR_Localization.confirmationText1));   -- Czy chcesz wyczyścić wszystkie zapisane, nieprzetłumaczone teksty?
+WOWTR_Confirmation1.Text:SetText((WoWTR_Localization.confirmationText1));   -- Czy chcesz wyczyścić wszystkie zapisane, nieprzetłumaczone teksty?
 WOWTR_Confirmation1.Text:SetFont(WOWTR_Font2, 14);
 WOWTR_Confirmation1.ButtonYES = CreateFrame("Button",nil, WOWTR_Confirmation1, "UIPanelButtonTemplate");
 WOWTR_Confirmation1.ButtonYES:SetWidth(75);
 WOWTR_Confirmation1.ButtonYES:SetHeight(20);
 local fo = WOWTR_Confirmation1.ButtonYES:CreateFontString();
 fo:SetFont(WOWTR_Font2, 13);
-fo:SetText(QTR_ReverseIfAR(QTR_ReverseIfAR(WoWTR_Localization.stopTheMovieYes)));
+fo:SetText(((WoWTR_Localization.stopTheMovieYes)));
 WOWTR_Confirmation1.ButtonYES:SetFontString(fo);
-WOWTR_Confirmation1.ButtonYES:SetText(QTR_ReverseIfAR(WoWTR_Localization.stopTheMovieYes));    -- Yes
+WOWTR_Confirmation1.ButtonYES:SetText((WoWTR_Localization.stopTheMovieYes));    -- Yes
 WOWTR_Confirmation1.ButtonYES:ClearAllPoints();
 WOWTR_Confirmation1.ButtonYES:SetPoint("BOTTOMLEFT", WOWTR_Confirmation1, "BOTTOMLEFT", 20, 15);
 WOWTR_Confirmation1.ButtonYES:Show();
@@ -3222,9 +2927,9 @@ WOWTR_Confirmation1.ButtonNO:SetWidth(75);
 WOWTR_Confirmation1.ButtonNO:SetHeight(20);
 local fo = WOWTR_Confirmation1.ButtonNO:CreateFontString();
 fo:SetFont(WOWTR_Font2, 13);
-fo:SetText(QTR_ReverseIfAR(QTR_ReverseIfAR(WoWTR_Localization.stopTheMovieNo)));
+fo:SetText(((WoWTR_Localization.stopTheMovieNo)));
 WOWTR_Confirmation1.ButtonNO:SetFontString(fo);
-WOWTR_Confirmation1.ButtonNO:SetText(QTR_ReverseIfAR(WoWTR_Localization.stopTheMovieNo));      -- No
+WOWTR_Confirmation1.ButtonNO:SetText((WoWTR_Localization.stopTheMovieNo));      -- No
 WOWTR_Confirmation1.ButtonNO:ClearAllPoints();
 WOWTR_Confirmation1.ButtonNO:SetPoint("BOTTOMRIGHT", WOWTR_Confirmation1, "BOTTOMRIGHT", -15, 15);
 WOWTR_Confirmation1.ButtonNO:Show();
@@ -3237,7 +2942,7 @@ WOWTR_Confirmation2:SetHeight(120);
 WOWTR_Confirmation2:ClearAllPoints();
 WOWTR_Confirmation2:SetPoint("BOTTOMLEFT", WOWTR_ResetButton2, "TOPLEFT", -30, 5);
 WOWTR_Confirmation2:SetFrameStrata("TOOLTIP");
-WOWTR_Confirmation2.Title:SetText(QTR_ReverseIfAR(WoWTR_Localization.confirmationHeader));       -- Confirmation Header
+WOWTR_Confirmation2.Title:SetText((WoWTR_Localization.confirmationHeader));       -- Confirmation Header
 WOWTR_Confirmation2.Text = WOWTR_Confirmation2:CreateFontString(nil, "ARTWORK");
 WOWTR_Confirmation2.Title:SetFont(WOWTR_Font2, 13);
 WOWTR_Confirmation2.Text:SetFontObject(GameFontWhite);
@@ -3246,16 +2951,16 @@ WOWTR_Confirmation2.Text:SetJustifyV("TOP");
 WOWTR_Confirmation2.Text:ClearAllPoints();
 WOWTR_Confirmation2.Text:SetPoint("TOPLEFT", WOWTR_Confirmation2, "TOPLEFT", 20, -40);
 WOWTR_Confirmation2.Text:SetWidth(280);
-WOWTR_Confirmation2.Text:SetText(QTR_ReverseIfAR(WoWTR_Localization.confirmationText2));   -- Czy chcesz przywrócić ustawienia domyślne dodatku?
+WOWTR_Confirmation2.Text:SetText((WoWTR_Localization.confirmationText2));   -- Czy chcesz przywrócić ustawienia domyślne dodatku?
 WOWTR_Confirmation2.Text:SetFont(WOWTR_Font2, 14);
 WOWTR_Confirmation2.ButtonYES = CreateFrame("Button",nil, WOWTR_Confirmation2, "UIPanelButtonTemplate");
 WOWTR_Confirmation2.ButtonYES:SetWidth(75);
 WOWTR_Confirmation2.ButtonYES:SetHeight(20);
 local fo = WOWTR_Confirmation2.ButtonYES:CreateFontString();
 fo:SetFont(WOWTR_Font2, 13);
-fo:SetText(QTR_ReverseIfAR(QTR_ReverseIfAR(WoWTR_Localization.stopTheMovieYes)));
+fo:SetText(((WoWTR_Localization.stopTheMovieYes)));
 WOWTR_Confirmation2.ButtonYES:SetFontString(fo);
-WOWTR_Confirmation2.ButtonYES:SetText(QTR_ReverseIfAR(WoWTR_Localization.stopTheMovieYes));    -- Yes
+WOWTR_Confirmation2.ButtonYES:SetText((WoWTR_Localization.stopTheMovieYes));    -- Yes
 WOWTR_Confirmation2.ButtonYES:ClearAllPoints();
 WOWTR_Confirmation2.ButtonYES:SetPoint("BOTTOMLEFT", WOWTR_Confirmation2, "BOTTOMLEFT", 20, 15);
 WOWTR_Confirmation2.ButtonYES:Show();
@@ -3268,9 +2973,9 @@ WOWTR_Confirmation2.ButtonNO:SetWidth(75);
 WOWTR_Confirmation2.ButtonNO:SetHeight(20);
 local fo = WOWTR_Confirmation2.ButtonNO:CreateFontString();
 fo:SetFont(WOWTR_Font2, 13);
-fo:SetText(QTR_ReverseIfAR(QTR_ReverseIfAR(WoWTR_Localization.stopTheMovieNo)));
+fo:SetText(((WoWTR_Localization.stopTheMovieNo)));
 WOWTR_Confirmation2.ButtonNO:SetFontString(fo);
-WOWTR_Confirmation2.ButtonNO:SetText(QTR_ReverseIfAR(WoWTR_Localization.stopTheMovieNo));      -- No
+WOWTR_Confirmation2.ButtonNO:SetText((WoWTR_Localization.stopTheMovieNo));      -- No
 WOWTR_Confirmation2.ButtonNO:ClearAllPoints();
 WOWTR_Confirmation2.ButtonNO:SetPoint("BOTTOMRIGHT", WOWTR_Confirmation2, "BOTTOMRIGHT", -15, 15);
 WOWTR_Confirmation2.ButtonNO:Show();
@@ -3523,7 +3228,7 @@ function WOWTR_WelcomePanel()
       WOWTR.WelcomePanel:ClearAllPoints();
       WOWTR.WelcomePanel:SetPoint("CENTER", UIParent, "CENTER", 0, 0);
       WOWTR.WelcomePanel:SetFrameStrata("TOOLTIP");
-      WOWTR.WelcomePanel.Title:SetText(QTR_ReverseIfAR(WoWTR_Localization.optionTitle));
+      WOWTR.WelcomePanel.Title:SetText((WoWTR_Localization.optionTitle));
       WOWTR.WelcomePanel.Title:SetFont(WOWTR_Font2, 15);
       if (WoWTR_Localization.welcomeIconPos > 0) then
          WOWTR.Icon = WOWTR.WelcomePanel:CreateTexture(nil, "OVERLAY");
@@ -3547,9 +3252,9 @@ function WOWTR_WelcomePanel()
       WOWTR.WelcomePanel.Button:SetHeight(20);
       local fo = WOWTR.WelcomePanel.Button:CreateFontString();
       fo:SetFont(WOWTR_Font2, 13);
-      fo:SetText(QTR_ReverseIfAR(QTR_ReverseIfAR(WoWTR_Config_Interface.welcomeButton)));
+      fo:SetText(((WoWTR_Config_Interface.welcomeButton)));
       WOWTR.WelcomePanel.Button:SetFontString(fo);
-      WOWTR.WelcomePanel.Button:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.welcomeButton));
+      WOWTR.WelcomePanel.Button:SetText((WoWTR_Config_Interface.welcomeButton));
       WOWTR.WelcomePanel.Button:ClearAllPoints();
       WOWTR.WelcomePanel.Button:SetPoint("BOTTOMLEFT", WOWTR.WelcomePanel, "BOTTOMLEFT", WOWTR.WelcomePanel:GetWidth()/2-WOWTR.WelcomePanel.Button:GetWidth()/2, 10);
       WOWTR.WelcomePanel.Button:Show();
@@ -3584,12 +3289,8 @@ local addon = LibStub("AceAddon-3.0"):NewAddon(WoWTR_Localization.addonName, "Ac
    
 -- Here we add a description of the addon to the tooltip object
    OnTooltipShow = function(tooltip)
-      if (WoWTR_Localization.lang=='AR') then
-         tooltip:SetText("|cff8080ff"..WOWTR_version.."|r "..QTR_ReverseIfAR(WoWTR_Localization.optionTitle));
-      else
-         tooltip:SetText(QTR_ReverseIfAR(WoWTR_Localization.optionTitle).." |cff8080ff"..WOWTR_version.."|r");
-      end
-      tooltip:AddLine("|cffffffff"..QTR_ReverseIfAR(WoWTR_Localization.addonIconDesc).."|r");
+      tooltip:SetText((WoWTR_Localization.optionTitle).." |cff8080ff"..WOWTR_version.."|r");
+      tooltip:AddLine("|cffffffff"..(WoWTR_Localization.addonIconDesc).."|r");
       _G[tooltip:GetName().."TextLeft1"]:SetFont(WOWTR_Font2, 15);
       _G[tooltip:GetName().."TextLeft2"]:SetFont(WOWTR_Font2, 13);
       tooltip:Show();

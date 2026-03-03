@@ -1,6 +1,6 @@
 -- Description: The AddOn displays the translated text information in chosen language
 -- Author: Platine [platine.wow@gmail.com]
--- Co-Author: Dragonarab[WoWAR], Hakan YILMAZ[WoWTR]
+-- Co-Author: Hakan YILMAZ [hknylmz@gmail.com]
 -------------------------------------------------------------------------------------------------------
 
 -- General Variables
@@ -28,6 +28,14 @@ end
 
 -------------------------------------------------------------------------------------------------------------------
 
+function WOWTR_FixNewLines(text)
+   if (not text) then return text; end
+   text = string.gsub(text, "%$B", "|n");
+   return text;
+end
+
+-------------------------------------------------------------------------------------------------------------------
+
 function MF_ShowMovieSubtitles()       -- wyświetlanie napisów w MOVIES (TR: FİLMLERDE altyazıları gösterme)
    if (MF_Mode ~= "MOVIE") then return end;
    local MF_readed_ST = SubtitlesFrame.Subtitle1:GetText();
@@ -42,8 +50,10 @@ function MF_ShowMovieSubtitles()       -- wyświetlanie napisów w MOVIES (TR: F
       MF_last_ST = MF_readed_ST;             -- zapisz jako ostatni napis (TR: son yazı olarak kaydet)
       MF_hash2 = StringHash(MF_readed_HS);
       if (MF_Hash[MF_hash2] or BB_Bubbles[MF_hash2]) then   -- jest w bazie tłumaczenie napisu (TR: veritabanında yazının çevirisi var)
-         SubtitlesFrame.Subtitle1:SetText(QTR_ReverseIfAR(MF_Hash[MF_hash2] or BB_Bubbles[MF_hash2]) .. " ");  -- twarda spacja na końcu (TR: sonunda sert boşluk)
-         SubtitlesFrame.Subtitle1:SetFont(WOWTR_Font2, MF_Size); 
+         local trText = MF_Hash[MF_hash2] or BB_Bubbles[MF_hash2];
+         trText = WOWTR_FixNewLines(trText);
+         SubtitlesFrame.Subtitle1:SetText((trText) .. " ");  -- twarda spacja na końcu (TR: sonunda sert boşluk)
+         SubtitlesFrame.Subtitle1:SetFont(WOWTR_Font2, MF_Size);
       else           -- nie ma tego Hasha - zapisz dane (TR: bu Hash yok - verileri kaydet)
          if (MF_PM["save"] == "1") then
             if (MF_ID and MF_ID ~= "" and MF_ID ~= "000") then
@@ -77,15 +87,12 @@ function MF_ShowCinematicSubtitles()            -- wyświetlanie napisów w CINE
                local MF_hash2 = StringHash(MF_napis2_HS);
                local MF_translation = MF_Hash[MF_hash2] or BB_Bubbles[MF_hash2];
                if (MF_translation) then                           -- istnieje tłumaczenie w dymkach (TR: konuşma balonlarında çeviri mevcut)
-                  if (WoWTR_Localization.lang == 'AR') then
-                     local MF_output = "r|"..WOWTR_AnsiReverse(MF_speaker).." :0099FFFFc| "..WOW_ZmienKody(MF_translation);
-                     SubtitlesFrame.Subtitle1:SetText(QTR_ExpandUnitInfo((MF_output),false,SubtitlesFrame.Subtitle1,WOWTR_Font1).." ");         -- podmień wyświetlany tekst dodając twardą spację (TR: görüntülenen metni sert boşluk ekleyerek değiştir)
-                     MF_zapisz_EN = false;
-                  else
-                     local MF_output = "|cFFFF9900"..MF_speaker.." :|r "..WOW_ZmienKody(MF_translation);
-                     SubtitlesFrame.Subtitle1:SetText(MF_output.." ");         -- podmień wyświetlany tekst dodając twardą spację (TR: görüntülenen metni sert boşluk ekleyerek değiştir)
-                     MF_zapisz_EN = false;
-                  end
+
+                  local MF_output = "|cFFFF9900"..MF_speaker.." :|r "..WOW_ZmienKody(MF_translation);
+                  MF_output = WOWTR_FixNewLines(MF_output);
+                  SubtitlesFrame.Subtitle1:SetText(MF_output.." ");         -- podmień wyświetlany tekst dodając twardą spację (TR: görüntülenen metni sert boşluk ekleyerek değiştir)
+                  MF_zapisz_EN = false;
+
                elseif (MF_Hash[MF_hash] or BB_Bubbles[MF_hash]) then
                   -- çevirisi yoksa High Speaker Eirich: The High Speaker... has SPOKEN. çevirisine baksın
                   local MF_tekst = WOW_ZmienKody(MF_Hash[MF_hash] or BB_Bubbles[MF_hash]);
@@ -100,7 +107,8 @@ function MF_ShowCinematicSubtitles()            -- wyświetlanie napisów w CINE
                         MF_tekst = strsub(MF_tekst,1,nr_poz-1)..safe_NPC_Name..strsub(MF_tekst, nr_poz+2);
                      end
                   end
-                  SubtitlesFrame.Subtitle1:SetText(QTR_ReverseIfAR(MF_tekst).." ");
+                  MF_tekst = WOWTR_FixNewLines(MF_tekst);
+                  SubtitlesFrame.Subtitle1:SetText((MF_tekst).." ");
                   MF_zapisz_EN = false;
                else
                   if ((MF_zapisz_EN) and (MF_PM["save"] == "1")) then       -- zapisz oryginalny tekst wraz z kodem Hash (TR: orijinal metni Hash kodu ile birlikte kaydet)
@@ -122,9 +130,9 @@ function MF_ShowCinematicSubtitles()            -- wyświetlanie napisów w CINE
                         MF_tekst = strsub(MF_tekst,1,nr_poz-1)..safe_NPC_Name..strsub(MF_tekst, nr_poz+2);
                      end
                   end
-                  local MF_output = MF_tekst.."";
+                  local MF_output = WOWTR_FixNewLines(MF_tekst.."");
                   local _font, _size, _3 = SubtitlesFrame.Subtitle1:GetFont();         -- odczytaj wielkość czcionki (TR: yazı tipi boyutunu oku)
-                  SubtitlesFrame.Subtitle1:SetText(QTR_ReverseIfAR(MF_output).." ");   -- podmień wyświetlany tekst dodając twardą spację (TR: görüntülenen metni sert boşluk ekleyerek değiştir)
+                  SubtitlesFrame.Subtitle1:SetText((MF_output).." ");   -- podmień wyświetlany tekst dodając twardą spację (TR: görüntülenen metni sert boşluk ekleyerek değiştir)
                   MF_zapisz_EN = false;
                else
                   if ((MF_zapisz_EN) and (MF_PM["save"] == "1")) then             -- zapisz oryginalny tekst wraz z kodem Hash (TR: orijinal metni Hash kodu ile birlikte kaydet)
@@ -145,7 +153,8 @@ function MF_ShowCinematicIntro()    -- wyświetlanie własnych napisów w INTRO 
       MF_playing=true;
    end
    if ((MF_showing==false) and (GetTime() > (MF_timer + MF_sub1))) then      -- czas wystartować napis (TR: yazıyı başlatma zamanı)
-      MF_SubTitle:SetText(QTR_ReverseIfAR(MF_sub3));
+      MF_sub3 = WOWTR_FixNewLines(MF_sub3);
+      MF_SubTitle:SetText((MF_sub3));
       MF_showing=true;
    end      
    if ((MF_showing==true) and (GetTime() > (MF_timer + MF_sub2))) then       -- czas zatrzymać napis (TR: yazıyı durdurma zamanı)
@@ -181,10 +190,10 @@ function MF_PlayMovie(movieID)      -- fired by PLAY_MOVIE event (TR: PLAY_MOVIE
       MF_pytanie1:ClearAllPoints();
       MF_pytanie1:SetPoint("CENTER", MovieFrame.CloseDialog, "CENTER", 0, 6);
       MF_pytanie1:SetFont(WOWTR_Font2, 13);
-      MF_pytanie1:SetText(QTR_ReverseIfAR(WoWTR_Localization.stopTheMovie));
+      MF_pytanie1:SetText((WoWTR_Localization.stopTheMovie));
    end
-   MovieFrame.CloseDialog.ConfirmButton:SetText(QTR_ReverseIfAR(WoWTR_Localization.stopTheMovieYes));
-   MovieFrame.CloseDialog.ResumeButton:SetText(QTR_ReverseIfAR(WoWTR_Localization.stopTheMovieNo));
+   MovieFrame.CloseDialog.ConfirmButton:SetText((WoWTR_Localization.stopTheMovieYes));
+   MovieFrame.CloseDialog.ResumeButton:SetText((WoWTR_Localization.stopTheMovieNo));
    local regions = { MovieFrame.CloseDialog.ConfirmButton:GetRegions() };
    for index = 1, #regions do
       local region = regions[index];
@@ -225,10 +234,10 @@ function MF_CinematicStart()             -- fired by CINEMATIC_START event (TR: 
       MF_pytanie2:ClearAllPoints();
       MF_pytanie2:SetPoint("CENTER", CinematicFrameCloseDialog, "CENTER", 0, 6);
       MF_pytanie2:SetFont(WOWTR_Font2, 13);
-      MF_pytanie2:SetText(QTR_ReverseIfAR(WoWTR_Localization.stopTheMovie));
+      MF_pytanie2:SetText((WoWTR_Localization.stopTheMovie));
    end
-   CinematicFrameCloseDialogConfirmButton:SetText(QTR_ReverseIfAR(WoWTR_Localization.stopTheMovieYes));
-   CinematicFrameCloseDialogResumeButton:SetText(QTR_ReverseIfAR(WoWTR_Localization.stopTheMovieNo));
+   CinematicFrameCloseDialogConfirmButton:SetText((WoWTR_Localization.stopTheMovieYes));
+   CinematicFrameCloseDialogResumeButton:SetText((WoWTR_Localization.stopTheMovieNo));
    local regions = { CinematicFrameCloseDialogConfirmButton:GetRegions() };
    for index = 1, #regions do
       local region = regions[index];

@@ -1,6 +1,6 @@
 -- Description: The AddOn displays the translated text information in chosen language
 -- Author: Platine [platine.wow@gmail.com]
--- Co-Author: Dragonarab[WoWAR], Hakan YILMAZ[WoWTR]
+-- Co-Author: Hakan YILMAZ [hknylmz@gmail.com]
 -------------------------------------------------------------------------------------------------------
 
 -- Local Variables
@@ -71,7 +71,7 @@ function BookTranslator_ShowTranslation()
             -- Başlık çevirisi varsa göster (Show title translation if exists) (Wyświetl tytuł jeśli istnieje tłumaczenie)
             if BT_PM["title"] == "1" and BT_Books[BT_bookID].Title and BT_Books[BT_bookID].Title ~= '' then
                BT_tytul_tr = BT_Books[BT_bookID]["Title"];
-               ItemTextFrameTitleText:SetText(QTR_ReverseIfAR(BT_tytul_tr));
+               ItemTextFrameTitleText:SetText((BT_tytul_tr));
                ItemTextFrameTitleText:SetFont(WOWTR_Font2, 11);
             end
 
@@ -138,18 +138,10 @@ function BookTranslator_ShowTranslation()
                local fo = BT_ToggleButton0:CreateFontString();
                if fo and fo.SetFont then
                   fo:SetFont(WOWTR_Font2, 13);
-                  if (WoWTR_Localization.lang == 'AR') then
-                     fo:SetText("("..WoWTR_Localization.lang..") "..BT_bookID.." "..QTR_ReverseIfAR(WoWTR_Localization.bookID));
-                  else
-                     fo:SetText(WoWTR_Localization.bookID.." "..BT_bookID.." ("..WoWTR_Localization.lang..")");
-                  end
+                  fo:SetText(WoWTR_Localization.bookID.." "..BT_bookID.." ("..WoWTR_Localization.lang..")");
                   BT_ToggleButton0:SetFontString(fo);
                end
-               if (WoWTR_Localization.lang == 'AR') then
-                  BT_ToggleButton0:SetText("("..WoWTR_Localization.lang..") "..BT_bookID.." "..QTR_ReverseIfAR(WoWTR_Localization.bookID));
-               else
-                  BT_ToggleButton0:SetText(WoWTR_Localization.bookID.." "..BT_bookID.." ("..WoWTR_Localization.lang..")");
-               end
+               BT_ToggleButton0:SetText(WoWTR_Localization.bookID.." "..BT_bookID.." ("..WoWTR_Localization.lang..")");
                BT_ToggleButton0:SetWidth(170);
             else
                BT_ToggleButton0:SetText(WoWTR_Localization.lang);
@@ -199,11 +191,7 @@ function BT_ON_OFF()
          ItemTextPageText:SetText(QTR_ExpandUnitInfo(BT_tekst_tr,false,ItemTextPageText,WOWTR_Font2,-10));
       end
       if (BT_PM["showID"]=="1") then             -- pokaż ID książki
-         if (WoWTR_Localization.lang == 'AR') then
-            BT_ToggleButton0:SetText("("..WoWTR_Localization.lang..") "..BT_bookID.." "..QTR_ReverseIfAR(WoWTR_Localization.bookID));
-         else
-            BT_ToggleButton0:SetText(WoWTR_Localization.bookID.." "..BT_bookID.." ("..WoWTR_Localization.lang..")");     -- Book ID:
-         end
+         BT_ToggleButton0:SetText(WoWTR_Localization.bookID.." "..BT_bookID.." ("..WoWTR_Localization.lang..")");     -- Book ID:
       else
          BT_ToggleButton0:SetText(WoWTR_Localization.lang);
       end
@@ -214,11 +202,7 @@ function BT_ON_OFF()
       end
       ItemTextPageText:SetText(BT_tekst_en);
       if (BT_PM["showID"]=="1") then             -- pokaż ID książki
-         if (WoWTR_Localization.lang == 'AR') then
-            BT_ToggleButton0:SetText("(EN) "..BT_bookID.." "..QTR_ReverseIfAR(WoWTR_Localization.bookID));
-         else
-            BT_ToggleButton0:SetText(WoWTR_Localization.bookID.." "..BT_bookID.." (EN)");
-         end
+         BT_ToggleButton0:SetText(WoWTR_Localization.bookID.." "..BT_bookID.." (EN)");
       else
          BT_ToggleButton0:SetText("EN");
       end   

@@ -1,6 +1,6 @@
 -- Description: The AddOn displays the translated text information in chosen language
 -- Author: Platine [platine.wow@gmail.com]
--- Co-Author: Dragonarab[WoWAR], Hakan YILMAZ[WoWTR]
+-- Co-Author: Hakan YILMAZ [hknylmz@gmail.com]
 -------------------------------------------------------------------------------------------------------
 
 -- General Variables
@@ -134,7 +134,7 @@ function processNormalChatBubbles()
                                         if (region:GetWidth() > 200) then
                                             region:SetText(QTR_ExpandUnitInfo(iArray[2], false, region, WOWTR_Font2, -50))
                                         else
-                                            region:SetText(QTR_ReverseIfAR(iArray[2]))
+                                            region:SetText(iArray[2])
                                         end
                                         -- Center the text
                                         region:SetJustifyH("CENTER")
@@ -191,10 +191,6 @@ function setupChatBubble(bubble, iArray, offset)
     end
     -- Show the bubble
     bubble:Show()
-    -- Adjust the text for Arabic language
-    if (WoWTR_Localization.lang == 'AR') then
-        _G[bubble:GetName() .. "TextLeft1"]:SetText(QTR_ExpandUnitInfo(iArray[2], false, _G[bubble:GetName() .. "TextLeft1"], WOWTR_Font2))
-    end
     -- Set the header text and position
     bubble.header:SetText(iArray[4] .. ":")
     bubble.header:ClearAllPoints()
@@ -343,11 +339,7 @@ function BB_ChatFilter(self, event, arg1, arg2, arg3, _, arg5, ...)     -- wywo�
                newMessage = strsub(newMessage, 3);
                DEFAULT_CHAT_FRAME:AddMessage(colorText..QTR_ExpandUnitInfo(newMessage:gsub("^%s*", ""),false,DEFAULT_CHAT_FRAME,WOWTR_Font2,-50)..mark_AI); -- usuń białe spacje na początku
             else
-               if (WoWTR_Localization.lang == 'AR') then
-                  DEFAULT_CHAT_FRAME:AddMessage(colorText..QTR_ExpandUnitInfo("{r}"..WOWTR_AnsiReverse(name_NPC)..":{cFFFFFFFF} "..newMessage,false,DEFAULT_CHAT_FRAME,WOWTR_Font2,-10));
-               else
-                  DEFAULT_CHAT_FRAME:AddMessage(colorText.."|cCCDDEEFF"..name_NPC..":|r "..QTR_ExpandUnitInfo(newMessage,false,DEFAULT_CHAT_FRAME,WOWTR_Font2,-100)..mark_AI);   -- mówi (diyor ki)
-               end
+               DEFAULT_CHAT_FRAME:AddMessage(colorText.."|cCCDDEEFF"..name_NPC..":|r "..QTR_ExpandUnitInfo(newMessage,false,DEFAULT_CHAT_FRAME,WOWTR_Font2,-100)..mark_AI);   -- mówi (diyor ki)
             end
          else   
             if (nr_poz>0) then        -- mamy formę opisową dymku np. NPC_name coś robi.

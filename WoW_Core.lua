@@ -1,6 +1,6 @@
 ﻿-- Description: The AddOn displays the translated text information in chosen language
 -- Author: Platine [platine.wow@gmail.com]
--- Co-Author: Dragonarab[WoWAR], Hakan YILMAZ[WoWTR]
+-- Co-Author: Hakan YILMAZ [hknylmz@gmail.com]
 -------------------------------------------------------------------------------------------------------
 
 -- General Variables
@@ -444,18 +444,6 @@ end
       ST_PM["timer"] = "10";   
    end
    
-   if (WoWTR_Localization.lang == 'AR') then
-      if not CH_PM then
-         CH_PM = {};
-      end
-      if (not CH_PM["active"] ) then   -- activate
-         CH_PM["active"] = "1";   
-      end
-      if not CH_PM["fontsize"] then
-         CH_PM["fontsize"] = "13";  -- Set a default value
-      end
-   end
-
    if (not WoWTR_minimapDB) then        -- inicjalizacja zmiennej globalnej na pozycję ikonki minimap
       WoWTR_minimapDB = {};
    end
@@ -503,9 +491,6 @@ function WOWTR_onEvent(self, event, name, ...)
       WOWTR_CheckVars();
       QTR_START();
       Config_OnEnable();
-      if (WoWTR_Localization.lang == 'AR') then
-         CHAT_START();
-      end
       TutorialFrame:HookScript("OnShow", TT_onTutorialShow);
       if (not PlayerChoiceFrame) then
          PlayerChoice_LoadUI();
@@ -537,7 +522,17 @@ function WOWTR_onEvent(self, event, name, ...)
       GameMenuFrame:HookScript("OnShow", ST_GameMenuTranslate);
       MerchantFrame:HookScript("OnShow", function() StartTicker(MerchantFrame, ST_MerchantFrame, 0.02) end);
       PVEFrame:HookScript("OnShow", function() StartTicker(PVEFrame, ST_GroupFinder, 0) end);
-      WorldMapFrame:HookScript("OnShow", function() StartTicker(WorldMapFrame, ST_WorldMapFunc, 0.02) end);
+      -- WorldMapFrame HookScript yerine C_Timer.After kullanılıyor.
+      -- HookScript("OnShow") WorldMapFrame'i taint ediyor ve Blizzard'ın
+      -- DungeonEntrance pin'lerinin SetPropagateMouseClicks() çağrısını engelliyor.
+      -- 0.5 sn gecikme ile Blizzard'ın pin yerleştirme işleminin bitmesini bekliyoruz.
+      WorldMapFrame:HookScript("OnShow", function()
+         C_Timer.After(0.5, function()
+            if WorldMapFrame:IsVisible() then
+               ST_WorldMapFunc()
+            end
+         end)
+      end);
       QuestScrollFrame:HookScript("OnShow", function() StartTicker(QuestScrollFrame, QTR_QuestMap_Check, 0.02) end);
       CharacterFrame:HookScript("OnShow", ST_CharacterFrame);
       FriendsFrame:HookScript("OnShow", function() StartTicker(FriendsFrame, ST_FriendsFrame, 0.1) end);
@@ -620,8 +615,9 @@ function WOWTR_onEvent(self, event, name, ...)
       -- end
    elseif (event=="GOSSIP_SHOW") then
       if (QTR_PS["gossip"] == "1") then
-         -- Her zaman küçük bir gecikme ekliyoruz ki Blizzard'ın işi bitsin (0.05 sn)
-         if (not WOWTR_wait(0.03, QTR_Gossip_Show)) then
+         -- DUI aktifken daha uzun gecikme: keepGossipHistory modunda yeni butonlar biraz gec olusturuluyor
+         local delay = isDUIQuestFrame() and 0.15 or 0.03;
+         if (not WOWTR_wait(delay, QTR_Gossip_Show)) then
             -- QTR_Gossip_Show();
          end
       end
@@ -704,11 +700,7 @@ function WOWTR_onChatMsgAddon(who,msg)       -- received message from hidden add
       if (currentTime - WOWTR_lastNotificationTime) > WOWTR_notificationCooldown then
          print("|cffffff00"..WoWTR_Localization.addonName.."|r - "..WoWTR_Localization.newVersionAvailable.." |cffffff00"..msg.."|r");
          UIErrorsFrame:SetTimeVisible(10);
-         if (WoWTR_Localization.lang == 'AR') then
-            UIErrorsFrame:AddMessage(QTR_ReverseIfAR(WoWTR_Localization.addonName .. " - " .. WoWTR_Localization.newVersionAvailable .. WOWTR_AnsiReverse(msg)), 1,0.5,1);
-         else
-            UIErrorsFrame:AddMessage(WoWTR_Localization.addonName .. " - " .. WoWTR_Localization.newVersionAvailable .. msg, 1,0.5,1);
-         end
+         UIErrorsFrame:AddMessage(WoWTR_Localization.addonName .. " - " .. WoWTR_Localization.newVersionAvailable .. msg, 1,0.5,1);
          WOWTR_lastNotificationTime = currentTime;    -- save current time
       end
    end
@@ -723,13 +715,8 @@ function STspell_ON_OFF()
       WOWTR_ToggleButtonS:GetFontString():SetFont(WOWTR_ToggleButtonS:GetFontString():GetFont(), 7)
    else
       ST_PM["spell"] = "1";
-      if (WoWTR_Localization.lang == 'AR') then
-         WOWTR_ToggleButtonS:SetText(QTR_ReverseIfAR(WoWTR_Localization.WoWTR_Spellbook_trDESC));
-         WOWTR_ToggleButtonS:GetFontString():SetFont(WOWTR_Font2, 7)
-      else
-         WOWTR_ToggleButtonS:SetText(WoWTR_Localization.WoWTR_Spellbook_trDESC);
-         WOWTR_ToggleButtonS:GetFontString():SetFont(WOWTR_ToggleButtonS:GetFontString():GetFont(), 7)
-      end
+      WOWTR_ToggleButtonS:SetText(WoWTR_Localization.WoWTR_Spellbook_trDESC);
+      WOWTR_ToggleButtonS:GetFontString():SetFont(WOWTR_ToggleButtonS:GetFontString():GetFont(), 7)
    end
 end
 ----------------------------------------------------------------------------------------------------------------------------------------
