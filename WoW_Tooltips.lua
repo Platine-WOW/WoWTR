@@ -322,13 +322,13 @@ function ST_TranslatePrepare(ST_origin, ST_tlumacz)
    if (not ST_miasto) then
       ST_miasto = WoWTR_Localization.your_home;
    end
-   tlumaczenie = string.gsub(tlumaczenie, "$L", (ST_miasto));    -- miasto lokalizacji do Kamienia Powrotu
+   tlumaczenie = string.gsub(tlumaczenie, "$L", ST_miasto);    -- miasto lokalizacji do Kamienia Powrotu
    local wartab = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};         -- max. 20 liczb całkowitych w tekście
    local arg0 = 0;
    ST_origin = string.gsub(ST_origin,"(%d),(%d)","%1%2");            -- usuń przecinek tysięczny przy liczbach
    for w in string.gmatch(ST_origin, "%d+") do
-      arg0 = arg0 + 1;                                               -- formatowanie do postaci: 99.123.456
-      if (WoWTR_Localization.lang == 'TR') then
+      arg0 = arg0 + 1;                                               -- formatowanie do postaci: 99123456
+      if (WoWTR_Localization.lang == 'TR' or WoWTR_Localization.lang == 'JP') then
          wartab[arg0] = w:gsub("(%d+)", function(num)
            if #num > 1 and num:sub(1,1) == "0" then
             return num
@@ -336,21 +336,11 @@ function ST_TranslatePrepare(ST_origin, ST_tlumacz)
             return tonumber(num)
            end
          end)
-      elseif (WoWTR_Localization.lang == 'JP') then                      -- formatowanie do postaci: 99,123,456 (JP)
-         if (math.floor(w)>999999) then
-            wartab[arg0] = tostring(math.floor(w)):reverse():gsub("(%d%d%d)(%d%d%d)", "%1,%2,"):gsub("(%-?)$", "%1"):reverse();   -- tu mamy kolejne cyfry z oryginału
-         elseif (math.floor(w)>99999) then
-            wartab[arg0] = tostring(math.floor(w)):reverse():gsub("(%d%d%d)(%d%d%d)", "%1,%2"):gsub("(%-?)$", "%1"):reverse();    -- tu mamy kolejne cyfry z oryginału
-         elseif (math.floor(w)>999) then
-            wartab[arg0] = tostring(math.floor(w)):reverse():gsub("(%d%d%d)", "%1,"):gsub("(%-?)$", "%1"):reverse();   -- tu mamy kolejne cyfry z oryginału
-         else   
-            wartab[arg0] = tostring(math.floor(w));
-         end
       else                                                           -- formatowanie do postaci: 99.123.456 (Europe)
          if (math.floor(w)>999999) then
             wartab[arg0] = tostring(math.floor(w)):reverse():gsub("(%d%d%d)(%d%d%d)", "%1.%2."):gsub("(%-?)$", "%1"):reverse();   -- tu mamy kolejne cyfry z oryginału
          elseif (math.floor(w)>99999) then
-            wartab[arg0] = tostring(math.floor(w)):reverse():gsub("(%d%d%d)(%d%d%d)", "%1.%2"):gsub("(%-?)$", "%1"):reverse();   -- tu mamy kolejne cyfry z oryginału
+            wartab[arg0] = tostring(math.floor(w)):reverse():gsub("(%d%d%d)(%d%d%d)", "%1.%2"):gsub("(%-?)$", "%1"):reverse();    -- tu mamy kolejne cyfry z oryginału
          elseif (math.floor(w)>999) then
             wartab[arg0] = tostring(math.floor(w)):reverse():gsub("(%d%d%d)", "%1."):gsub("(%-?)$", "%1"):reverse();   -- tu mamy kolejne cyfry z oryginału
          else   
@@ -358,25 +348,33 @@ function ST_TranslatePrepare(ST_origin, ST_tlumacz)
          end
       end
    end;
-   if (WoWTR_Localization.lang == 'TR') then
+   if (WoWTR_Localization.lang == 'TR' or WoWTR_Localization.lang == 'JP') then
       for i = 40, 1, -1 do
         local pattern = string.format("{%02d}", i)
-        local dollarPattern = "$" .. i
         if arg0 >= i then
-          tlumaczenie = string.gsub(tlumaczenie, pattern, wartab[i])
-          tlumaczenie = string.gsub(tlumaczenie, dollarPattern, wartab[i])
+          tlumaczenie = string.gsub(tlumaczenie, pattern, tostring(wartab[i]))
         end
       end
    else
-      for i = 1, 40 do
+      for i = 40, 1, -1 do
          if (arg0 >= i) then
             -- Reverse "i" to match the curly-brace pattern (e.g. 12 => "{21}")
             local reversedI = tostring(i):reverse()
-            tlumaczenie = string.gsub(tlumaczenie, "{" .. reversedI .. "}", wartab[i])
-            tlumaczenie = string.gsub(tlumaczenie, "$"  .. i,           wartab[i])
+            tlumaczenie = string.gsub(tlumaczenie, "{" .. reversedI .. "}", tostring(wartab[i]))
          end
       end
    end
+
+   -- [FIX] $N yerine koyma: tek gecisli greedy eslestirme.
+   -- Eski yontem ("$" .. i dongusu) "$1" patternini "$10", "$11" icinde de buluyordu.
+   -- %$(%d+) tum rakamlari birden yakalar: $10 -> "10", $11 -> "11", $1 -> "1" -- cakisma yok.
+   -- Tum diller icin gecerlidir (TR, JP, EU, vs.)
+   tlumaczenie = string.gsub(tlumaczenie, "%$(%d+)", function(n)
+      local num = tonumber(n)
+      if num and num >= 1 and num <= 40 and arg0 >= num then
+         return tostring(wartab[num])
+      end
+   end)
 
    return tlumaczenie;
 end
@@ -776,13 +774,16 @@ function ST_GameTooltipOnShow_Original(tooltip)
          
          ST_leftText = WOWTR_SafeGetText(leftWidget);
          
-         if (ST_leftText and (string.find(ST_leftText," ")==nil)) then                 -- nie jest to nasze tłumaczenie
+         -- [FIX] Addon'un kendi ekledigi Item ID / Hash satirlarini ceviri donguSunden haric tut
+         if (ST_leftText and (string.find(ST_leftText," ")==nil)
+             and not string.find(ST_leftText, " ID: ")
+             and not ST_leftText:match("^Hash: ")) then                 -- nie jest to nasze tlumaczenie
             leftColR, leftColG, leftColB = leftWidget:GetTextColor();
             ST_kodKoloru = OkreslKodKoloru(leftColR, leftColG, leftColB);
             local isObjLine = string.find(ST_leftText, "%d+/%d+") or string.find(ST_leftText, "%d+$")
             if (ST_leftText and (string.len(ST_leftText)>1) and (isObjLine or (ST_kodKoloru == "c7") or (ST_kodKoloru == "c4") or (ST_kodKoloru == "c3") or (string.len(ST_leftText)>30) or string.find(ST_leftText, "Right click"))) then
 --print(ST_kodKoloru,i,ST_leftText);
-               if (tooltip.processingInfo and tooltip.processingInfo.tooltipData.id and (tooltip.processingInfo.tooltipData.id == 6948)) then   -- wyjątek na Kamień Powrotu
+               if (tooltip.processingInfo and tooltip.processingInfo.tooltipData.id and (tooltip.processingInfo.tooltipData.id == 6948) and (string.len(ST_leftText) > 30)) then   -- wyjątek na Kamień Powrotu
                   ST_pomoc5, _ = string.find(ST_leftText,". Speak");        -- znajdź kropkę kończącą pierwsze zdanie
                   if (ST_pomoc5 and (ST_pomoc5>22)) then
                      ST_miasto = string.sub(ST_leftText,21,ST_pomoc5-1);
@@ -836,34 +837,48 @@ function ST_GameTooltipOnShow_Original(tooltip)
       
 
       if (((ST_PM["showID"]=="1") and (string.len(ST_prefix) > 1)) or ((ST_PM["showHS"]=="1") and ST_hash2)) then   -- czy dodawać ID i Hash ?
-         numLines = tooltip:NumLines();           -- aktualna liczba linii
-         if (numLines > 0 and ST_odstep) then
-            tooltip:AddLine(" ",0,0,0);           -- dodaj odstęp przed linią z ID
+         -- [FIX] Tekrar eklemeyi önle: Tooltip'te zaten ID/Hash satırı var mı kontrol et
+         local alreadyHasIDorHash = false;
+         local checkLines = tooltip:NumLines();
+         for ci = 1, checkLines do
+            local checkWidget = _G[tooltipName.."TextLeft"..ci];
+            local checkText = checkWidget and WOWTR_SafeGetText(checkWidget);
+            if checkText and (string.find(checkText, " ID: ") or string.find(checkText, "^Hash: ")) then
+               alreadyHasIDorHash = true;
+               break;
+            end
          end
-         local typName = " ";
-         if (string.sub(ST_prefix,1,1) == "i") then
-            typName = "Item";
-            ST_ID = string.sub(ST_prefix,2);
-         elseif (string.sub(ST_prefix,1,1) == "s") then
-            typName = "Spell";
-            ST_ID = string.sub(ST_prefix,2);
-         elseif (string.sub(ST_prefix,1,1) == "t") then
-            typName = "Talent";
-            ST_ID = string.sub(ST_prefix,2);
-         else
-            ST_ID = nil;
-         end
-         if ((ST_PM["showID"]=="1") and ST_ID) then
-            tooltip:AddLine(typName.." ID: "..tostring(ST_ID),0,1,1);
-            numLines = tooltip:NumLines();                -- Aktualna liczba linii w GameTooltip
-            _G[tooltipName.."TextLeft"..numLines]:SetFont(WOWTR_Font2, 12);      -- wielkość 12
-            _G[tooltipName.."TextRight"..numLines]:SetFont(WOWTR_Font2, 12);     -- wielkość 12
-         end
-         if ((ST_PM["showHS"]=="1") and ST_hash2) then
-            tooltip:AddLine("Hash: "..tostring(ST_hash2),0,1,1);
-            numLines = tooltip:NumLines();                -- Aktualna liczba linii w GameTooltip
-            _G[tooltipName.."TextLeft"..numLines]:SetFont(WOWTR_Font2, 12);      -- wielkość 12
-            _G[tooltipName.."TextRight"..numLines]:SetFont(WOWTR_Font2, 12);     -- wielkość 12
+
+         if not alreadyHasIDorHash then
+            numLines = tooltip:NumLines();           -- aktualna liczba linii
+            if (numLines > 0 and ST_odstep) then
+               tooltip:AddLine(" ",0,0,0);           -- dodaj odstęp przed linią z ID
+            end
+            local typName = " ";
+            if (string.sub(ST_prefix,1,1) == "i") then
+               typName = "Item";
+               ST_ID = string.sub(ST_prefix,2);
+            elseif (string.sub(ST_prefix,1,1) == "s") then
+               typName = "Spell";
+               ST_ID = string.sub(ST_prefix,2);
+            elseif (string.sub(ST_prefix,1,1) == "t") then
+               typName = "Talent";
+               ST_ID = string.sub(ST_prefix,2);
+            else
+               ST_ID = nil;
+            end
+            if ((ST_PM["showID"]=="1") and ST_ID) then
+               tooltip:AddLine(typName.." ID: "..tostring(ST_ID),0,1,1);
+               numLines = tooltip:NumLines();                -- Aktualna liczba linii w GameTooltip
+               _G[tooltipName.."TextLeft"..numLines]:SetFont(WOWTR_Font2, 12);      -- wielkość 12
+               _G[tooltipName.."TextRight"..numLines]:SetFont(WOWTR_Font2, 12);     -- wielkość 12
+            end
+            if ((ST_PM["showHS"]=="1") and ST_hash2) then
+               tooltip:AddLine("Hash: "..tostring(ST_hash2),0,1,1);
+               numLines = tooltip:NumLines();                -- Aktualna liczba linii w GameTooltip
+               _G[tooltipName.."TextLeft"..numLines]:SetFont(WOWTR_Font2, 12);      -- wielkość 12
+               _G[tooltipName.."TextRight"..numLines]:SetFont(WOWTR_Font2, 12);     -- wielkość 12
+            end
          end
       end
       
