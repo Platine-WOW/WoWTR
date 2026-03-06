@@ -750,10 +750,29 @@ end
 -------------------------------------------------------------------------------------------------------------------
 
 function QTR_SaveQuest(event)
+   -- NBSP (non-breaking space = " ") içeren metinler Türkçeye çevrilmiş demektir.
+   -- Önceki questin çevirisi hâlâ ekranda olabilir; o metni yeni quest ID'sine kaydetmemek için kontrol ediyoruz.
+   local function isTranslated(text)
+      return text and string.find(text, " ") ~= nil
+   end
    if (event=="QUEST_DETAIL") then
       QTR_SAVED[QTR_quest_ID.." TITLE"]=C_QuestLog.GetTitleForQuestID(QTR_quest_ID);            -- save original title to future translation
-      QTR_SAVED[QTR_quest_ID.." DESCRIPTION"]=WOWTR_DetectAndReplacePlayerName(QuestInfoDescriptionText:GetText());      -- save original text to future translation
-      QTR_SAVED[QTR_quest_ID.." OBJECTIVE"]=WOWTR_DetectAndReplacePlayerName(QuestInfoObjectivesText:GetText());    -- save original text to future translation
+      -- Önce WoW API'sından İngilizce değeri al (her zaman orijinal İngilizcedir)
+      local rawDesc = GetQuestText and GetQuestText() or nil;
+      local rawObj  = GetObjectiveText and GetObjectiveText() or nil;
+      -- API boş döndürdüyse veya NBSP yoksa frame'den al, ama NBSP varsa kaydetme
+      local descText = QuestInfoDescriptionText:GetText();
+      local objText  = QuestInfoObjectivesText:GetText();
+      if rawDesc and rawDesc ~= "" and not isTranslated(rawDesc) then
+         QTR_SAVED[QTR_quest_ID.." DESCRIPTION"]=WOWTR_DetectAndReplacePlayerName(rawDesc);
+      elseif descText and descText ~= "" and not isTranslated(descText) then
+         QTR_SAVED[QTR_quest_ID.." DESCRIPTION"]=WOWTR_DetectAndReplacePlayerName(descText);
+      end
+      if rawObj and rawObj ~= "" and not isTranslated(rawObj) then
+         QTR_SAVED[QTR_quest_ID.." OBJECTIVE"]=WOWTR_DetectAndReplacePlayerName(rawObj);
+      elseif objText and objText ~= "" and not isTranslated(objText) then
+         QTR_SAVED[QTR_quest_ID.." OBJECTIVE"]=WOWTR_DetectAndReplacePlayerName(objText);
+      end
       local QTR_mapID = C_Map.GetBestMapForUnit("player");
       if (QTR_mapID) then
          local QTR_mapINFO = C_Map.GetMapInfo(QTR_mapID);
@@ -761,19 +780,31 @@ function QTR_SaveQuest(event)
       end
    end
    if (event=="QUEST_PROGRESS") then
-      QTR_SAVED[QTR_quest_ID.." PROGRESS"]=WOWTR_DetectAndReplacePlayerName(GetProgressText());      -- save original text to future translation
+      local progText = GetProgressText and GetProgressText() or nil;
+      if progText and not isTranslated(progText) then
+         QTR_SAVED[QTR_quest_ID.." PROGRESS"]=WOWTR_DetectAndReplacePlayerName(progText);      -- save original text to future translation
+      end
    end
    if (event=="QUEST_COMPLETE") then
-      QTR_SAVED[QTR_quest_ID.." COMPLETE"]=WOWTR_DetectAndReplacePlayerName(QuestInfoRewardText:GetText());        -- save original text to future translation
+      local rewardText = QuestInfoRewardText:GetText();
+      if rewardText and not isTranslated(rewardText) then
+         QTR_SAVED[QTR_quest_ID.." COMPLETE"]=WOWTR_DetectAndReplacePlayerName(rewardText);        -- save original text to future translation
+      end
    end
    if (QTR_SAVED[QTR_quest_ID.." TITLE"]==nil) then
       QTR_SAVED[QTR_quest_ID.." TITLE"]=C_QuestLog.GetTitleForQuestID(QTR_quest_ID);            -- zapisz tytuł w przypadku tylko Zakończenia
    end
-   if (QTR_SAVED[QTR_quest_ID.." DESCRIPTION"]==nil and QuestInfoDescriptionText and QuestInfoDescriptionText:GetText() and QuestInfoDescriptionText:GetText() ~= "") then
-      QTR_SAVED[QTR_quest_ID.." DESCRIPTION"]=WOWTR_DetectAndReplacePlayerName(QuestInfoDescriptionText:GetText());
+   if (QTR_SAVED[QTR_quest_ID.." DESCRIPTION"]==nil and QuestInfoDescriptionText) then
+      local t = QuestInfoDescriptionText:GetText();
+      if t and t ~= "" and not isTranslated(t) then
+         QTR_SAVED[QTR_quest_ID.." DESCRIPTION"]=WOWTR_DetectAndReplacePlayerName(t);
+      end
    end
-   if (QTR_SAVED[QTR_quest_ID.." OBJECTIVE"]==nil and QuestInfoObjectivesText and QuestInfoObjectivesText:GetText() and QuestInfoObjectivesText:GetText() ~= "") then
-      QTR_SAVED[QTR_quest_ID.." OBJECTIVE"]=WOWTR_DetectAndReplacePlayerName(QuestInfoObjectivesText:GetText());
+   if (QTR_SAVED[QTR_quest_ID.." OBJECTIVE"]==nil and QuestInfoObjectivesText) then
+      local t = QuestInfoObjectivesText:GetText();
+      if t and t ~= "" and not isTranslated(t) then
+         QTR_SAVED[QTR_quest_ID.." OBJECTIVE"]=WOWTR_DetectAndReplacePlayerName(t);
+      end
    end
    if (QTR_SAVED[QTR_quest_ID.." MAPID"]==nil) then
       local QTR_mapID = C_Map.GetBestMapForUnit("player");
@@ -1376,8 +1407,15 @@ function QTR_QuestPrepare(zdarzenie)
          end
           if (zdarzenie=="QUEST_DETAIL") then
             if (QTR_quest_EN[QTR_quest_ID].details == nil) then
-               QTR_quest_EN[QTR_quest_ID].details = GetQuestText();
-               QTR_quest_EN[QTR_quest_ID].objectives = GetObjectiveText();
+               local _rawD = GetQuestText();
+               local _rawO = GetObjectiveText();
+               -- NBSP içeriyorsa metin zaten çevrilmiş — EN alanına kaydetme
+               if _rawD and _rawD ~= "" and string.find(_rawD, " ") == nil then
+                  QTR_quest_EN[QTR_quest_ID].details = _rawD;
+               end
+               if _rawO and _rawO ~= "" and string.find(_rawO, " ") == nil then
+                  QTR_quest_EN[QTR_quest_ID].objectives = _rawO;
+               end
             end
             -- sprawdź ile jest nagród za ten quest?
             quest_numReward[str_ID] = GetNumQuestChoices();
@@ -1412,10 +1450,18 @@ function QTR_QuestPrepare(zdarzenie)
             end
          else        -- nie jest to zdarzenie QUEST_DETAILS
             if (QTR_quest_EN[QTR_quest_ID].details == nil) then
-               QTR_quest_EN[QTR_quest_ID].details = QuestInfoDescriptionText:GetText();
+               local _t = QuestInfoDescriptionText:GetText();
+               -- NBSP içeriyorsa metin zaten çevrilmiş — EN alanına kaydetme
+               if _t and _t ~= "" and string.find(_t, " ") == nil then
+                  QTR_quest_EN[QTR_quest_ID].details = _t;
+               end
             end
             if (QTR_quest_EN[QTR_quest_ID].objectives == nil) then
-               QTR_quest_EN[QTR_quest_ID].objectives = QuestInfoObjectivesText:GetText();
+               local _t = QuestInfoObjectivesText:GetText();
+               -- NBSP içeriyorsa metin zaten çevrilmiş — EN alanına kaydetme
+               if _t and _t ~= "" and string.find(_t, " ") == nil then
+                  QTR_quest_EN[QTR_quest_ID].objectives = _t;
+               end
             end
             if (strlen(QTR_quest_EN[QTR_quest_ID].details or "")>0 and strlen(QTR_quest_LG[QTR_quest_ID].details or "")==0
                and string.find(QTR_quest_EN[QTR_quest_ID].details, " ") == nil) then

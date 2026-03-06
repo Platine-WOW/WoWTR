@@ -120,7 +120,7 @@ function ST_NormalizeObjective(txt)
     
     -- Cleanup trailing colon and extra spaces
     normalized = string.gsub(normalized, ":$", "")
-    normalized = strtrim(normalized)
+    normalized = string.gsub(normalized, "^%s+", "")   -- Sadece leading bosluklar temizlenir, trailing space korunur
     
     return normalized
 end
@@ -432,6 +432,8 @@ if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
       if WOWTR_tooltipPending then return end
       WOWTR_tooltipPending = true
       WOWTR_CancelReapplyTicker()
+      -- [FIX] Yeni tooltip gosterildiginde onceki hash degerini temizle
+      GameTooltip.WOWTR_lastHash2 = nil;
       -- 0.15 sn: Blizzard'ın layout/sizing işlemlerinin bitmesini bekle
       C_Timer.After(0.15, function()
          WOWTR_tooltipPending = false
@@ -768,6 +770,12 @@ function ST_GameTooltipOnShow_Original(tooltip)
          left1Widget:SetFont(WOWTR_Font2, _size1);
       end
 
+      -- [FIX] Reapply'da WOWTR_lastHash2 onceden yukle: boylece dongu Bagnator/dis eklenti
+      -- satirlarinin (ornegin 'Envanter') ST_hash2'yi ezmesi engellenir.
+      if (ST_PM["showHS"]=="1") and tooltip.WOWTR_lastHash2 then
+         ST_hash2 = tooltip.WOWTR_lastHash2;
+      end
+
       for i = ST_fromLine, numLines, 1 do
          local leftWidget = _G[tooltipName.."TextLeft"..i]
          if not leftWidget and tooltip["TextLeft"..i] then leftWidget = tooltip["TextLeft"..i] end
@@ -788,84 +796,112 @@ function ST_GameTooltipOnShow_Original(tooltip)
                   if (ST_pomoc5 and (ST_pomoc5>22)) then
                      ST_miasto = string.sub(ST_leftText,21,ST_pomoc5-1);
                   else
-                     ST_miasto = WoWTR_Localization.your_home;
+                     -- [FIX] Onceden dogru sehir set edilmisse koru, yoksa fallback
+                     if not ST_miasto then
+                        ST_miasto = WoWTR_Localization.your_home;
+                     end
                   end
-                  ST_pomoc6, _ = string.find(ST_leftText,' Min Cooldown)');
-                  if (ST_pomoc6) then              -- mamy 2 wersję tekstu z Cooldown
-                     ST_hash = 1336493626;
-                  else                             -- 1 wersja tekstu (bez Cooldown)
-                     ST_hash = 3076025968;
-                  end
+                   ST_pomoc6, _ = string.find(ST_leftText,' Min Cooldown)');
+                   if (ST_pomoc6) then              -- mamy 2 wersje tekstu z Cooldown
+                      ST_hash = 1336493626;
+                   elseif (ST_pomoc5 and (ST_pomoc5>22)) then  -- 1 wersja tekstu (z miastem, bez Cooldown)
+                      ST_hash = 3076025968;
+                    else
+                       -- [FIX] 'Cooldown remaining: X Min Y Sec' gibi format
+                       -- Rakamlar ST_UsunZbedneZnaki ile silindigi icin hash her seferinde ayni:
+                       -- 'Cooldown remaining:  Min  Sec' → 93254314 → ceviri bulunup uygulanir
+                       local normalized_left = ST_NormalizeObjective(ST_leftText)
+                       ST_hash = StringHash(ST_UsunZbedneZnaki(normalized_left));
+                    end
                else
                    local normalized_left = ST_NormalizeObjective(ST_leftText)
                    ST_hash = StringHash(ST_UsunZbedneZnaki(normalized_left));
                end
 
-               if (((ST_kodKoloru == "c7") or (string.len(ST_leftText)>30) or string.find(ST_leftText, "Right click")) and (not ST_hash2)) then
-                  ST_hash2 = ST_hash;
-               end
-               ST_pomoc7, _ = string.find(ST_leftText,"<Made by");    -- znajdź czy jest to tekst typu "|cff00ff00<Made by Platine>|r"
-               if (ST_pomoc7) then
-                  ST_hash = 1381871427;
-               end
-               if (ST_TooltipsHS[ST_hash]) then        -- mamy przetłumaczony ten Hash lub jest to <Made by...
-                  if (ST_pomoc7) then
-                     local endBy = string.find(ST_leftText,">");
-                     local nameBy = string.sub(ST_leftText,ST_pomoc7+9,endBy-1);
-                     ST_tlumaczenie = ST_TooltipsHS[ST_hash];
-                     ST_tlumaczenie = string.gsub(ST_tlumaczenie, "$M", nameBy);
-
-                  else
-                     ST_tlumaczenie = ST_TooltipsHS[ST_hash];
+               if ST_hash then  -- [FIX] ST_hash nil ise (bilinmeyen Hearthstone satiri) isle
+                  if (((ST_kodKoloru == "c7") or (string.len(ST_leftText)>30) or string.find(ST_leftText, "Right click")) and (not ST_hash2)) then
+                     ST_hash2 = ST_hash;
+                     tooltip.WOWTR_lastHash2 = ST_hash2;   -- [FIX] Reapply icin kaydet
                   end
-                  ST_tlumaczenie = ST_TranslatePrepare(ST_leftText, ST_tlumaczenie);
-                  _font1, _size1, _1 = leftWidget:GetFont();    -- odczytaj aktualną czcionkę i rozmiar    
-                  leftWidget:SetFont(WOWTR_Font2, _size1);      -- ustawiamy czcionkę turecką
-                  leftWidget:SetWordWrap(true);
-                  leftWidget:SetText(QTR_ExpandUnitInfo(ST_tlumaczenie,false,leftWidget,WOWTR_Font2).." ");      -- dodajemy twardą spacje na końcu
-                  -- leftWidget.wrap = true;
-                  if (tooltip.processingInfo and tooltip.processingInfo.tooltipData.id and (tooltip.processingInfo.tooltipData.id == 6948)) then   -- wyjątek na Kamień Powrotu
-                     break;
-                  end
-               else
-                  ST_nh = 1;              -- nowy Hash
-                  table.insert(ST_orygText, {text = ST_leftText, color = ST_kodKoloru});
-               end
+                   ST_pomoc7, _ = string.find(ST_leftText,"<Made by");    -- znajdź czy jest to tekst typu "|cff00ff00<Made by Platine>|r"
+                   if (ST_pomoc7) then
+                      ST_hash = 1381871427;
+                   end
+                   if (ST_TooltipsHS[ST_hash]) then        -- mamy przełączony ten Hash lub jest to <Made by...
+                      if (ST_pomoc7) then
+                         local endBy = string.find(ST_leftText,">");
+                         local nameBy = string.sub(ST_leftText,ST_pomoc7+9,endBy-1);
+                         ST_tlumaczenie = ST_TooltipsHS[ST_hash];
+                         ST_tlumaczenie = string.gsub(ST_tlumaczenie, "$M", nameBy);
+                      else
+                         ST_tlumaczenie = ST_TooltipsHS[ST_hash];
+                      end
+                      ST_tlumaczenie = ST_TranslatePrepare(ST_leftText, ST_tlumaczenie);
+                      _font1, _size1, _1 = leftWidget:GetFont();
+                      leftWidget:SetFont(WOWTR_Font2, _size1);
+                      leftWidget:SetWordWrap(true);
+                      leftWidget:SetText(QTR_ExpandUnitInfo(ST_tlumaczenie,false,leftWidget,WOWTR_Font2).." ");
+                      if (tooltip.processingInfo and tooltip.processingInfo.tooltipData.id and (tooltip.processingInfo.tooltipData.id == 6948)) then
+                         break;
+                      end
+                   else
+                      ST_nh = 1;
+                      table.insert(ST_orygText, {text = ST_leftText, color = ST_kodKoloru});
+                   end
+                end  -- if ST_hash
             end
          end
       end
       
 
+
+
       if (((ST_PM["showID"]=="1") and (string.len(ST_prefix) > 1)) or ((ST_PM["showHS"]=="1") and ST_hash2)) then   -- czy dodawać ID i Hash ?
-         -- [FIX] Tekrar eklemeyi önle: Tooltip'te zaten ID/Hash satırı var mı kontrol et
-         local alreadyHasIDorHash = false;
+         -- [FIX] Mevcut ID/Hash satirlarini bul: varsa guncelle, yoksa yeni ekle
+         local existingIDWidget = nil;
+         local existingHashWidget = nil;
          local checkLines = tooltip:NumLines();
          for ci = 1, checkLines do
             local checkWidget = _G[tooltipName.."TextLeft"..ci];
             local checkText = checkWidget and WOWTR_SafeGetText(checkWidget);
-            if checkText and (string.find(checkText, " ID: ") or string.find(checkText, "^Hash: ")) then
-               alreadyHasIDorHash = true;
-               break;
+            if checkText then
+               if string.find(checkText, " ID: ") then
+                  existingIDWidget = checkWidget;
+               elseif checkText:match("^Hash: ") then
+                  existingHashWidget = checkWidget;
+               end
             end
          end
 
-         if not alreadyHasIDorHash then
+         local typName = " ";
+         if (string.sub(ST_prefix,1,1) == "i") then
+            typName = "Item";
+            ST_ID = string.sub(ST_prefix,2);
+         elseif (string.sub(ST_prefix,1,1) == "s") then
+            typName = "Spell";
+            ST_ID = string.sub(ST_prefix,2);
+         elseif (string.sub(ST_prefix,1,1) == "t") then
+            typName = "Talent";
+            ST_ID = string.sub(ST_prefix,2);
+         else
+            ST_ID = nil;
+         end
+
+         if existingIDWidget or existingHashWidget then
+            -- Mevcut satirlari guncelle (eski deger uzerine yaz)
+            if ((ST_PM["showID"]=="1") and ST_ID and existingIDWidget) then
+               existingIDWidget:SetText(typName.." ID: "..tostring(ST_ID));
+               existingIDWidget:SetFont(WOWTR_Font2, 12);
+            end
+            if ((ST_PM["showHS"]=="1") and ST_hash2 and existingHashWidget) then
+               existingHashWidget:SetText("Hash: "..tostring(ST_hash2));
+               existingHashWidget:SetFont(WOWTR_Font2, 12);
+            end
+         else
+            -- Hic yoksa yeni ekle
             numLines = tooltip:NumLines();           -- aktualna liczba linii
             if (numLines > 0 and ST_odstep) then
                tooltip:AddLine(" ",0,0,0);           -- dodaj odstęp przed linią z ID
-            end
-            local typName = " ";
-            if (string.sub(ST_prefix,1,1) == "i") then
-               typName = "Item";
-               ST_ID = string.sub(ST_prefix,2);
-            elseif (string.sub(ST_prefix,1,1) == "s") then
-               typName = "Spell";
-               ST_ID = string.sub(ST_prefix,2);
-            elseif (string.sub(ST_prefix,1,1) == "t") then
-               typName = "Talent";
-               ST_ID = string.sub(ST_prefix,2);
-            else
-               ST_ID = nil;
             end
             if ((ST_PM["showID"]=="1") and ST_ID) then
                tooltip:AddLine(typName.." ID: "..tostring(ST_ID),0,1,1);
@@ -919,7 +955,13 @@ function ST_GameTooltipOnShow_Original(tooltip)
          -- Children
          local children = { frame:GetChildren() }
          for i, child in ipairs(children) do
-            ProcessExtraRegions(child, depth + 1)
+            -- [FIX] Sadece tooltip'in kendi child'larini isle; dis addon frame'lerini atla (ornegin Bagnator)
+            local childName = child:GetName() or ""
+            if depth == 0 and childName ~= "" and not string.find(childName, "^"..tooltipName) then
+               -- Bu child dis bir addon tarafindan eklenmis, atla
+            else
+               ProcessExtraRegions(child, depth + 1)
+            end
          end
       end
       
