@@ -1,4 +1,4 @@
-﻿-- Description: The AddOn displays the translated text information in chosen language
+-- Description: The AddOn displays the translated text information in chosen language
 -- Author: Platine [platine.wow@gmail.com]
 -- Co-Author: Hakan YILMAZ [hknylmz@gmail.com]
 -------------------------------------------------------------------------------------------------------
@@ -434,33 +434,34 @@ if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
       WOWTR_CancelReapplyTicker()
       -- [FIX] Yeni tooltip gosterildiginde onceki hash degerini temizle
       GameTooltip.WOWTR_lastHash2 = nil;
-      -- 0.15 sn: Blizzard'ın layout/sizing işlemlerinin bitmesini bekle
-      C_Timer.After(0.15, function()
-         WOWTR_tooltipPending = false
-         if GameTooltip:IsVisible() then
-            pcall(ST_GameTooltipOnShow)
-            -- Çeviri uygulandı; Blizzard refresh sonrası yeniden uygula
-            -- Her 0.5 saniye nbsp işareti kontrol edilir; yoksa re-apply yapılır
-            WOWTR_CancelReapplyTicker()
-            -- Her 0.5 sn: Blizzard refresh sonrası çeviriyi yeniden uygula
-            -- Metin kontrolü yerine her zaman uygula (ST_GameTooltipOnShow nbsp varsa zaten atlar)
-            WOWTR_reapplyTicker = C_Timer.NewTicker(0.5, function()
-               if not GameTooltip:IsVisible() then
-                  WOWTR_CancelReapplyTicker()
-                  return
-               end
-               if not WOWTR_tooltipPending then
-                  WOWTR_tooltipPending = true
-                  C_Timer.After(0.15, function()
-                     WOWTR_tooltipPending = false
-                     if GameTooltip:IsVisible() then
-                        pcall(ST_GameTooltipOnShow)
-                     end
-                  end)
-               end
-            end)
-         end
-      end)
+       -- 0.15 sn: Blizzard'in layout/sizing islemlerinin bitmesini bekle
+       C_Timer.After(0.15, function()
+          WOWTR_tooltipPending = false
+          if GameTooltip:IsVisible() then
+             pcall(ST_GameTooltipOnShow)
+             -- Re-apply ticker YALNIZCA harita acikken baslat:
+             -- Harita POI tooltip'leri 10sn sonra Blizzard tarafindan sifirlanir.
+             -- Normal unit/obje tooltip'leri OnLeave ile kapanir, ticker'a gerek yok.
+             if WorldMapFrame and WorldMapFrame:IsVisible() then
+                WOWTR_CancelReapplyTicker()
+                WOWTR_reapplyTicker = C_Timer.NewTicker(0.5, function()
+                   if not GameTooltip:IsVisible() or not (WorldMapFrame and WorldMapFrame:IsVisible()) then
+                      WOWTR_CancelReapplyTicker()
+                      return
+                   end
+                   if not WOWTR_tooltipPending then
+                      WOWTR_tooltipPending = true
+                      C_Timer.After(0.15, function()
+                         WOWTR_tooltipPending = false
+                         if GameTooltip:IsVisible() then
+                            pcall(ST_GameTooltipOnShow)
+                         end
+                      end)
+                   end
+                end)
+             end
+          end
+       end)
    end
 
    GameTooltip:HookScript('OnShow', ST_TooltipHookHandler);
@@ -501,18 +502,52 @@ if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
    end );
 
    if EmbeddedItemTooltip then
-       -- EmbeddedItemTooltip: geciktirilmiş işleme (layout taint önleme)
-       EmbeddedItemTooltip:HookScript('OnUpdate', function(self, ...)
-          if (not WOWTR_tooltipPending) then
-             WOWTR_tooltipPending = true
-             C_Timer.After(0.15, function()
-                WOWTR_tooltipPending = false
-                if EmbeddedItemTooltip:IsVisible() then
-                   pcall(ST_GameTooltipOnShow, EmbeddedItemTooltip)
-                end
-             end)
+       local WOWTR_embeddedPending = false
+       local WOWTR_embeddedTicker = nil
+
+       local function WOWTR_CancelEmbeddedTicker()
+          if WOWTR_embeddedTicker then
+             WOWTR_embeddedTicker:Cancel()
+             WOWTR_embeddedTicker = nil
           end
-       end );
+       end
+
+       local function WOWTR_ApplyEmbeddedTranslation()
+          if not EmbeddedItemTooltip or not EmbeddedItemTooltip:IsVisible() then return end
+          -- [FIX] Blizzard'in otomatik yenilemesini durdur:
+          -- updateTooltipTimer, protected olmayan EmbeddedItemTooltip'te guvenle degistirilebilir.
+          -- GameTooltip'te taint'e yol aciyordu; bu frame icin sorun yok.
+          pcall(function() EmbeddedItemTooltip.updateTooltipTimer = 3600 end)
+          pcall(ST_GameTooltipOnShow, EmbeddedItemTooltip)
+       end
+
+       EmbeddedItemTooltip:HookScript('OnShow', function(self)
+          WOWTR_embeddedPending = true
+          C_Timer.After(0.2, function()
+             WOWTR_embeddedPending = false
+             WOWTR_ApplyEmbeddedTranslation()
+             -- [YEDEK] DelvesDifficultyPickerFrame acikken Blizzard sureklı
+             -- icerigi tazeleyebilir; 0.25s ticker ile ceviriyi koru.
+             if DelvesDifficultyPickerFrame and DelvesDifficultyPickerFrame:IsVisible() then
+                WOWTR_CancelEmbeddedTicker()
+                WOWTR_embeddedTicker = C_Timer.NewTicker(0.25, function()
+                   if not EmbeddedItemTooltip or not EmbeddedItemTooltip:IsVisible()
+                      or not (DelvesDifficultyPickerFrame and DelvesDifficultyPickerFrame:IsVisible()) then
+                      WOWTR_CancelEmbeddedTicker()
+                      return
+                   end
+                   WOWTR_ApplyEmbeddedTranslation()
+                end)
+             end
+          end)
+       end)
+
+       EmbeddedItemTooltip:HookScript('OnHide', function(self)
+          WOWTR_embeddedPending = false
+          WOWTR_CancelEmbeddedTicker()
+          -- updateTooltipTimer'i normal degerine sifirla
+          pcall(function() EmbeddedItemTooltip.updateTooltipTimer = 0.2 end)
+       end)
    end
    if SettingsTooltip then
       -- Hook SettingsTooltip for Game Options
@@ -670,7 +705,8 @@ function ST_GameTooltipOnShow_Original(tooltip)
       end
       
       
-      tooltip.updateTooltipTimer = tonumber(ST_PM["timer"]);   -- X sekund zatrzymania uaktualnienia GameTooltip
+      -- [FIX] tooltip.updateTooltipTimer satiri kaldirildi: Blizzard'in protected degeri
+      -- degistirmek "tainted by 'WoWTR'" hatasina yol acacti. Yenileme ticker ile yonetiliyor.
       local tooltipName = tooltip:GetName()
       local left1Widget = _G[tooltipName.."TextLeft1"]
       -- Fallback: If global lookup fails, check for object property (sometimes used in newer frames)
