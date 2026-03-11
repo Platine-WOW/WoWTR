@@ -1308,6 +1308,14 @@ function QTR_QuestLogQuests_Update()
 
    -- 3. Update Story Header (if applicable)
    QTR_QuestScrollFrame_OnShow()
+
+   -- [FIX] Flicker: Blizzard quest listesini yeniledikten hemen sonra (pin hover dahil)
+   -- tum scroll frame icerigini aninda yeniden tara ve cevir.
+   -- Boylece 0.02s ticker'i beklemeden kategori basliklari, objective ve next-obj
+   -- metinleri flicker olmadan hemen Turkce gosterilir.
+   if QTR_QuestMap_Check then
+      pcall(QTR_QuestMap_Check)
+   end
 end
 
 -------------------------------------------------------------------------------------------------------------------
@@ -3566,6 +3574,8 @@ end
 
 -- Quest Map (Log) Recursive Scanner
 -- Quest Map (Log) Recursive Scanner
+local WOWTR_questMapHooks = {}  -- Hangi element'lara SetText hook takildigi takip edilir
+
 function QTR_QuestMap_Check()
    if (QTR_PS["active"]=="1") then
       if (not QuestScrollFrame or not QuestScrollFrame.Contents) then return end
@@ -3599,6 +3609,17 @@ function QTR_QuestMap_Check()
                if (text and text ~= "" and not shouldSkip) then
                   -- Apply translation
                   ST_CheckAndReplaceTranslationTextUI(region, true, "Collections:QuestObjective", WOWTR_Font2);
+                  -- [FIX] Sticky hook: Blizzard bu element'i Ingilizce'ye resetlediginde
+                  -- hemen yeniden cevir. Bir kere takilan hook kalici.
+                  if not WOWTR_questMapHooks[region] then
+                     WOWTR_questMapHooks[region] = true
+                     hooksecurefunc(region, "SetText", function(self, newText)
+                        if newText and newText ~= "" and string.find(newText, " ") == nil then
+                           -- Ceviri marker'i (hard space) yok = Blizzard Ingilizce'ye dondu
+                           ST_CheckAndReplaceTranslationTextUI(self, false, "Collections:QuestObjective", WOWTR_Font2)
+                        end
+                     end)
+                  end
                end
             end
          end

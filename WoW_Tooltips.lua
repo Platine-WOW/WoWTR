@@ -55,7 +55,9 @@ firstloginframe:SetScript("OnEvent", OnLogin);
 
 function ST_UsunZbedneZnaki(txt)          -- przed obliczeniem kodu Hash
    if (not txt) then return ""; end
-   text = string.gsub(txt,"|cFFFFFFFF","");
+   -- İhtiyaç kısımları değiştirmeden ve rakamları silmeden önce başta ve sondaki boşlukları temizle
+   local text = strtrim(txt);
+   text = string.gsub(text,"|cFFFFFFFF","");
    text = string.gsub(text,"|r","");
    text = string.gsub(text,"\r","");
    text = string.gsub(text,"\n","");
@@ -77,7 +79,10 @@ end
 -------------------------------------------------------------------------------------------------------
 
 function ST_PrzedZapisem(txt)
-   local text = string.gsub(txt,"(%d),(%d)","%1%2");      -- usuń przecinek między cyframi (odstęp tysięczny)
+   if (not txt) then return ""; end
+   -- Trim both leading and trailing spaces before saving and stripping characters
+   local text = strtrim(txt);
+   text = string.gsub(text,"(%d),(%d)","%1%2");      -- usuń przecinek między cyframi (odstęp tysięczny)
    text = string.gsub(text,"\r","");
    text = string.gsub(text,'%f[%a]'..WOWTR_player_name..'%f[%A]',"$N");
    return text;
@@ -120,7 +125,7 @@ function ST_NormalizeObjective(txt)
     
     -- Cleanup trailing colon and extra spaces
     normalized = string.gsub(normalized, ":$", "")
-    normalized = string.gsub(normalized, "^%s+", "")   -- Sadece leading bosluklar temizlenir, trailing space korunur
+    normalized = strtrim(normalized) -- Hem baştaki hem sondaki boşlukları temizler
     
     return normalized
 end
@@ -199,6 +204,11 @@ end
 -- ST_CheckAndReplaceTranslationText(obj, sav, prefix, font1, onlyReverse, ST_corr)
 function ST_CheckAndReplaceTranslationText(obj, sav, prefix, font1, onlyReverse, ST_corr)
    if (obj) then
+      -- [FIX] Skip FontStrings that belong to Blizzard UI Widgets to prevent "secret number" taint.
+      -- Touching these FontStrings causes arithmetic errors in Blizzard's protected layout engine.
+      local parent = obj.GetParent and obj:GetParent()
+      if parent and (parent.widgetID or parent.widgetType) then return end
+
       local txt = WOWTR_SafeGetText(obj);
       if (txt and string.find(txt," ") == nil and not shouldIgnore(txt)) then
          local ST_Hash = StringHash(ST_UsunZbedneZnaki(txt));
@@ -244,9 +254,14 @@ end
 function ST_CheckAndReplaceTranslationTextUI(obj, sav, prefix, font1)
     if (not obj) then return end
     
+    -- [FIX] Skip FontStrings that belong to Blizzard UI Widgets to prevent layout taint.
+    local parent = obj.GetParent and obj:GetParent()
+    if parent and (parent.widgetID or parent.widgetType) then return end
+
     local txt = WOWTR_SafeGetText(obj)
     if not (txt and string.find(txt, " ") == nil and not shouldIgnore(txt)) then return end
     
+    local hasDash = string.match(txt, "^%s*-%s")
     local normalized_txt = ST_NormalizeObjective(txt)
     local ST_Hash = StringHash(ST_UsunZbedneZnaki(normalized_txt))
 
@@ -296,7 +311,12 @@ function ST_CheckAndReplaceTranslationTextUI(obj, sav, prefix, font1)
             new_trans = string.gsub(new_trans, "$Zone", zoneName)
         end
         
-        obj:SetText((ST_TranslatePrepare(txt, new_trans)).." ")
+        local translated = ST_TranslatePrepare(txt, new_trans)
+        -- [FIX] Eğer orijinal metin - ile başlıyorsa çeviriye de tire ekle
+        if hasDash and not string.match(translated, "^%s*-%s") then
+            translated = "- " .. translated
+        end
+        obj:SetText(translated.." ")
         obj:SetFont(font1 or WOWTR_Font2, a2)
     
     -- Kaydetme işlemi
@@ -429,39 +449,47 @@ if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
    end
 
    local function ST_TooltipHookHandler(self)
+      -- [FIX] Yeni tooltip gosterildiginde onceki hash degerini temizle
+      GameTooltip.WOWTR_lastHash2 = nil;
+
+      -- AH MODU: OnShow timer baslatma, OnUpdate reaktif ceviriye birak.
+      -- AH her refresh'te OnShow tetikler; 0.15s beklemek flicker'a yol acar.
+      -- OnUpdate her frame data hazir olduqunda aninda ceviri yapar.
+      -- WorldMap: widget sistemi TextLeft1'i gec doldurur, OnUpdate yakalayamaz.
+      -- Bu yuzden WorldMap icin orijinal OnShow+ticker yaklasimi korunuyor.
+      if AuctionHouseFrame and AuctionHouseFrame:IsVisible() then
+         WOWTR_tooltipPending = false
+         WOWTR_CancelReapplyTicker()
+         return
+      end
+
       if WOWTR_tooltipPending then return end
       WOWTR_tooltipPending = true
       WOWTR_CancelReapplyTicker()
-      -- [FIX] Yeni tooltip gosterildiginde onceki hash degerini temizle
-      GameTooltip.WOWTR_lastHash2 = nil;
-       -- 0.15 sn: Blizzard'in layout/sizing islemlerinin bitmesini bekle
-       C_Timer.After(0.15, function()
-          WOWTR_tooltipPending = false
-          if GameTooltip:IsVisible() then
-             pcall(ST_GameTooltipOnShow)
-             -- Re-apply ticker YALNIZCA harita acikken baslat:
-             -- Harita POI tooltip'leri 10sn sonra Blizzard tarafindan sifirlanir.
-             -- Normal unit/obje tooltip'leri OnLeave ile kapanir, ticker'a gerek yok.
-             if WorldMapFrame and WorldMapFrame:IsVisible() then
-                WOWTR_CancelReapplyTicker()
-                WOWTR_reapplyTicker = C_Timer.NewTicker(0.5, function()
-                   if not GameTooltip:IsVisible() or not (WorldMapFrame and WorldMapFrame:IsVisible()) then
-                      WOWTR_CancelReapplyTicker()
-                      return
-                   end
-                   if not WOWTR_tooltipPending then
-                      WOWTR_tooltipPending = true
-                      C_Timer.After(0.15, function()
-                         WOWTR_tooltipPending = false
-                         if GameTooltip:IsVisible() then
-                            pcall(ST_GameTooltipOnShow)
-                         end
-                      end)
-                   end
-                end)
-             end
-          end
-       end)
+      -- 0.15s: Blizzard'in layout/sizing islemlerinin bitmesini bekle.
+      C_Timer.After(0.15, function()
+         WOWTR_tooltipPending = false
+         if GameTooltip:IsVisible() then
+            pcall(ST_GameTooltipOnShow)
+            -- WorldMap: widget sistemi NumLines()=0 dondurdugundan OnUpdate calismiyor.
+            -- Ticker ile Blizzard resetlerini yakala. Ic delay kaldirildi (dogrudan ceviri).
+            -- 0.1s aralik = max 6 frame Ingilizce gorunum (eski 0.5s+0.15s'ten cok daha iyi).
+            if WorldMapFrame and WorldMapFrame:IsVisible() then
+               WOWTR_CancelReapplyTicker()
+               WOWTR_reapplyTicker = C_Timer.NewTicker(0.1, function()
+                  if not GameTooltip:IsVisible() or not (WorldMapFrame and WorldMapFrame:IsVisible()) then
+                     WOWTR_CancelReapplyTicker()
+                     return
+                  end
+                  if not WOWTR_tooltipPending then
+                     WOWTR_tooltipPending = true
+                     pcall(ST_GameTooltipOnShow)
+                     WOWTR_tooltipPending = false
+                  end
+               end)
+            end
+         end
+      end)
    end
 
    GameTooltip:HookScript('OnShow', ST_TooltipHookHandler);
@@ -482,20 +510,51 @@ if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
    end );
 
 
--------------------------------------------------------------------------------------------------------
-
--- GameTooltip OnUpdate: sürekli yenileme (shift ID/hash görünümü için)
+-- GameTooltip OnUpdate: iki amac:
+-- 1) AH acikken: Her frame data hazir mi bak, hazirsa ANINDA cevir (OnShow delay yok)
+-- 2) Diger: ID/Hash gosterimi + hard-space tespiti
    GameTooltip:HookScript('OnUpdate', function(self, ...)
-      if ((ST_PM["active"]=="1") and (ST_lastNumLines > 0)) then
-         if ((ST_PM["constantly"] == "1") and (UnitLevel("player") > 10)) then
-            if ((ST_PM["showID"] == "1") or (ST_PM["showHS"] == "1")) then
-               -- pcall ile secret number karşılaştırmasını güvenli yap
+      if not (ST_PM and ST_PM["active"] == "1") then return end
+
+      -- ---------------------------------------------------------------
+      -- AH MODU: Reaktif ceviri - data hazir oldugu frame'de cevir
+      -- WorldMap: NumLines()=0 sorunu nedeniyle ticker kullaniliyor (yukarda).
+      -- ---------------------------------------------------------------
+      if AuctionHouseFrame and AuctionHouseFrame:IsVisible() and GameTooltip:IsVisible() then
+         if not WOWTR_tooltipPending then
+            local left1 = _G["GameTooltipTextLeft1"]
+            local txt   = left1 and WOWTR_SafeGetText(left1)
+            if txt and txt ~= "" and string.find(txt, " ") == nil then
                local ok, numLines = pcall(function() return self:NumLines() end)
-               if ok and numLines and (ST_lastNumLines ~= numLines) then
+               if ok and numLines and numLines > 0 then
+                  WOWTR_tooltipPending = true
                   pcall(ST_GameTooltipOnShow)
+                  WOWTR_tooltipPending = false
                end
-            elseif (_G["GameTooltipTextLeft1"] and WOWTR_SafeGetText(_G["GameTooltipTextLeft1"]) and (string.find(WOWTR_SafeGetText(_G["GameTooltipTextLeft1"])," ")==nil)) then
+            end
+         end
+         return  -- AH modunda asagi dusme
+      end
+
+      -- ---------------------------------------------------------------
+      -- NORMAL MOD: ID/Hash gosterimi + hard-space tespiti
+      -- ---------------------------------------------------------------
+      if (ST_lastNumLines > 0) and (ST_PM["constantly"] == "1") and (UnitLevel("player") > 10) then
+         if (ST_PM["showID"] == "1") or (ST_PM["showHS"] == "1") then
+            local ok, numLines = pcall(function() return self:NumLines() end)
+            if ok and numLines and (ST_lastNumLines ~= numLines) then
+               if not WOWTR_tooltipPending then
+                  WOWTR_tooltipPending = true
+                  pcall(ST_GameTooltipOnShow)
+                  WOWTR_tooltipPending = false
+               end
+            end
+         elseif (_G["GameTooltipTextLeft1"] and WOWTR_SafeGetText(_G["GameTooltipTextLeft1"])
+               and (string.find(WOWTR_SafeGetText(_G["GameTooltipTextLeft1"]), " ") == nil)) then
+            if not WOWTR_tooltipPending then
+               WOWTR_tooltipPending = true
                pcall(ST_GameTooltipOnShow)
+               WOWTR_tooltipPending = false
             end
          end
       end
@@ -555,6 +614,25 @@ if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
          if (not WOWTR_wait(0, ST_GameTooltipOnShow, self)) then
          end
       end );
+   end
+
+   -- [FIX] TooltipDataProcessor hook: Blizzard'ın modern tooltip veri sistemi (Dragonflight+).
+   -- Bu hook, GameTooltip item/spell verisi TÜM data provider'lardan işlendikten SONRA tetiklenir.
+   -- AH'daki updateTooltipTimer kaynaklı yenilemeleri de yakalar; taint oluşturmaz.
+   -- OnShow/OnUpdate'in önündeki Blizzard refresh sorununu kökten çözer.
+   if TooltipDataProcessor and TooltipDataProcessor.AddTooltipPostCall and Enum and Enum.TooltipDataType then
+      local function WOWTR_OnTooltipDataReady(tooltip, data)
+         if tooltip ~= GameTooltip then return end
+         if not (ST_PM and ST_PM["active"] == "1") then return end
+         if WOWTR_tooltipPending then return end
+         -- Blizzard tam veriyi işledi, anında çevir (gecikme yok)
+         WOWTR_tooltipPending = true
+         pcall(ST_GameTooltipOnShow, tooltip)
+         WOWTR_tooltipPending = false
+      end
+      -- Item ve Spell tooltip'lerini kapsıyoruz (AH item'ları Item tipinde)
+      TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item,  WOWTR_OnTooltipDataReady)
+      TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Spell, WOWTR_OnTooltipDataReady)
    end
 end
 
@@ -872,7 +950,12 @@ function ST_GameTooltipOnShow_Original(tooltip)
                       else
                          ST_tlumaczenie = ST_TooltipsHS[ST_hash];
                       end
+                      local hasDash = string.match(ST_leftText, "^%s*-%s")
                       ST_tlumaczenie = ST_TranslatePrepare(ST_leftText, ST_tlumaczenie);
+                      -- [FIX] Eğer orijinal metin - ile başlıyorsa çeviriye de tire ekle
+                      if hasDash and not string.match(ST_tlumaczenie, "^%s*-%s") then
+                          ST_tlumaczenie = "- " .. ST_tlumaczenie
+                      end
                       _font1, _size1, _1 = leftWidget:GetFont();
                       leftWidget:SetFont(WOWTR_Font2, _size1);
                       leftWidget:SetWordWrap(true);
@@ -965,8 +1048,13 @@ function ST_GameTooltipOnShow_Original(tooltip)
       -- Bu dongu standart TextLeftN/TextRightN disindaki metinleri (Ornegin Delve Story Variant) yakalamak icin
       -- region ve child'lari recursive olarak tarar.
       local function ProcessExtraRegions(frame, depth)
-         if not frame or depth > 4 then return end -- Derinlik limiti 4 olarak belirlendi (Debug'da 2. seviyede cikmisti)
+         if not frame or depth > 4 then return end -- Derinlik limiti 4 olarak belirlendi
          
+         -- [FIX] Skip UIWidgets to avoid "secret number" and "taint" errors in Blizzard layout engine.
+         -- Widgets are handled by Blizzard's protected code and touching their FontStrings
+         -- causes arithmetic errors when Blizzard tries to measure them.
+         if frame.widgetID or frame.widgetType then return end
+
          -- Regions
          local regions = { frame:GetRegions() }
          for i, region in ipairs(regions) do
@@ -991,10 +1079,15 @@ function ST_GameTooltipOnShow_Original(tooltip)
          -- Children
          local children = { frame:GetChildren() }
          for i, child in ipairs(children) do
-            -- [FIX] Sadece tooltip'in kendi child'larini isle; dis addon frame'lerini atla (ornegin Bagnator)
+            -- [FIX] Sadece tooltip'in kendi child'larini isle; dis eklenti frame'lerini atla
+            -- Ayrica WidgetContainer ve Widget'lari derinden atla.
             local childName = child:GetName() or ""
+            local isWidget = child.widgetID or child.widgetType or (frame.WidgetContainer and child == frame.WidgetContainer)
+            
             if depth == 0 and childName ~= "" and not string.find(childName, "^"..tooltipName) then
                -- Bu child dis bir addon tarafindan eklenmis, atla
+            elseif isWidget then
+               -- Blizzard Widget'larini atla (taint korumasi)
             else
                ProcessExtraRegions(child, depth + 1)
             end
@@ -1003,7 +1096,14 @@ function ST_GameTooltipOnShow_Original(tooltip)
       
       ProcessExtraRegions(tooltip, 0)
       
-      tooltip:Show();   -- wyświetla ramkę podpowiedzi (zrobi także resize)
+      -- [FIX] tooltip:Show() harita POI tooltip'lerinde (widgetSetID set olunca)
+      -- Blizzard'ın protected layout değerlerini (shownWidgetCount vb.) taint ediyor ve
+      -- LayoutFrame.lua'da "attempt to compare a secret number value" hatasına yol açıyor.
+      -- Normal item/spell tooltip'leri (AH, çanta, vs.) için Show() gerekli (resize + flickering önleme).
+      -- Sadece widget set context'i olan harita tooltip'leri için atlıyoruz.
+      if not (tooltip.widgetSetID and tooltip.widgetSetID ~= 0) then
+         tooltip:Show();
+      end
       ST_lastNumLines = tooltip:NumLines();
 
        if ((ST_orygText or (ST_nh == 1)) and (ST_PM["saveNW"] == "1")) then
