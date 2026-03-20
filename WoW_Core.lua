@@ -1,4 +1,4 @@
-﻿-- Description: The AddOn displays the translated text information in chosen language
+-- Description: The AddOn displays the translated text information in chosen language
 -- Author: Platine [platine.wow@gmail.com]
 -- Co-Author: Hakan YILMAZ [hknylmz@gmail.com]
 -------------------------------------------------------------------------------------------------------

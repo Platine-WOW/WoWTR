@@ -173,8 +173,7 @@ local ignoreSettings = {
         " summons reinforcements!",
         " added to the time!",
         "Talents - ",
-        --"|T",
-        "- "
+        "|TInterface\\FriendsFrame\\UI-FriendsFrame-Note:"
     },
     pattern = "[Я-яĄ-Źą-źŻ-żЀ-ӿΑ-Ωα-ωğĞüÜşŞıİöÖçÇ]"
 }
@@ -457,7 +456,7 @@ if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
       -- OnUpdate her frame data hazir olduqunda aninda ceviri yapar.
       -- WorldMap: widget sistemi TextLeft1'i gec doldurur, OnUpdate yakalayamaz.
       -- Bu yuzden WorldMap icin orijinal OnShow+ticker yaklasimi korunuyor.
-      if AuctionHouseFrame and AuctionHouseFrame:IsVisible() then
+      if (AuctionHouseFrame and AuctionHouseFrame:IsVisible()) or (LootFrame and LootFrame:IsVisible()) then
          WOWTR_tooltipPending = false
          WOWTR_CancelReapplyTicker()
          return
@@ -494,11 +493,6 @@ if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
 
    GameTooltip:HookScript('OnShow', ST_TooltipHookHandler);
 
-   GameTooltip:HookScript('OnUpdate', function(self)
-      if (LootFrame and LootFrame:IsShown()) then
-         ST_TooltipHookHandler(self);
-      end
-   end);
 
 -------------------------------------------------------------------------------------------------------
 
@@ -520,7 +514,7 @@ if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
       -- AH MODU: Reaktif ceviri - data hazir oldugu frame'de cevir
       -- WorldMap: NumLines()=0 sorunu nedeniyle ticker kullaniliyor (yukarda).
       -- ---------------------------------------------------------------
-      if AuctionHouseFrame and AuctionHouseFrame:IsVisible() and GameTooltip:IsVisible() then
+      if ((AuctionHouseFrame and AuctionHouseFrame:IsVisible()) or (LootFrame and LootFrame:IsVisible())) and GameTooltip:IsVisible() then
          if not WOWTR_tooltipPending then
             local left1 = _G["GameTooltipTextLeft1"]
             local txt   = left1 and WOWTR_SafeGetText(left1)
@@ -572,7 +566,9 @@ if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
        end
 
        local function WOWTR_ApplyEmbeddedTranslation()
-          if not EmbeddedItemTooltip or not EmbeddedItemTooltip:IsVisible() then return end
+          if not EmbeddedItemTooltip then return end
+          local ok, visible = pcall(function() return EmbeddedItemTooltip:IsVisible() end)
+          if not ok or not visible then return end
           -- [FIX] Blizzard'in otomatik yenilemesini durdur:
           -- updateTooltipTimer, protected olmayan EmbeddedItemTooltip'te guvenle degistirilebilir.
           -- GameTooltip'te taint'e yol aciyordu; bu frame icin sorun yok.
@@ -590,7 +586,8 @@ if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
              if DelvesDifficultyPickerFrame and DelvesDifficultyPickerFrame:IsVisible() then
                 WOWTR_CancelEmbeddedTicker()
                 WOWTR_embeddedTicker = C_Timer.NewTicker(0.25, function()
-                   if not EmbeddedItemTooltip or not EmbeddedItemTooltip:IsVisible()
+                   local okV, isV = pcall(function() return EmbeddedItemTooltip:IsVisible() end)
+                   if not EmbeddedItemTooltip or not okV or not isV
                       or not (DelvesDifficultyPickerFrame and DelvesDifficultyPickerFrame:IsVisible()) then
                       WOWTR_CancelEmbeddedTicker()
                       return

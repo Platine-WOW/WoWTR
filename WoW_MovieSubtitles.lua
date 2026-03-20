@@ -192,20 +192,24 @@ function MF_PlayMovie(movieID)      -- fired by PLAY_MOVIE event (TR: PLAY_MOVIE
       MF_pytanie1:SetFont(WOWTR_Font2, 13);
       MF_pytanie1:SetText((WoWTR_Localization.stopTheMovie));
    end
-   MovieFrame.CloseDialog.ConfirmButton:SetText((WoWTR_Localization.stopTheMovieYes));
-   MovieFrame.CloseDialog.ResumeButton:SetText((WoWTR_Localization.stopTheMovieNo));
-   local regions = { MovieFrame.CloseDialog.ConfirmButton:GetRegions() };
-   for index = 1, #regions do
-      local region = regions[index];
-      if (region:GetObjectType() == "FontString") then
-         region:SetFont(WOWTR_Font2, 15);
+   if (MovieFrame.CloseDialog.ConfirmButton) then
+      MovieFrame.CloseDialog.ConfirmButton:SetText((WoWTR_Localization.stopTheMovieYes));
+      local regions = { MovieFrame.CloseDialog.ConfirmButton:GetRegions() };
+      for index = 1, #regions do
+         local region = regions[index];
+         if (region:GetObjectType() == "FontString") then
+            region:SetFont(WOWTR_Font2, 15);
+         end
       end
    end
-   local regions = { MovieFrame.CloseDialog.ResumeButton:GetRegions() };
-   for index = 1, #regions do
-      local region = regions[index];
-      if (region:GetObjectType() == "FontString") then
-         region:SetFont(WOWTR_Font2, 15);
+   if (MovieFrame.CloseDialog.ResumeButton) then
+      MovieFrame.CloseDialog.ResumeButton:SetText((WoWTR_Localization.stopTheMovieNo));
+      local regions = { MovieFrame.CloseDialog.ResumeButton:GetRegions() };
+      for index = 1, #regions do
+         local region = regions[index];
+         if (region:GetObjectType() == "FontString") then
+            region:SetFont(WOWTR_Font2, 15);
+         end
       end
    end
    MovieFrame:EnableSubtitles(true);      -- włącz wyświetlanie napisów (TR: altyazı gösterimini aç)
@@ -252,10 +256,12 @@ function MF_CinematicStart()             -- fired by CINEMATIC_START event (TR: 
          region:SetFont(WOWTR_Font2, 15);
       end
    end
-   MovieFrame:EnableSubtitles(false);      -- wyłącz wyświetlanie napisów oryginalnych? (TR: orijinal altyazı gösterimini kapat?)
+   -- MovieFrame:EnableSubtitles(false);      -- wyłącz wyświetlanie napisów oryginalnych? (TR: orijinal altyazı gösterimini kapat?)
    local _font, _size, _3 = SubtitlesFrame.Subtitle1:GetFont();   -- odczytaj wielkość czcionki (TR: yazı tipi boyutunu oku)
-   _size = math.floor(_size+.5);
-   SubtitlesFrame.Subtitle1:SetFont(WOWTR_Font2, _size);              -- zmień czcionkę na turecką (TR: yazı tipini Türkçe'ye çevir)
+   if _size then
+      _size = math.floor(_size+.5);
+      SubtitlesFrame.Subtitle1:SetFont(WOWTR_Font2, _size);              -- zmień czcionkę na turecką (TR: yazı tipini Türkçe'ye çevir)
+   end
    MF_Mode = "CINEMATIC";
    MF_ID = "";
    if (((UnitLevel("player")==1) and (C_Map.GetBestMapForUnit("player")~=1409) and (C_Map.GetBestMapForUnit("player")~=1726) and (C_Map.GetBestMapForUnit("player")~=1727)) or ((MF_class == "Death Knight") and (UnitLevel("player")==8))) then
@@ -293,5 +299,8 @@ function MF_CinematicStop()             -- fired by CINEMATIC_STOP event (TR: CI
    -- wyłącz napisy (TR: altyazıları kapat)
    if (MF_SubTitle) then
       MF_SubTitle:Hide();
+   end
+   if SubtitlesFrame then
+      SubtitlesFrame.showSubtitles = true;
    end
 end
