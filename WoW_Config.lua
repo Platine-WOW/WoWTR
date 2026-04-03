@@ -189,7 +189,7 @@ WOWTR_Options:SetBackdropBorderColor(0, 0, 0, 1);
 WOWTR_Options:Hide(); -- Start hidden
 
 -- Slash Command Handler
-SLASH_WOWTR1 = "/wowtr";
+SLASH_WOWTR1 = WoWTR_Localization.launcherCommand;
 SlashCmdList["WOWTR"] = function(msg)
     if WOWTR_Options:IsShown() then
         WOWTR_Options:Hide();

@@ -368,14 +368,14 @@ function ST_TranslatePrepare(ST_origin, ST_tlumacz)
       end
    end;
    if (WoWTR_Localization.lang == 'TR' or WoWTR_Localization.lang == 'JP') then
-      for i = 40, 1, -1 do
+      for i = 60, 1, -1 do
         local pattern = string.format("{%02d}", i)
         if arg0 >= i then
           tlumaczenie = string.gsub(tlumaczenie, pattern, tostring(wartab[i]))
         end
       end
    else
-      for i = 40, 1, -1 do
+      for i = 60, 1, -1 do
          if (arg0 >= i) then
             -- Reverse "i" to match the curly-brace pattern (e.g. 12 => "{21}")
             local reversedI = tostring(i):reverse()
@@ -518,7 +518,8 @@ if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
          if not WOWTR_tooltipPending then
             local left1 = _G["GameTooltipTextLeft1"]
             local txt   = left1 and WOWTR_SafeGetText(left1)
-            if txt and txt ~= "" and string.find(txt, " ") == nil then
+            -- [FIX] Boşluk kontrolü kaldırıldı: AH'da çok kelimeli item adları da çevrilsin
+            if txt and txt ~= "" then
                local ok, numLines = pcall(function() return self:NumLines() end)
                if ok and numLines and numLines > 0 then
                   WOWTR_tooltipPending = true
@@ -543,7 +544,7 @@ if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
                   WOWTR_tooltipPending = false
                end
             end
-         elseif (_G["GameTooltipTextLeft1"] and WOWTR_SafeGetText(_G["GameTooltipTextLeft1"])
+         elseif self:IsVisible() and (_G["GameTooltipTextLeft1"] and WOWTR_SafeGetText(_G["GameTooltipTextLeft1"])
                and (string.find(WOWTR_SafeGetText(_G["GameTooltipTextLeft1"]), " ") == nil)) then
             if not WOWTR_tooltipPending then
                WOWTR_tooltipPending = true
@@ -621,7 +622,10 @@ if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
       local function WOWTR_OnTooltipDataReady(tooltip, data)
          if tooltip ~= GameTooltip then return end
          if not (ST_PM and ST_PM["active"] == "1") then return end
-         if WOWTR_tooltipPending then return end
+         -- [FIX] AH açıkken pending guard'ı es geç: OnUpdate zaten pending'i yönetiyor.
+         -- AH dışında normal guard kullan.
+         local isAH = (AuctionHouseFrame and AuctionHouseFrame:IsVisible()) or (LootFrame and LootFrame:IsVisible())
+         if not isAH and WOWTR_tooltipPending then return end
          -- Blizzard tam veriyi işledi, anında çevir (gecikme yok)
          WOWTR_tooltipPending = true
          pcall(ST_GameTooltipOnShow, tooltip)
