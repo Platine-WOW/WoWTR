@@ -256,6 +256,7 @@ function ST_CheckAndReplaceTranslationTextUI(obj, sav, prefix, font1)
     -- [FIX] Skip FontStrings that belong to Blizzard UI Widgets to prevent layout taint.
     local parent = obj.GetParent and obj:GetParent()
     if parent and (parent.widgetID or parent.widgetType) then return end
+    if GameTooltip.widgetContainer and GameTooltip.widgetContainer:IsVisible() and obj.IsDescendantOf and obj:IsDescendantOf(GameTooltip.widgetContainer) then return end
 
     local txt = WOWTR_SafeGetText(obj)
     if not (txt and string.find(txt, " ") == nil and not shouldIgnore(txt)) then return end
@@ -447,15 +448,26 @@ if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
       end
    end
 
+   -- Safe wrapper for unit GUID comparison to prevent "secret value" crashes
+   local function ST_IsUnitDifferent(tooltip)
+      local ok, result = pcall(function()
+         if tooltip and tooltip.GetUnit then
+            local name, unit = tooltip:GetUnit()
+            if name and unit then
+               return UnitGUID(unit) ~= UnitGUID("mouseover")
+            end
+         end
+         return false
+      end)
+      return ok and result
+   end
+
    local function ST_TooltipHookHandler(self)
+      if self.IsForbidden and self:IsForbidden() then return end
       -- [FIX] Yeni tooltip gosterildiginde onceki hash degerini temizle
       GameTooltip.WOWTR_lastHash2 = nil;
 
       -- AH MODU: OnShow timer baslatma, OnUpdate reaktif ceviriye birak.
-      -- AH her refresh'te OnShow tetikler; 0.15s beklemek flicker'a yol acar.
-      -- OnUpdate her frame data hazir olduqunda aninda ceviri yapar.
-      -- WorldMap: widget sistemi TextLeft1'i gec doldurur, OnUpdate yakalayamaz.
-      -- Bu yuzden WorldMap icin orijinal OnShow+ticker yaklasimi korunuyor.
       if (AuctionHouseFrame and AuctionHouseFrame:IsVisible()) or (LootFrame and LootFrame:IsVisible()) then
          WOWTR_tooltipPending = false
          WOWTR_CancelReapplyTicker()
@@ -463,16 +475,21 @@ if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
       end
 
       if WOWTR_tooltipPending then return end
+      -- [FIX] Disable Unit Translations: Skip all Player/NPC tooltips entirely to prevent "stuck" tooltips on fast move.
+      -- [FIX] Wrap in pcall to prevent "secret value" crashes on protected targets
+      local ok, isUnit = pcall(function() return self.GetUnit and self:GetUnit() end)
+      if ok and isUnit then return end
+
       WOWTR_tooltipPending = true
       WOWTR_CancelReapplyTicker()
-      -- 0.15s: Blizzard'in layout/sizing islemlerinin bitmesini bekle.
+      
+      -- [FIX] 0.15s gecikme geri getirildi. Blizzard'in layout islemlerinin
+      -- bitmesini beklemek modern UI elemanlari (Affix, Delve vb.) icin gereklidir.
       C_Timer.After(0.15, function()
          WOWTR_tooltipPending = false
          if GameTooltip:IsVisible() then
             pcall(ST_GameTooltipOnShow)
             -- WorldMap: widget sistemi NumLines()=0 dondurdugundan OnUpdate calismiyor.
-            -- Ticker ile Blizzard resetlerini yakala. Ic delay kaldirildi (dogrudan ceviri).
-            -- 0.1s aralik = max 6 frame Ingilizce gorunum (eski 0.5s+0.15s'ten cok daha iyi).
             if WorldMapFrame and WorldMapFrame:IsVisible() then
                WOWTR_CancelReapplyTicker()
                WOWTR_reapplyTicker = C_Timer.NewTicker(0.1, function()
@@ -482,7 +499,7 @@ if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
                   end
                   if not WOWTR_tooltipPending then
                      WOWTR_tooltipPending = true
-                     pcall(ST_GameTooltipOnShow)
+                     pcall(ST_GameTooltipOnShow, nil, true)
                      WOWTR_tooltipPending = false
                   end
                end)
@@ -508,7 +525,9 @@ if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
 -- 1) AH acikken: Her frame data hazir mi bak, hazirsa ANINDA cevir (OnShow delay yok)
 -- 2) Diger: ID/Hash gosterimi + hard-space tespiti
    GameTooltip:HookScript('OnUpdate', function(self, ...)
+      if self.IsForbidden and self:IsForbidden() then return end
       if not (ST_PM and ST_PM["active"] == "1") then return end
+      if not self:GetOwner() then return end
 
       -- ---------------------------------------------------------------
       -- AH MODU: Reaktif ceviri - data hazir oldugu frame'de cevir
@@ -523,7 +542,7 @@ if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
                local ok, numLines = pcall(function() return self:NumLines() end)
                if ok and numLines and numLines > 0 then
                   WOWTR_tooltipPending = true
-                  pcall(ST_GameTooltipOnShow)
+                  pcall(ST_GameTooltipOnShow, nil, true)
                   WOWTR_tooltipPending = false
                end
             end
@@ -531,16 +550,15 @@ if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
          return  -- AH modunda asagi dusme
       end
 
-      -- ---------------------------------------------------------------
       -- NORMAL MOD: ID/Hash gosterimi + hard-space tespiti
       -- ---------------------------------------------------------------
-      if (ST_lastNumLines > 0) and (ST_PM["constantly"] == "1") and (UnitLevel("player") > 10) then
+      if (ST_lastNumLines > 0) and (ST_PM["constantly"] == "1") then
          if (ST_PM["showID"] == "1") or (ST_PM["showHS"] == "1") then
             local ok, numLines = pcall(function() return self:NumLines() end)
             if ok and numLines and (ST_lastNumLines ~= numLines) then
                if not WOWTR_tooltipPending then
                   WOWTR_tooltipPending = true
-                  pcall(ST_GameTooltipOnShow)
+                  pcall(ST_GameTooltipOnShow, self, true)
                   WOWTR_tooltipPending = false
                end
             end
@@ -548,7 +566,7 @@ if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
                and (string.find(WOWTR_SafeGetText(_G["GameTooltipTextLeft1"]), " ") == nil)) then
             if not WOWTR_tooltipPending then
                WOWTR_tooltipPending = true
-               pcall(ST_GameTooltipOnShow)
+               pcall(ST_GameTooltipOnShow, self, true)
                WOWTR_tooltipPending = false
             end
          end
@@ -566,24 +584,26 @@ if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
           end
        end
 
-       local function WOWTR_ApplyEmbeddedTranslation()
+       local function WOWTR_ApplyEmbeddedTranslation(isUpdate)
           if not EmbeddedItemTooltip then return end
           local ok, visible = pcall(function() return EmbeddedItemTooltip:IsVisible() end)
           if not ok or not visible then return end
-          -- [FIX] Blizzard'in otomatik yenilemesini durdur:
-          -- updateTooltipTimer, protected olmayan EmbeddedItemTooltip'te guvenle degistirilebilir.
-          -- GameTooltip'te taint'e yol aciyordu; bu frame icin sorun yok.
-          pcall(function() EmbeddedItemTooltip.updateTooltipTimer = 3600 end)
-          pcall(ST_GameTooltipOnShow, EmbeddedItemTooltip)
+          -- [FIX] updateTooltipTimer'a YAZMA: Blizzard'in OnUpdate handler'i (GameTooltip.lua:442)
+          -- bu degeri okurken tainted gorurse "forbidden object" hatasini firlatir.
+          -- Deger degistirmeden ceviri uygulamak yeterli.
+          pcall(ST_GameTooltipOnShow, EmbeddedItemTooltip, isUpdate)
        end
 
        EmbeddedItemTooltip:HookScript('OnShow', function(self)
+          if self.IsForbidden and self:IsForbidden() then return end
+          
           WOWTR_embeddedPending = true
+          -- [FIX] 0.2s gecikme geri getirildi.
           C_Timer.After(0.2, function()
              WOWTR_embeddedPending = false
-             WOWTR_ApplyEmbeddedTranslation()
-             -- [YEDEK] DelvesDifficultyPickerFrame acikken Blizzard sureklı
-             -- icerigi tazeleyebilir; 0.25s ticker ile ceviriyi koru.
+             WOWTR_ApplyEmbeddedTranslation(false)
+
+             -- [YEDEK] Delves Difficulty Picker check
              if DelvesDifficultyPickerFrame and DelvesDifficultyPickerFrame:IsVisible() then
                 WOWTR_CancelEmbeddedTicker()
                 WOWTR_embeddedTicker = C_Timer.NewTicker(0.25, function()
@@ -593,23 +613,24 @@ if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
                       WOWTR_CancelEmbeddedTicker()
                       return
                    end
-                   WOWTR_ApplyEmbeddedTranslation()
+                   WOWTR_ApplyEmbeddedTranslation(true)
                 end)
              end
           end)
        end)
 
        EmbeddedItemTooltip:HookScript('OnHide', function(self)
+          if self.IsForbidden and self:IsForbidden() then return end
           WOWTR_embeddedPending = false
           WOWTR_CancelEmbeddedTicker()
-          -- updateTooltipTimer'i normal degerine sifirla
-          pcall(function() EmbeddedItemTooltip.updateTooltipTimer = 0.2 end)
+          -- [FIX] updateTooltipTimer sifirlamasi kaldirildi: taint zinciri olusturuyordu.
        end)
    end
    if SettingsTooltip then
       -- Hook SettingsTooltip for Game Options
       SettingsTooltip:HookScript('OnUpdate', function(self, ...)
-         if (not WOWTR_wait(0, ST_GameTooltipOnShow, self)) then
+         if self.IsForbidden and self:IsForbidden() then return end
+         if (not WOWTR_wait(0, ST_GameTooltipOnShow, self, true)) then
          end
       end );
    end
@@ -620,16 +641,30 @@ if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
    -- OnShow/OnUpdate'in önündeki Blizzard refresh sorununu kökten çözer.
    if TooltipDataProcessor and TooltipDataProcessor.AddTooltipPostCall and Enum and Enum.TooltipDataType then
       local function WOWTR_OnTooltipDataReady(tooltip, data)
-         if tooltip ~= GameTooltip then return end
+         if tooltip.IsForbidden and tooltip:IsForbidden() then return end
          if not (ST_PM and ST_PM["active"] == "1") then return end
-         -- [FIX] AH açıkken pending guard'ı es geç: OnUpdate zaten pending'i yönetiyor.
-         -- AH dışında normal guard kullan.
-         local isAH = (AuctionHouseFrame and AuctionHouseFrame:IsVisible()) or (LootFrame and LootFrame:IsVisible())
-         if not isAH and WOWTR_tooltipPending then return end
-         -- Blizzard tam veriyi işledi, anında çevir (gecikme yok)
-         WOWTR_tooltipPending = true
-         pcall(ST_GameTooltipOnShow, tooltip)
-         WOWTR_tooltipPending = false
+         if not tooltip:GetOwner() then return end
+
+         -- GameTooltip: mevcut pending guard ile çevir
+         if tooltip == GameTooltip then
+            -- [FIX] AH açıkken pending guard'ı es geç: OnUpdate zaten pending'i yönetiyor.
+            -- AH dışında normal guard kullan.
+            local isAH = (AuctionHouseFrame and AuctionHouseFrame:IsVisible()) or (LootFrame and LootFrame:IsVisible())
+            if not isAH and WOWTR_tooltipPending then return end
+            -- Blizzard tam veriyi işledi, anında çevir (gecikme yok)
+            WOWTR_tooltipPending = true
+            pcall(ST_GameTooltipOnShow, tooltip, true)
+            WOWTR_tooltipPending = false
+
+         -- EmbeddedItemTooltip: Blizzard spell/item verisini her yenilediğinde anında çevir.
+         -- Flicker'ın sebebi: OnShow+0.2s delay → Blizzard→İngilizce→0.2s→Türkçe→Blizzard→İngilizce döngüsü.
+         -- TooltipDataProcessor Blizzard render tamamlandıktan sonra tetiklenir → gecikme olmadan çeviri.
+         elseif EmbeddedItemTooltip and tooltip == EmbeddedItemTooltip then
+            local ok, visible = pcall(function() return EmbeddedItemTooltip:IsVisible() end)
+            if ok and visible then
+               pcall(ST_GameTooltipOnShow, EmbeddedItemTooltip, true)
+            end
+         end
       end
       -- Item ve Spell tooltip'lerini kapsıyoruz (AH item'ları Item tipinde)
       TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item,  WOWTR_OnTooltipDataReady)
@@ -758,18 +793,38 @@ end
 -------------------------------------------------------------------------------------------------------
 
 -- WoW sürüm kontrolü
-function ST_GameTooltipOnShow(tooltip)
+function ST_GameTooltipOnShow(tooltip, isUpdate)
    tooltip = tooltip or GameTooltip -- Default to GameTooltip if not provided
    -- Use protected call for secret value handling
-   WOWTR_ProtectedTooltipCall(ST_GameTooltipOnShow_Original, tooltip)
+   WOWTR_ProtectedTooltipCall(ST_GameTooltipOnShow_Original, tooltip, isUpdate)
 end
 
 -- Orijinal fonksiyonun içeriği (sadece 1 kere yazılıyor)
-function ST_GameTooltipOnShow_Original(tooltip)
+function ST_GameTooltipOnShow_Original(tooltip, isUpdate)
    tooltip = tooltip or GameTooltip -- Ensure tooltip is set
+   if tooltip.IsForbidden and tooltip:IsForbidden() then return end
+   local owner = tooltip:GetOwner()
+
+   -- [FIX] Layout Taint Guard relaxed: Skip logic softened to allow Affix tooltips.
+   -- Individual fontstring parents will still be checked in ST_CheckAndReplaceTranslationText.
+   if (tooltip.widgetSetID and tooltip.widgetSetID ~= 0) then
+       -- Optional: skip header translation for widget-heavy tooltips
+   end
+
+   -- [FIX] Sticky Tooltip: If the tooltip is not visible, has no owner, or is fading out, skip.
+   if not tooltip:IsVisible() or not owner then return end
    
-   -- [FIX] Sticky Tooltip: If the tooltip is not visible, do not process or force show it
-   if not tooltip:IsVisible() then return end
+   -- [FIX] Also skip if mouse is no longer over the owner (quick flick prevention)
+   -- But allow if it's a "fading" or "comparing" tooltip that is still valid.
+   if tooltip:GetAlpha() < 0.1 then return end
+   if not owner:IsMouseOver() and not (tooltip == ShoppingTooltip1 or tooltip == ShoppingTooltip2) then 
+       return 
+   end
+
+   -- [FIX] Disable Unit Translations: Skip all Player/NPC tooltips entirely to prevent "stuck" tooltips.
+   -- [FIX] Wrap in pcall to prevent "secret value" crashes on protected targets
+   local ok, isUnit = pcall(function() return tooltip.GetUnit and tooltip:GetUnit() end)
+   if ok and isUnit then return end
 
    --print("Jestem w OnShow");
    if (ST_PM["active"]=="1") then                        -- dodatek aktywny
@@ -1038,7 +1093,7 @@ function ST_GameTooltipOnShow_Original(tooltip)
          end
       end
       
-      if ((ST_PM["constantly"] == "1") and (UnitLevel("player") > 60) and left1Widget) then
+      if ((ST_PM["constantly"] == "1") and left1Widget) then
           local tText = WOWTR_SafeGetText(left1Widget);
           if (tText and (string.find(tText, " ") == nil)) then
              left1Widget:SetWordWrap(true);
@@ -1097,13 +1152,13 @@ function ST_GameTooltipOnShow_Original(tooltip)
       
       ProcessExtraRegions(tooltip, 0)
       
-      -- [FIX] tooltip:Show() harita POI tooltip'lerinde (widgetSetID set olunca)
-      -- Blizzard'ın protected layout değerlerini (shownWidgetCount vb.) taint ediyor ve
-      -- LayoutFrame.lua'da "attempt to compare a secret number value" hatasına yol açıyor.
-      -- Normal item/spell tooltip'leri (AH, çanta, vs.) için Show() gerekli (resize + flickering önleme).
-      -- Sadece widget set context'i olan harita tooltip'leri için atlıyoruz.
-      if not (tooltip.widgetSetID and tooltip.widgetSetID ~= 0) then
-         tooltip:Show();
+      -- [FIX] Sticky Tooltip: Only call Show() if this is a fresh display (not an update)
+      -- and if it's not a Map POI (widgetSetID protection) and mouse is still over the owner.
+      if not (tooltip.widgetSetID and tooltip.widgetSetID ~= 0) and not isUpdate then
+         local currentOwner = tooltip:GetOwner()
+         if currentOwner and currentOwner:IsMouseOver() then
+            tooltip:Show();
+         end
       end
       ST_lastNumLines = tooltip:NumLines();
 

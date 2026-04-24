@@ -1,6 +1,6 @@
 -- Description: The AddOn displays the translated text information in chosen language
 -- Author: Platine [platine.wow@gmail.com]
--- Co-Author: Dragonarab[WoWAR], Hakan YILMAZ[WoWTR]
+-- Co-Author: Hakan YILMAZ [hknylmz@gmail.com]
 -------------------------------------------------------------------------------------------------------
 
 -- Test both version 11.00 and 10.2.7 will be delete it after testing
@@ -836,7 +836,14 @@ local function CheckQuestIDChange()
         lastQuestID = currentID
         --print("Quest ID changed to: "..currentID)
         
-        if IsAddOnLoaded("Questie") and Questie then
+        local isQuestieLoaded = false
+        if C_AddOns and C_AddOns.IsAddOnLoaded then
+            isQuestieLoaded = C_AddOns.IsAddOnLoaded("Questie")
+        elseif IsAddOnLoaded then
+            isQuestieLoaded = IsAddOnLoaded("Questie")
+        end
+
+        if isQuestieLoaded and Questie then
             C_Timer.After(0.05, function()
                 --print("Questie detected - Delayed QTR_PrepareReload for ID: "..currentID)
                 QTR_PrepareReload()
@@ -852,7 +859,14 @@ end
 QuestLogFrame:HookScript("OnShow", function()
     --print("QuestLogFrame opened")
     
-    if IsAddOnLoaded("Questie") and Questie then
+    local isQuestieLoaded = false
+    if C_AddOns and C_AddOns.IsAddOnLoaded then
+        isQuestieLoaded = C_AddOns.IsAddOnLoaded("Questie")
+    elseif IsAddOnLoaded then
+        isQuestieLoaded = IsAddOnLoaded("Questie")
+    end
+
+    if isQuestieLoaded and Questie then
         --print("Questie detected - Starting delayed operations")
         C_Timer.After(0.05, function()
             --print("Initial delayed QTR_PrepareReload")

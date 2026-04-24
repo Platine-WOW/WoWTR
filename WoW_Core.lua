@@ -23,8 +23,8 @@ WOWTR_Is1200OrNewer = uiVersion and uiVersion >= 120000
 function WOWTR_ProtectedTooltipCall(func, ...)
     local success, result = pcall(func, ...)
     if not success then
-        -- Suppress "secret" value errors which are common in 12.0.0+ restricted environments
-        if result and type(result) == "string" and string.find(result, "secret") then
+        -- Suppress "secret" or "forbidden" value errors which are common in 12.0.0+ restricted environments
+        if result and type(result) == "string" and (string.find(result, "secret") or string.find(result, "forbidden")) then
             return nil
         end
         -- print("WoWTR Protection Error:", result) 

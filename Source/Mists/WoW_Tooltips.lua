@@ -1,6 +1,6 @@
 -- Description: The AddOn displays the translated text information in chosen language
 -- Author: Platine [platine.wow@gmail.com]
--- Co-Author: Dragonarab[WoWAR], Hakan YILMAZ[WoWTR]
+-- Co-Author: Hakan YILMAZ [hknylmz@gmail.com]
 -------------------------------------------------------------------------------------------------------
 
 -- Local Variables
@@ -2380,48 +2380,30 @@ end
 -------------------------------------------------------------------------------------------------------
 
 --GAME MENU
-function ST_GameMenuTranslate() -- https://imgur.com/drHJ9Yn
-   if (TT_PS["ui1"] == "1") then
-     C_Timer.After(0.001, function()
-      local gamemenu1 = GameMenuButtonHelpText;
-      ST_CheckAndReplaceTranslationTextUI(gamemenu1, false, "ui");
+function ST_GameMenuTranslate()
+    if (TT_PS["ui1"] == "1") then
+        C_Timer.After(0.001, function()
 
-      local gamemenu2 = GameMenuButtonStoreText;
-      ST_CheckAndReplaceTranslationTextUI(gamemenu2, false, "ui");
+            local children = {GameMenuFrame:GetChildren()}
+            for _, child in ipairs(children) do
 
-      local gamemenu3 = GameMenuButtonWhatsNewText;
-      ST_CheckAndReplaceTranslationTextUI(gamemenu3, false, "ui");
+                if child:IsObjectType("Button") then
+                    local buttonText = child:GetFontString()
+                    if buttonText then
+                        ST_CheckAndReplaceTranslationTextUI(buttonText, false, "ui")
+                    end
+                end
+                
 
-      local gamemenu4 = GameMenuButtonOptionsText;
-      ST_CheckAndReplaceTranslationTextUI(gamemenu4, false, "ui");
-
-      local gamemenu5 = GameMenuButtonEditModeText;
-      ST_CheckAndReplaceTranslationTextUI(gamemenu5, false, "ui");
-
-      local gamemenu6 = GameMenuButtonMacrosText;
-      ST_CheckAndReplaceTranslationTextUI(gamemenu6, false, "ui");
-
-      local gamemenu7 = GameMenuButtonAddonsText;
-      ST_CheckAndReplaceTranslationTextUI(gamemenu7, false, "ui");
-
-      local gamemenu8 = GameMenuButtonLogoutText;
-      ST_CheckAndReplaceTranslationTextUI(gamemenu8, true, "ui");
-
-      local gamemenu9 = GameMenuButtonQuitText;
-      ST_CheckAndReplaceTranslationTextUI(gamemenu9, false, "ui");
-
-      local gamemenu10 = GameMenuButtonContinueText;
-      ST_CheckAndReplaceTranslationTextUI(gamemenu10, false, "ui");
-
-        for _, region in ipairs({GameMenuFrame:GetRegions()}) do
-            if region:GetObjectType() == "FontString" and region:GetText() == "Game Menu" then
-                local GameMenuFrame14 = region
-                ST_CheckAndReplaceTranslationTextUI(GameMenuFrame14, true, "ui")
-                break -- İstediğimiz metni bulduk ve değiştirdik, döngüden çıkabiliriz
+                local regions = {child:GetRegions()}
+                for _, region in ipairs(regions) do
+                    if region:IsObjectType("FontString") then
+                        ST_CheckAndReplaceTranslationTextUI(region, false, "ui")
+                    end
+                end
             end
-        end
-     end)
-   end
+        end)
+    end
 end
 
 -------------------------------------------------------------------------------------------------------
