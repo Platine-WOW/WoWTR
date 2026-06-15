@@ -437,7 +437,7 @@ function QTR_Gossip_Show()
             ImmersionFrame.TalkBox.TextFrame.Text:SetText(QTR_ExpandUnitInfo(Greeting_TR,false,ImmersionFrame.TalkBox.TextFrame.Text,WOWTR_Font2));     
          elseif (isStoryline()) then   -- jest aktywny StoryLine i zezwolono na tłumaczenia
             if (Storyline_NPCFrameChat.texts == nil) then
-               C_Timer.After(1.0, function() txt0txt = QTR_ExpandUnitInfo(Greeting_TR,false,Storyline_NPCFrameChat.texts[0],WOWTR_Font2); QTR_Storyline_Gossip(); end);
+               C_Timer.After(1.0, function() if (Storyline_NPCFrameChat.texts) then txt0txt = QTR_ExpandUnitInfo(Greeting_TR,false,Storyline_NPCFrameChat.texts[0],WOWTR_Font2); QTR_Storyline_Gossip(); end end);
             else
                txt0txt = QTR_ExpandUnitInfo(Greeting_TR,false,Storyline_NPCFrameChat.texts[0],WOWTR_Font2);
                if (not WOWTR_wait(1.0, QTR_Storyline_Gossip)) then
@@ -623,7 +623,7 @@ function GossipOnQuestFrame()       -- frame: QuestFrame
             if (QTR_PS["saveGS"]=="1") then
                local Nazwa_NPC = QuestFrameTitleText:GetText();
                Origin_Text = string.gsub(Origin_Text, '"', '\"');                
-               QTR_GOSSIP[Nazwa_NPC..'@'..tostring(Hash)..'@'..C_Map.GetBestMapForUnit("player")] = Origin_Text..'@'..WOWTR_player_name..':'..WOWTR_player_race..':'..WOWTR_player_class;
+               QTR_GOSSIP[(Nazwa_NPC or "")..'@'..tostring(Hash)..'@'..tostring(C_Map.GetBestMapForUnit("player") or 0)] = Origin_Text..'@'..WOWTR_player_name..':'..WOWTR_player_race..':'..WOWTR_player_class;
             end
          end
          if (CurrentQuestsText and CurrentQuestsText:IsVisible()) then
@@ -3062,8 +3062,9 @@ function WOW_ZmienKody(message, target)
       local QTR_forma = "";
       local nr_poz, nr_poz2 = string.find(msg, "YOUR_GENDER");    -- gdy nie znalazł, jest: nil
       while (nr_poz and nr_poz2>0) do
+         local _before = msg;
          nr_1 = nr_poz2 + 1;   
-         while (string.sub(msg, nr_1, nr_1) ~= "(") do            -- dopuszczam jedną spację po słowie kodowym
+         while (nr_1 <= string.len(msg) and string.sub(msg, nr_1, nr_1) ~= "(") do            -- dopuszczam jedną spację po słowie kodowym
             nr_1 = nr_1 + 1;
          end
          if (string.sub(msg, nr_1, nr_1) == "(") then
@@ -3090,6 +3091,7 @@ function WOW_ZmienKody(message, target)
                end   
             end
          end
+         if (msg == _before) then break; end   -- brak postępu (błędny kod) - przerwij pętlę, by uniknąć zawieszenia
          nr_poz, nr_poz2 = string.find(msg, "YOUR_GENDER");
       end
 
@@ -3099,8 +3101,9 @@ function WOW_ZmienKody(message, target)
       local NPC_sex = UnitSex("npc");       -- 1:neutral,  2:męski,  3:żeński
       local nr_poz, nr_poz2 = string.find(msg, "NPC_GENDER");     -- gdy nie znalazł, jest: nil
       while (nr_poz and nr_poz2>0) do
+         local _before = msg;
          nr_1 = nr_poz2 + 1;   
-         while (string.sub(msg, nr_1, nr_1) ~= "(") do            -- dopuszczam jedną spację po słowie kodowym
+         while (nr_1 <= string.len(msg) and string.sub(msg, nr_1, nr_1) ~= "(") do            -- dopuszczam jedną spację po słowie kodowym
             nr_1 = nr_1 + 1;
          end
          if (string.sub(msg, nr_1, nr_1) == "(") then
@@ -3127,6 +3130,7 @@ function WOW_ZmienKody(message, target)
                end   
             end
          end
+         if (msg == _before) then break; end   -- brak postępu (błędny kod) - przerwij pętlę, by uniknąć zawieszenia
          nr_poz, nr_poz2 = string.find(msg, "NPC_GENDER");
       end
    
@@ -3135,8 +3139,9 @@ function WOW_ZmienKody(message, target)
       local QTR_forma = "";
       local nr_poz, nr_poz2 = string.find(msg, "OWN_NAME");    -- gdy nie znalazł, jest: nil
       while (nr_poz and nr_poz2>0) do
+         local _before = msg;
          nr_1 = nr_poz2 + 1;   
-         while (string.sub(msg, nr_1, nr_1) ~= "(") do         -- dopuszczam jedną spację po słowie kodowym
+         while (nr_1 <= string.len(msg) and string.sub(msg, nr_1, nr_1) ~= "(") do         -- dopuszczam jedną spację po słowie kodowym
             nr_1 = nr_1 + 1;
          end
          if (string.sub(msg, nr_1, nr_1) == "(") then
@@ -3163,6 +3168,7 @@ function WOW_ZmienKody(message, target)
                end   
             end
          end
+         if (msg == _before) then break; end   -- brak postępu (błędny kod) - przerwij pętlę, by uniknąć zawieszenia
          nr_poz, nr_poz2 = string.find(msg, "OWN_NAME");
       end
    
@@ -3398,27 +3404,38 @@ end
 
 -- Create the Toggle Button for the Objective Tracker if it doesn't exist
 local function EnsureTrackerToggleButton()
-    if (not ObjectiveTrackerFrame or QTR_TrackerToggleButton) then return end
+    if (not ObjectiveTrackerFrame) then return end
     
-    -- Try to find a header to anchor to (varies by WoW expansion)
-    local header = ObjectiveTrackerFrame.Header or (ObjectiveTrackerBlocksFrame and ObjectiveTrackerBlocksFrame.QuestHeader)
-    if (not header) then return end
-    
-    local btn = CreateFrame("Button", "QTR_TrackerToggleButton", header, "UIPanelButtonTemplate")
+    if not QTR_TrackerToggleButton then
+        -- Parent to the main frame to avoid being hidden when headers are nuked by skins
+        local btn = CreateFrame("Button", "QTR_TrackerToggleButton", ObjectiveTrackerFrame, "UIPanelButtonTemplate")
     btn:SetSize(32, 18)
-    
-    -- Position it nicely near the header text or minimize button
-    if (header.Text) then
-        btn:SetPoint("RIGHT", header.Text, "LEFT", -10, 0)
-    else
-        btn:SetPoint("TOPRIGHT", header, "TOPRIGHT", -30, 0)
-    end
-    
-    btn:SetText(WoWTR_Localization.lang)
+        btn:SetText(QTR_Tracker_Lang_Toggle and (WoWTR_Localization.lang) or "EN")
     btn:SetNormalFontObject("GameFontNormalSmall")
     btn:SetHighlightFontObject("GameFontHighlightSmall")
     btn:SetScript("OnClick", ToggleTrackerLanguage)
+        btn:SetFrameLevel(ObjectiveTrackerFrame:GetFrameLevel() + 20)
     QTR_TrackerToggleButton = btn
+    end
+
+    -- Sync visibility with the tracker frame
+    if ObjectiveTrackerFrame:IsShown() and ObjectiveTrackerFrame:GetAlpha() > 0 then
+        QTR_TrackerToggleButton:Show()
+    else
+        QTR_TrackerToggleButton:Hide()
+    end
+
+    -- Position it at a fixed location at the top-right of the tracker frame.
+    local offsetX, offsetY = -35, -7
+    
+    -- EllesmereUI için özel konum ayarı
+    if C_AddOns and C_AddOns.IsAddOnLoaded("EllesmereUIQuestTracker") then
+        offsetX = -35 -- EllesmereUI varken yatay konum (Sağ/Sol)
+        offsetY = -38  -- EllesmereUI varken dikey konum (Yukarı/Aşağı)
+    end
+    
+    QTR_TrackerToggleButton:ClearAllPoints()
+    QTR_TrackerToggleButton:SetPoint("TOPRIGHT", ObjectiveTrackerFrame, "TOPRIGHT", offsetX, offsetY)
 end
 
 function QTR_ObjectiveTracker_Check()

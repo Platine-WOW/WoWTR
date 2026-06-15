@@ -286,7 +286,7 @@ local WOWTR_OptionsHeaderText = WOWTR_Options:CreateFontString(nil, "OVERLAY", "
 WOWTR_OptionsHeaderText:SetFont(WOWTR_Font2, 18);
 WOWTR_OptionsHeaderText:SetWidth(600);
 WOWTR_OptionsHeaderText:SetPoint("LEFT", WOWTR_OptionsHeaderIcon, "RIGHT", 10, 5); -- Adjusted for icon position
-WOWTR_OptionsHeaderText:SetText(" "..WoWTR_Localization.optionTitle.." |cff8080ffv"..WOWTR_version.."|r      by Platine, Hknylmz © 2026");
+WOWTR_OptionsHeaderText:SetText(" "..WoWTR_Localization.optionTitle.." |cff8080ffv"..WOWTR_version.."|r      by IceDNicco, Platine, Hknylmz © 2026");
 
 -- Sidebar Divider (Visual separator)
 local WOWTR_SidebarDivider = WOWTR_Options:CreateTexture(nil, "ARTWORK");
@@ -1168,7 +1168,7 @@ WOWTR_Panel2Header2:SetText((WoWTR_Config_Interface.savingUntranslatedBubbles));
 WOWTR_Panel2Header2:SetFont(WOWTR_Font2, 15);
 
 local WOWTR_CheckButton27 = WOWTR_CreateModernCheckbox("WOWTR_CheckButton27", WOWTR_OptionPanel2, "", nil);
-WOWTR_CheckButton27:SetScript("OnClick", function(self) if (BB_PM["saveBN"]=="1") then BB_PM["saveBM"]="0" else BB_PM["saveBM"]="1" end; end);
+WOWTR_CheckButton27:SetScript("OnClick", function(self) if (BB_PM["saveNB"]=="1") then BB_PM["saveNB"]="0" else BB_PM["saveNB"]="1" end; end);
 if (WoWTR_Localization.lang == 'AR') then
    WOWTR_CheckButton27:SetPoint("TOPLEFT", WOWTR_Panel2Header2, "TOPLEFT", 55, -20);
    WOWTR_CheckButton27.Text:SetPoint("TOPLEFT", WOWTR_Panel2Header2, "TOPLEFT", -112, -30);
@@ -2472,7 +2472,7 @@ else
    WOWTR_Panel9Author2:SetJustifyH("LEFT"); 
    WOWTR_Panel9Author2:SetPoint("TOPLEFT", WOWTR_Panel9Header1, "BOTTOMLEFT", 120, -15);
 end
-WOWTR_Panel9Author2:SetText("Platine");                               -- Platine
+WOWTR_Panel9Author2:SetText("IceDNicco");                               
 WOWTR_Panel9Author2:SetFont(WOWTR_Font2, 13);
 
 local WOWTR_Panel9Email1 = WOWTR_OptionPanel9:CreateFontString(nil, "ARTWORK");
@@ -2498,7 +2498,7 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_Panel9Email2:SetPoint("TOPLEFT", WOWTR_Panel9Header1, "BOTTOMLEFT", 120, -35);
 end
-WOWTR_Panel9Email2:SetText("platine.wow@gmail.com");                  -- platine.wow@gmail.com
+WOWTR_Panel9Email2:SetText("1991kage@gmail.com");
 WOWTR_Panel9Email2:SetFont(WOWTR_Font2, 13);
 
 if (WoWTR_Localization.lang == 'TR') then
@@ -3212,8 +3212,13 @@ end
 -----------------------------------------------------------------------------------------------------------------
 
 function WOWTR_SlashCommand(msg)
-   if not msg or msg:trim() == "" then
-      InterfaceOptionsFrame_OpenToCategory(WOWTR.CategoryID);          -- open Settings of the addon
+   if not msg or strtrim(msg) == "" then
+      -- Settings.OpenToCategory to nowoczesne API (Dragonflight 10.0+); stare InterfaceOptionsFrame_OpenToCategory zostało usunięte
+      if (Settings and Settings.OpenToCategory) then
+         Settings.OpenToCategory(WOWTR.CategoryID);          -- open Settings of the addon
+      elseif (InterfaceOptionsFrame_OpenToCategory) then
+         InterfaceOptionsFrame_OpenToCategory(WOWTR.CategoryID);
+      end
    end
 end
 

@@ -1,6 +1,6 @@
 -- Description: The AddOn displays the translated text information in chosen language
 -- Author: Platine [platine.wow@gmail.com]
--- Co-Author: Dragonarab[WoWAR], Hakan YILMAZ[WoWTR]
+-- Co-Author: Hakan YILMAZ [hknylmz@gmail.com]
 -------------------------------------------------------------------------------------------------------
 
 -- Local Variables
@@ -266,7 +266,7 @@ end
 -- Przygotowuje tłumaczenie właściwe: zamienia $x w tłumaczeniu na odpowiednie liczby z oryginału
 function ST_TranslatePrepare(ST_origin, ST_tlumacz)
    local tlumaczenie = WOW_ZmienKody(ST_tlumacz);
-   if (not ST_miasto) then
+   if (ST_miasto == nil or ST_miasto == "") then   -- "" jest prawdziwe w Lua, więc trzeba sprawdzić oba przypadki
       ST_miasto = WoWTR_Localization.your_home;
    end
    tlumaczenie = string.gsub(tlumaczenie, "$L", QTR_ReverseIfAR(ST_miasto));    -- miasto lokalizacji do Kamienia Powrotu
@@ -345,7 +345,7 @@ function ST_TranslatePrepare(ST_origin, ST_tlumacz)
                   nr_3 = nr_3 + 1;
                end
                if (string.sub(tlumaczenie, nr_3, nr_3) == ")") then
-                  if (QTR_PS["ownname"] == "1") then        -- forma polska
+                  if (QTR_PS["ownnames"] == "1") then        -- forma polska
                      QTR_forma = string.sub(tlumaczenie,nr_2+1,nr_3-1);
                   else                                      -- forma angielska
                      QTR_forma = QTR_ReverseIfAR(string.sub(tlumaczenie,nr_1+1,nr_2-1));
@@ -1315,7 +1315,7 @@ function WOWSTR_onEvent(_, event, addonName)
    --QTR_PS["Test"] = Frame; -- search data
 
       if (addonName == 'Blizzard_PlayerSpells') then
-         ST_Load1 = true;
+         ST_load1 = true;
          PlayerSpellsFrame:HookScript("OnShow", ST_SpellBookTranslateButton);
          PlayerSpellsFrame.SpecFrame:HookScript("OnShow", ST_updateSpecContentsHook);
          PlayerSpellsFrame.TalentsFrame:HookScript("OnShow", function() StartTicker(PlayerSpellsFrame, ST_TalentsTranslate, 0.02) end)

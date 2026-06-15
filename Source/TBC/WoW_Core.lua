@@ -1,6 +1,6 @@
 ﻿-- Description: The AddOn displays the translated text information in chosen language
 -- Author: Platine [platine.wow@gmail.com]
--- Co-Author: Dragonarab[WoWAR], Hakan YILMAZ[WoWTR]
+-- Co-Author: Hakan YILMAZ [hknylmz@gmail.com]
 -------------------------------------------------------------------------------------------------------
 
 -- General Variables
@@ -192,7 +192,7 @@ function WOWTR_CheckVars()
       WOWTR_Font2 = WoWTR_Localization.mainFolder.."\\Fonts\\"..QTR_PS["FontFile"];
    end
 
-   -- window scale
+      -- window scale
    if (not QTR_PS["scale"]) then
       QTR_PS["scale"] = "1";
    end
@@ -430,11 +430,11 @@ function WOWTR_onEvent(self, event, name, ...)
       self:RegisterEvent("PLAYER_ENTERING_WORLD");
       self:RegisterEvent("MODIFIER_STATE_CHANGED");
 
-      ChatFrame_AddMessageEventFilter("CHAT_MSG_MONSTER_SAY", BB_ChatFilter)
-      ChatFrame_AddMessageEventFilter("CHAT_MSG_MONSTER_PARTY", BB_ChatFilter)
-      ChatFrame_AddMessageEventFilter("CHAT_MSG_MONSTER_YELL", BB_ChatFilter)
-      ChatFrame_AddMessageEventFilter("CHAT_MSG_MONSTER_WHISPER", BB_ChatFilter)
-      ChatFrame_AddMessageEventFilter("CHAT_MSG_MONSTER_EMOTE", BB_ChatFilter)
+         ChatFrame_AddMessageEventFilter("CHAT_MSG_MONSTER_SAY", BB_ChatFilter)
+         ChatFrame_AddMessageEventFilter("CHAT_MSG_MONSTER_PARTY", BB_ChatFilter)
+         ChatFrame_AddMessageEventFilter("CHAT_MSG_MONSTER_YELL", BB_ChatFilter)
+         ChatFrame_AddMessageEventFilter("CHAT_MSG_MONSTER_WHISPER", BB_ChatFilter)
+         ChatFrame_AddMessageEventFilter("CHAT_MSG_MONSTER_EMOTE", BB_ChatFilter)
 
 -- local f = CreateFrame("Frame")
 
@@ -625,7 +625,9 @@ end
 
 function WOWTR_onChatMsgAddon(who,msg)       -- received message from hidden addon channel
 --print('QTR - MSG od '..who..': '..msg);
-   if (tonumber(msg) > tonumber(WOWTR_version)) then
+   local msgVer = tonumber(msg);
+   local curVer = tonumber(WOWTR_version);
+   if (msgVer and curVer and msgVer > curVer) then
       local currentTime = GetTime();
       if (currentTime - WOWTR_lastNotificationTime) > WOWTR_notificationCooldown then
          print("|cffffff00"..WoWTR_Localization.addonName.."|r - "..WoWTR_Localization.newVersionAvailable.." |cffffff00"..msg.."|r");

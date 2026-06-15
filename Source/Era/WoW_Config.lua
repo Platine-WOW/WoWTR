@@ -1,6 +1,6 @@
 -- Description: The AddOn displays the translated text information in chosen language
 -- Author: Platine [platine.wow@gmail.com]
--- Co-Author: Dragonarab[WoWAR], Hakan YILMAZ[WoWTR]
+-- Co-Author: Hakan YILMAZ [hknylmz@gmail.com]
 -------------------------------------------------------------------------------------------------------
 
 -- local WOWTR_ConfigFirstTime = true;
@@ -606,7 +606,7 @@ WOWTR_CheckButton1a:SetScript("OnEnter", function(self)
 WOWTR_CheckButton1a:SetScript("OnLeave", function(self)
    GameTooltip:Hide()   -- Hide the tooltip
    end);
-WOWTR_CheckButton1a:Disable();
+   WOWTR_CheckButton1a:Disable();
 WOWTR_CheckButton1a:SetAlpha(0.6);
 
 
@@ -1136,7 +1136,7 @@ WOWTR_Panel2Header2:SetText(QTR_ReverseIfAR(WoWTR_Config_Interface.savingUntrans
 WOWTR_Panel2Header2:SetFont(WOWTR_Font2, 15);
 
 local WOWTR_CheckButton27 = CreateFrame("CheckButton", "WOWTR_CheckButton27", WOWTR_OptionPanel2, "UICheckButtonTemplate");
-WOWTR_CheckButton27:SetScript("OnClick", function(self) if (BB_PM["saveBN"]=="1") then BB_PM["saveBM"]="0" else BB_PM["saveBM"]="1" end; end);
+WOWTR_CheckButton27:SetScript("OnClick", function(self) if (BB_PM["saveNB"]=="1") then BB_PM["saveNB"]="0" else BB_PM["saveNB"]="1" end; end);
 if (WoWTR_Localization.lang == 'AR') then
    WOWTR_CheckButton27:SetPoint("TOPLEFT", WOWTR_Panel2Header2, "TOPLEFT", 55, -20);
    WOWTR_CheckButton27.Text:SetPoint("TOPLEFT", WOWTR_Panel2Header2, "TOPLEFT", -112, -30);
@@ -3444,8 +3444,13 @@ end
 -----------------------------------------------------------------------------------------------------------------
 
 function WOWTR_SlashCommand(msg)
-   if not msg or msg:trim() == "" then
-      InterfaceOptionsFrame_OpenToCategory(WOWTR.CategoryID);          -- open Settings of the addon
+   if not msg or strtrim(msg) == "" then
+      -- Settings.OpenToCategory to nowoczesne API (Dragonflight 10.0+); stare InterfaceOptionsFrame_OpenToCategory zostało usunięte
+      if (Settings and Settings.OpenToCategory) then
+         Settings.OpenToCategory(WOWTR.CategoryID);          -- open Settings of the addon
+      elseif (InterfaceOptionsFrame_OpenToCategory) then
+         InterfaceOptionsFrame_OpenToCategory(WOWTR.CategoryID);
+      end
    end
 end
 

@@ -173,7 +173,10 @@ local ignoreSettings = {
         " summons reinforcements!",
         " added to the time!",
         "Talents - ",
-        "|TInterface\\FriendsFrame\\UI-FriendsFrame-Note:"
+        "|TInterface\\FriendsFrame\\UI-FriendsFrame-Note:",
+        "|A:groupfinder-icon-role-micro-dps:13:13:0:0|a",
+        "|A:groupfinder-icon-role-micro-heal:13:13:0:0|a",
+        "|A:groupfinder-icon-role-micro-tank:13:13:0:0|a"
     },
     pattern = "[Я-яĄ-Źą-źŻ-żЀ-ӿΑ-Ωα-ωğĞüÜşŞıİöÖçÇ]"
 }
@@ -252,7 +255,7 @@ end
 
 function ST_CheckAndReplaceTranslationTextUI(obj, sav, prefix, font1)
     if (not obj) then return end
-    
+
     -- [FIX] Skip FontStrings that belong to Blizzard UI Widgets to prevent layout taint.
     local parent = obj.GetParent and obj:GetParent()
     if parent and (parent.widgetID or parent.widgetType) then return end
@@ -339,7 +342,7 @@ end
 -- Przygotowuje tłumaczenie właściwe: zamienia $x w tłumaczeniu na odpowiednie liczby z oryginału
 function ST_TranslatePrepare(ST_origin, ST_tlumacz)
    local tlumaczenie = WOW_ZmienKody(ST_tlumacz);
-   if (not ST_miasto) then
+   if (ST_miasto == nil or ST_miasto == "") then   -- "" jest prawdziwe w Lua, więc trzeba sprawdzić oba przypadki
       ST_miasto = WoWTR_Localization.your_home;
    end
    tlumaczenie = string.gsub(tlumaczenie, "$L", ST_miasto);    -- miasto lokalizacji do Kamienia Powrotu
@@ -361,6 +364,8 @@ function ST_TranslatePrepare(ST_origin, ST_tlumacz)
             wartab[arg0] = tostring(math.floor(w)):reverse():gsub("(%d%d%d)(%d%d%d)", "%1.%2."):gsub("(%-?)$", "%1"):reverse();   -- tu mamy kolejne cyfry z oryginału
          elseif (math.floor(w)>99999) then
             wartab[arg0] = tostring(math.floor(w)):reverse():gsub("(%d%d%d)(%d%d%d)", "%1.%2"):gsub("(%-?)$", "%1"):reverse();    -- tu mamy kolejne cyfry z oryginału
+         elseif (math.floor(w)<9999 and math.floor(w)>1000 ) then
+            wartab[arg0] = tostring(math.floor(w)); -- Просто число без крапок
          elseif (math.floor(w)>999) then
             wartab[arg0] = tostring(math.floor(w)):reverse():gsub("(%d%d%d)", "%1."):gsub("(%-?)$", "%1"):reverse();   -- tu mamy kolejne cyfry z oryginału
          else   
@@ -695,7 +700,10 @@ function ST_ElvSpellBookTooltipOnShow()
    if (ElvUISpellBookTooltip.processingInfo and ElvUISpellBookTooltip.processingInfo.tooltipData.id) then
       ST_prefix = ST_prefix..ElvUISpellBookTooltip.processingInfo.tooltipData.id;
    end
-   ElvUISpellBookTooltip:HookScript("OnHide", function() ST_MyGameTooltip:Hide(); end);
+   if (not ElvUISpellBookTooltip.WOWTR_OnHideHooked) then   -- hook tylko raz, inaczej handlery się nawarstwiają przy każdym pokazaniu
+      ElvUISpellBookTooltip.WOWTR_OnHideHooked = true;
+      ElvUISpellBookTooltip:HookScript("OnHide", function() ST_MyGameTooltip:Hide(); end);
+   end
    ST_MyGameTooltip:SetOwner(WorldFrame, "ANCHOR_NONE" );
    ST_MyGameTooltip:ClearAllPoints();
    ST_MyGameTooltip:SetPoint("TOPLEFT", ElvUISpellBookTooltip, "BOTTOMLEFT", 0, 0);    -- pod przyciskiem od lewej strony
@@ -703,6 +711,7 @@ function ST_ElvSpellBookTooltipOnShow()
    for i = 2, numLines-1, 1 do
       local widget = _G[ElvUISpellBookTooltip:GetName().."TextLeft"..i]
       ST_leftText = WOWTR_SafeGetText(widget);
+      local leftColR, leftColG, leftColB = 1, 1, 1;   -- domyślny biały: OkreslKodKoloru wywala się na nil
       if widget then
          leftColR, leftColG, leftColB = widget:GetTextColor();
       end
@@ -801,6 +810,22 @@ end
 
 -- Orijinal fonksiyonun içeriği (sadece 1 kere yazılıyor)
 function ST_GameTooltipOnShow_Original(tooltip, isUpdate)
+
+   -- [KÖKTEN ENGELLEME] ClassCodex Çakışma Kalkanı
+      -- Eğer ClassCodex paneli açıksa, bu fonksiyona gelen hiçbir isteği işleme, anında çık!
+      if ClassCodexPanel and ClassCodexPanel:IsShown() then
+        return
+      end
+      
+      -- Değişken adı 'tooltip' olarak düzeltildi
+      if tooltip and tooltip.GetOwner then
+        local owner = tooltip:GetOwner()
+        local ownerName = owner and owner.GetName and owner:GetName() or ""
+        if string.find(ownerName, "ClassCodex") or string.find(ownerName, "Codex") then
+          return
+        end
+      end
+   
    tooltip = tooltip or GameTooltip -- Ensure tooltip is set
    if tooltip.IsForbidden and tooltip:IsForbidden() then return end
    local owner = tooltip:GetOwner()
@@ -967,7 +992,7 @@ function ST_GameTooltipOnShow_Original(tooltip, isUpdate)
                      ST_miasto = string.sub(ST_leftText,21,ST_pomoc5-1);
                   else
                      -- [FIX] Onceden dogru sehir set edilmisse koru, yoksa fallback
-                     if not ST_miasto then
+                     if (ST_miasto == nil or ST_miasto == "") then
                         ST_miasto = WoWTR_Localization.your_home;
                      end
                   end
@@ -1000,9 +1025,11 @@ function ST_GameTooltipOnShow_Original(tooltip, isUpdate)
                    if (ST_TooltipsHS[ST_hash]) then        -- mamy przełączony ten Hash lub jest to <Made by...
                       if (ST_pomoc7) then
                          local endBy = string.find(ST_leftText,">");
-                         local nameBy = string.sub(ST_leftText,ST_pomoc7+9,endBy-1);
                          ST_tlumaczenie = ST_TooltipsHS[ST_hash];
-                         ST_tlumaczenie = string.gsub(ST_tlumaczenie, "$M", nameBy);
+                         if (endBy) then   -- bez znaku ">" string.sub(...,endBy-1) wywala się na nil
+                            local nameBy = string.sub(ST_leftText,ST_pomoc7+9,endBy-1);
+                            ST_tlumaczenie = string.gsub(ST_tlumaczenie, "$M", nameBy);
+                         end
                       else
                          ST_tlumaczenie = ST_TooltipsHS[ST_hash];
                       end
@@ -1210,7 +1237,7 @@ end
 -------------------------------------------------------------------------------------------------------
 
 function ST_SetText(txt)      -- funkcja wyszukuje tłumaczenie, albo zapisuje test oryginalny
-   if (string.find(txt," ")==nil) then    -- nie jest to tekst turecki (nie ma twardej spacji na końcu tłumaczenia)
+   if (txt and string.find(txt," ")==nil) then    -- nie jest to tekst turecki (nie ma twardej spacji na końcu tłumaczenia)
       local ST_hash = StringHash(ST_UsunZbedneZnaki(txt));
       if (ST_TooltipsHS[ST_hash]) then
          return ST_TooltipsHS[ST_hash].." ";       -- dodajemy twardą spację na końcu tłumaczenia
@@ -1701,7 +1728,7 @@ function WOWSTR_onEvent(_, event, addonName)
    --print(addonName);
    --QTR_PS["Test"] = Frame; -- search data
       if (addonName == 'Blizzard_PlayerSpells') then
-         ST_Load1 = true;
+         ST_load1 = true;
          PlayerSpellsFrame:HookScript("OnShow", ST_SpellBookTranslateButton);
          PlayerSpellsFrame.SpecFrame:HookScript("OnShow", ST_updateSpecContentsHook);
          PlayerSpellsFrame.TalentsFrame:HookScript("OnShow", function() StartTicker(PlayerSpellsFrame, ST_TalentsTranslate, 0.02) end)
@@ -1774,20 +1801,24 @@ end
          HousingDashboardFrame:HookScript("OnShow", function() StartTicker(HousingDashboardFrame, ST_HousingDashboard, 0.02) end)
 
       elseif (addonName == 'Blizzard_ChromieTimeUI') then
-		local _, _, _, uiVersion = GetBuildInfo()
-		-- Sadece WoW 12.0.0 ve üzeri sürümlerde çalışsın
-		if uiVersion and uiVersion >= 120000 and ChromieTimeFrame then
-			ChromieTimeFrame:HookScript("OnShow", function() StartTicker(ChromieTimeFrame, ST_ChromieTimeFrame, 0.02) end)
-		end
+      local _, _, _, uiVersion = GetBuildInfo()
+      -- Sadece WoW 12.0.0 ve üzeri sürümlerde çalışsın
+      if uiVersion and uiVersion >= 120000 and ChromieTimeFrame then
+         ChromieTimeFrame:HookScript("OnShow", function() StartTicker(ChromieTimeFrame, ST_ChromieTimeFrame, 0.02) end)
+      end
 
       elseif (addonName == 'Blizzard_AlliedRacesUI') then
-		local _, _, _, uiVersion = GetBuildInfo()
-		-- Sadece WoW 12.0.0 ve üzeri sürümlerde çalışsın
-		if uiVersion and uiVersion >= 120000 and AlliedRacesFrame then
-			AlliedRacesFrame:HookScript("OnShow", function() StartTicker(AlliedRacesFrame, ST_AlliedRacesFrame, 0.02) end)
-		end
+      local _, _, _, uiVersion = GetBuildInfo()
+      -- Sadece WoW 12.0.0 ve üzeri sürümlerde çalışsın
+      if uiVersion and uiVersion >= 120000 and AlliedRacesFrame then
+         AlliedRacesFrame:HookScript("OnShow", function() StartTicker(AlliedRacesFrame, ST_AlliedRacesFrame, 0.02) end)
+      end
 
-
+      elseif (addonName == 'Blizzard_ArchaeologyUI') then
+       ArchaeologyFrame:HookScript("OnShow", function() StartTicker(ArchaeologyFrame, ST_ArchaeologyFrame, 0.02) end)
+       if ArchaeologyFrame and ArchaeologyFrame:IsVisible() then
+         StartTicker(ArchaeologyFrame, ST_ArchaeologyFrame, 0.02)
+       end
       end
    
       if (ST_load1 and ST_load2 and ST_load3 and ST_load4 and ST_load5 and ST_load6 and ST_load7 and ST_load8 and ST_load9 and ST_load10 and ST_load11) then    -- otworzono wszystkie dodatki Blizzarda
@@ -1829,7 +1860,7 @@ function ST_SuggestTabClick()
    if (TT_PS["ui5"] == "1") then
 
       local function processRegion(frame)
-      	ST_CheckAndReplaceTranslationTextUI(frame, true, "ui")
+         ST_CheckAndReplaceTranslationTextUI(frame, true, "ui")
       end
 
       processRegion(select(10, EncounterJournalJourneysFrame.JourneyProgress.OverviewBtn:GetRegions()));
@@ -1838,7 +1869,7 @@ function ST_SuggestTabClick()
       local JourneyName = WOWTR_SafeGetText(EncounterJournalJourneysFrame.JourneyOverview.JourneyName); -- Get the Faction Name
       local objJourneyDescription = EncounterJournalJourneysFrame.JourneyOverview.JourneyDescription;
       ST_CheckAndReplaceTranslationText(objJourneyDescription, true, "Factions:" .. ST_RenkKoduSil(JourneyName));
-	  
+     
       local obj0 = EncounterJournalInstanceSelect.Title;
       ST_CheckAndReplaceTranslationText(obj0, true, "Dungeon&Raid:Suggest:SuggestTittle",false,false);
       
@@ -1899,13 +1930,13 @@ function ST_SuggestTabClick()
       local obj18 = EncounterJournalLootJournalTab.Text;        -- Tab: Item Sets
       ST_CheckAndReplaceTranslationText(obj18, true, "ui");
 
-		local _, _, _, uiVersion = GetBuildInfo()
-		local obj19 = EncounterJournal and EncounterJournal.TutorialsTab and EncounterJournal.TutorialsTab.Text
+      local _, _, _, uiVersion = GetBuildInfo()
+      local obj19 = EncounterJournal and EncounterJournal.TutorialsTab and EncounterJournal.TutorialsTab.Text
 
-		-- Sadece WoW 11.2.7 ve üzeri sürümlerde çalışsın
-		if uiVersion and uiVersion >= 110207 and obj19 then
-			ST_CheckAndReplaceTranslationText(obj19, true, "ui")
-		end
+      -- Sadece WoW 11.2.7 ve üzeri sürümlerde çalışsın
+      if uiVersion and uiVersion >= 110207 and obj19 then
+         ST_CheckAndReplaceTranslationText(obj19, true, "ui")
+      end
 
    end
 end
@@ -2246,9 +2277,12 @@ function ST_UpdateBossDescriptionFont(textObject)
     end
 end
 
+local ST_bossClickFrame
 function ST_clickBosses()
+   if ST_bossClickFrame then return end   -- utwórz ramkę OnUpdate tylko raz (wcześniej każde pokazanie tworzyło nową, działającą wiecznie)
    local previousText = ""
    local function OnUpdateHandler()
+       if (not EncounterJournal) or (not EncounterJournal:IsShown()) then return end   -- nie marnuj OnUpdate gdy EJ zamknięty
        local currentText = WOWTR_SafeGetText(EncounterJournalEncounterFrameInfoEncounterTitle)
        if currentText and currentText ~= previousText then
            -- Get the boss name from the navigation bar
@@ -2266,8 +2300,8 @@ function ST_clickBosses()
        end
    end
 
-   local frame = CreateFrame("Frame")
-   frame:SetScript("OnUpdate", OnUpdateHandler)
+   ST_bossClickFrame = CreateFrame("Frame")
+   ST_bossClickFrame:SetScript("OnUpdate", OnUpdateHandler)
 end
 
 
@@ -2790,14 +2824,14 @@ function ST_MerchantFrame()
 
       local MercPText = MerchantPageText;
       ST_CheckAndReplaceTranslationTextUI(MercPText, true, "ui");
-	 
+    
         local function processRegion(frame)
             ST_CheckAndReplaceTranslationTextUI(frame, true, "ui")
         end 
 
         processRegion(select(1, MerchantPrevPageButton:GetRegions()))
-		processRegion(select(1, MerchantNextPageButton:GetRegions()))
-		
+      processRegion(select(1, MerchantNextPageButton:GetRegions()))
+      
 
    end
 end
@@ -3992,21 +4026,21 @@ function ST_Achievement()
     local scrollBoxStats = AchievementFrameStats and AchievementFrameStats.ScrollBox
     local scrollTargetStats = scrollBoxStats and scrollBoxStats.ScrollTarget
     
-	-- İstatistikler (Stats) ScrollBox içindeki metinleri işle
-	if scrollTargetStats then
-		local children = { scrollTargetStats:GetChildren() }
-		for _, child in ipairs(children) do
-			-- Text değeri varsa al
-			if child.Text and WOWTR_SafeGetText(child.Text) then
-				ST_CheckAndReplaceTranslationTextUI(child.Text, true, "Collections:Achievements-Stats")
-			end
-			
-			-- Title değeri varsa al
-			if child.Title and WOWTR_SafeGetText(child.Title) then
-				ST_CheckAndReplaceTranslationTextUI(child.Title, true, "Collections:Achievements-Stats")
-			end
-		end
-	end
+   -- İstatistikler (Stats) ScrollBox içindeki metinleri işle
+   if scrollTargetStats then
+      local children = { scrollTargetStats:GetChildren() }
+      for _, child in ipairs(children) do
+         -- Text değeri varsa al
+         if child.Text and WOWTR_SafeGetText(child.Text) then
+            ST_CheckAndReplaceTranslationTextUI(child.Text, true, "Collections:Achievements-Stats")
+         end
+         
+         -- Title değeri varsa al
+         if child.Title and WOWTR_SafeGetText(child.Title) then
+            ST_CheckAndReplaceTranslationTextUI(child.Title, true, "Collections:Achievements-Stats")
+         end
+      end
+   end
   end
 end
 
@@ -4016,8 +4050,8 @@ f:RegisterEvent("ADDON_LOADED")
 f:SetScript("OnEvent", function(_, _, addonName)
     if addonName == "Blizzard_AchievementUI" then
         AchievementFrame:HookScript("OnShow", function() StartTicker(AchievementFrame, ST_Achievement, 0.01) end)
-		AchievementFrame:HookScript("OnShow", ST_Achievementbutton)
-		
+      AchievementFrame:HookScript("OnShow", ST_Achievementbutton)
+      
     end
 end)
 
@@ -4066,7 +4100,7 @@ function ST_HousingDashboard()
     processRegion(HousingDashboardFrame.HouseInfoContent.DashboardNoHousesFrame.NoHouseButton.Text)
     processRegion(HousingDashboardFrameTitleText)
 
-	
+   
   end
 end
 
@@ -4121,7 +4155,7 @@ function ST_ChromieTimeFrame()
     processRegion(ChromieTimeFrame.CurrentlySelectedExpansionInfoFrame.Description)
     processRegion(ChromieTimeFrame.SelectButton.Text)
 
-	
+   
   end
 end
 
@@ -4140,7 +4174,7 @@ function ST_AlliedRacesFrame()
     processRegion(AlliedRacesFrame.RaceInfoFrame.ScrollFrame.Child.RaceDescriptionText)
     processRegion(AlliedRacesFrame.RaceInfoFrame.ScrollFrame.Child.RacialTraitsLabel)
 
-	
+   
   end
 end
 
@@ -4159,7 +4193,7 @@ function ST_CheckRoleDungeon()
     processRegion(LFDRoleCheckPopupAcceptButtonText)
     processRegion(LFDRoleCheckPopupDeclineButtonText)
 
-	
+   
   end
 end
 
@@ -4179,7 +4213,29 @@ function ST_DungeonReadyDialogPopup()
     processRegion(LFGDungeonReadyDialog.label)
     processRegion(LFGDungeonReadyDialog.instanceInfo.statusText)
 
-	
+   
+  end
+end
+
+-------------------------------------------------------------------------------------------------------
+-- Archaeology
+function ST_ArchaeologyFrame()
+  if (TT_PS["ui1"] == "1") then
+
+    local function processRegion(frame)
+        ST_CheckAndReplaceTranslationTextUI(frame, true, "ui")
+    end
+
+    processRegion(ArchaeologyFrameHelpPageHelpScrollHelpText)
+    processRegion(ArchaeologyFrameHelpPageDigTitle)
+    processRegion(ArchaeologyFrameArtifactPageHistoryScrollChild.text)
+    processRegion(ArchaeologyFrameArtifactPageHistoryTitle)
+    processRegion(ArchaeologyFrame.summaryPage.pageText)
+    processRegion(ArchaeologyFrameSummaryPageTitle)
+    processRegion(ArchaeologyFrameCompletedPageTitleTop)
+    processRegion(ArchaeologyFrameCompletedPageTitleMid)
+    processRegion(ArchaeologyFrameCompletedPagePageText)
+
   end
 end
 

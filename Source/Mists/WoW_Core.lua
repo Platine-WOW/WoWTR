@@ -596,7 +596,9 @@ end
 
 function WOWTR_onChatMsgAddon(who,msg)       -- received message from hidden addon channel
 --print('QTR - MSG od '..who..': '..msg);
-   if (tonumber(msg) > tonumber(WOWTR_version)) then
+   local msgVer = tonumber(msg);
+   local curVer = tonumber(WOWTR_version);
+   if (msgVer and curVer and msgVer > curVer) then
       local currentTime = GetTime();
       if (currentTime - WOWTR_lastNotificationTime) > WOWTR_notificationCooldown then
          print("|cffffff00"..WoWTR_Localization.addonName.."|r - "..WoWTR_Localization.newVersionAvailable.." |cffffff00"..msg.."|r");

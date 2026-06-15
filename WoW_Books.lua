@@ -6,7 +6,7 @@
 -- Local Variables
 local BT_act_tr = "0";
 local BT_bookID = "0";
-local BT_tytul_en, BT_tytul_tr, BT_tekst_en, BT_tekst_tr = "";
+local BT_tytul_en, BT_tytul_tr, BT_tekst_en, BT_tekst_tr = "", "", "", "";
 
 -------------------------------------------------------------------------------------------------------
 
@@ -99,7 +99,7 @@ function BookTranslator_ShowTranslation()
                end
 
                local QTR_forma = "";
-               if QTR_PS["ownname"] == "1" then
+               if QTR_PS["ownnames"] == "1" then
                   QTR_forma = string.sub(BT_tekst_tr, nr_2 + 1, nr_3 - 1);
                else
                   QTR_forma = string.sub(BT_tekst_tr, nr_1 + 1, nr_2 - 1);

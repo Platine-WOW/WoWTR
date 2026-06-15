@@ -367,7 +367,7 @@ function QTR_Gossip_Show()
                ImmersionFrame.TalkBox.TextFrame.Text:SetText(QTR_ExpandUnitInfo(Greeting_TR,false,ImmersionFrame.TalkBox.TextFrame.Text,WOWTR_Font2));     
             elseif (isStoryline()) then   -- jest aktywny StoryLine i zezwolono na tłumaczenia
                if (Storyline_NPCFrameChat.texts == nil) then
-                  C_Timer.After(1.0, function() txt0txt = QTR_ExpandUnitInfo(Greeting_TR,false,Storyline_NPCFrameChat.texts[0],WOWTR_Font2); QTR_Storyline_Gossip(); end);
+                  C_Timer.After(1.0, function() if (Storyline_NPCFrameChat.texts) then txt0txt = QTR_ExpandUnitInfo(Greeting_TR,false,Storyline_NPCFrameChat.texts[0],WOWTR_Font2); QTR_Storyline_Gossip(); end end);
                else
                   txt0txt = QTR_ExpandUnitInfo(Greeting_TR,false,Storyline_NPCFrameChat.texts[0],WOWTR_Font2);
                   if (not WOWTR_wait(1.0, QTR_Storyline_Gossip)) then
@@ -533,7 +533,7 @@ function GossipOnQuestFrame()       -- frame: QuestFrame
             if (QTR_PS["saveGS"]=="1") then
                local Nazwa_NPC = QuestFrameNpcNameText:GetText();
                Origin_Text = string.gsub(Origin_Text, '"', '\"');                
-               QTR_GOSSIP[Nazwa_NPC..'@'..tostring(Hash)..'@'..C_Map.GetBestMapForUnit("player")] = Origin_Text..'@'..WOWTR_player_name..':'..WOWTR_player_race..':'..WOWTR_player_class;
+               QTR_GOSSIP[(Nazwa_NPC or "")..'@'..tostring(Hash)..'@'..tostring(C_Map.GetBestMapForUnit("player") or 0)] = Origin_Text..'@'..WOWTR_player_name..':'..WOWTR_player_race..':'..WOWTR_player_class;
             end
          end
          if (CurrentQuestsText and CurrentQuestsText:IsVisible()) then
@@ -3408,8 +3408,9 @@ function WOW_ZmienKody(message, target)
       local QTR_forma = "";
       local nr_poz, nr_poz2 = string.find(msg, "YOUR_GENDER");    -- gdy nie znalazł, jest: nil
       while (nr_poz and nr_poz2>0) do
+         local _before = msg;
          nr_1 = nr_poz2 + 1;   
-         while (string.sub(msg, nr_1, nr_1) ~= "(") do            -- dopuszczam jedną spację po słowie kodowym
+         while (nr_1 <= string.len(msg) and string.sub(msg, nr_1, nr_1) ~= "(") do            -- dopuszczam jedną spację po słowie kodowym
             nr_1 = nr_1 + 1;
          end
          if (string.sub(msg, nr_1, nr_1) == "(") then
@@ -3436,6 +3437,7 @@ function WOW_ZmienKody(message, target)
                end   
             end
          end
+         if (msg == _before) then break; end   -- brak postępu (błędny kod) - przerwij pętlę, by uniknąć zawieszenia
          nr_poz, nr_poz2 = string.find(msg, "YOUR_GENDER");
       end
 
@@ -3445,8 +3447,9 @@ function WOW_ZmienKody(message, target)
       local NPC_sex = UnitSex("npc");       -- 1:neutral,  2:męski,  3:żeński
       local nr_poz, nr_poz2 = string.find(msg, "NPC_GENDER");     -- gdy nie znalazł, jest: nil
       while (nr_poz and nr_poz2>0) do
+         local _before = msg;
          nr_1 = nr_poz2 + 1;   
-         while (string.sub(msg, nr_1, nr_1) ~= "(") do            -- dopuszczam jedną spację po słowie kodowym
+         while (nr_1 <= string.len(msg) and string.sub(msg, nr_1, nr_1) ~= "(") do            -- dopuszczam jedną spację po słowie kodowym
             nr_1 = nr_1 + 1;
          end
          if (string.sub(msg, nr_1, nr_1) == "(") then
@@ -3473,6 +3476,7 @@ function WOW_ZmienKody(message, target)
                end   
             end
          end
+         if (msg == _before) then break; end   -- brak postępu (błędny kod) - przerwij pętlę, by uniknąć zawieszenia
          nr_poz, nr_poz2 = string.find(msg, "NPC_GENDER");
       end
    
@@ -3481,8 +3485,9 @@ function WOW_ZmienKody(message, target)
       local QTR_forma = "";
       local nr_poz, nr_poz2 = string.find(msg, "OWN_NAME");    -- gdy nie znalazł, jest: nil
       while (nr_poz and nr_poz2>0) do
+         local _before = msg;
          nr_1 = nr_poz2 + 1;   
-         while (string.sub(msg, nr_1, nr_1) ~= "(") do         -- dopuszczam jedną spację po słowie kodowym
+         while (nr_1 <= string.len(msg) and string.sub(msg, nr_1, nr_1) ~= "(") do         -- dopuszczam jedną spację po słowie kodowym
             nr_1 = nr_1 + 1;
          end
          if (string.sub(msg, nr_1, nr_1) == "(") then
@@ -3509,6 +3514,7 @@ function WOW_ZmienKody(message, target)
                end   
             end
          end
+         if (msg == _before) then break; end   -- brak postępu (błędny kod) - przerwij pętlę, by uniknąć zawieszenia
          nr_poz, nr_poz2 = string.find(msg, "OWN_NAME");
       end
    end
@@ -3741,7 +3747,7 @@ function WOWTR_DeleteSpecialCodes(txt,part)
       text = string.gsub(text, '$C$', '');
       text = string.gsub(text, '$C', '');
    end
-   -- New additions for consistency with Panel and missing codes
+      -- New additions for consistency with Panel and missing codes
    if (part==nil) or (part=='$G') then text = string.gsub(text, '$G', ''); end
    if (part==nil) or (part=='$P') then text = string.gsub(text, '$P', ''); end
    if (part==nil) or (part=='$O') then text = string.gsub(text, '$O', ''); end

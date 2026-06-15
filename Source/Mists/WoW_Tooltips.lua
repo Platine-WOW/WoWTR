@@ -249,7 +249,7 @@ end
 -- Przygotowuje tłumaczenie właściwe: zamienia $x w tłumaczeniu na odpowiednie liczby z oryginału
 function ST_TranslatePrepare(ST_origin, ST_tlumacz)
    local tlumaczenie = WOW_ZmienKody(ST_tlumacz);
-   if (not ST_miasto) then
+   if (ST_miasto == nil or ST_miasto == "") then   -- "" jest prawdziwe w Lua, więc trzeba sprawdzić oba przypadki
       ST_miasto = WoWTR_Localization.your_home;
    end
    tlumaczenie = string.gsub(tlumaczenie, "$L", QTR_ReverseIfAR(ST_miasto));    -- miasto lokalizacji do Kamienia Powrotu
@@ -281,6 +281,8 @@ function ST_TranslatePrepare(ST_origin, ST_tlumacz)
             wartab[arg0] = tostring(math.floor(w)):reverse():gsub("(%d%d%d)(%d%d%d)", "%1.%2."):gsub("(%-?)$", "%1"):reverse();   -- tu mamy kolejne cyfry z oryginału
          elseif (math.floor(w)>99999) then
             wartab[arg0] = tostring(math.floor(w)):reverse():gsub("(%d%d%d)(%d%d%d)", "%1.%2"):gsub("(%-?)$", "%1"):reverse();   -- tu mamy kolejne cyfry z oryginału
+         elseif (math.floor(w)<9999 and math.floor(w)>1000 ) then
+            wartab[arg0] = tostring(math.floor(w)); -- Просто число без крапок
          elseif (math.floor(w)>999) then
             wartab[arg0] = tostring(math.floor(w)):reverse():gsub("(%d%d%d)", "%1."):gsub("(%-?)$", "%1"):reverse();   -- tu mamy kolejne cyfry z oryginału
          else   
@@ -328,7 +330,7 @@ function ST_TranslatePrepare(ST_origin, ST_tlumacz)
                   nr_3 = nr_3 + 1;
                end
                if (string.sub(tlumaczenie, nr_3, nr_3) == ")") then
-                  if (QTR_PS["ownname"] == "1") then        -- forma polska
+                  if (QTR_PS["ownnames"] == "1") then        -- forma polska
                      QTR_forma = string.sub(tlumaczenie,nr_2+1,nr_3-1);
                   else                                      -- forma angielska
                      QTR_forma = QTR_ReverseIfAR(string.sub(tlumaczenie,nr_1+1,nr_2-1));
@@ -1273,7 +1275,7 @@ function WOWSTR_onEvent(_, event, addonName)
    --QTR_PS["Test"] = Frame; -- search data
 
       if (addonName == 'Blizzard_PlayerSpells') then
-         ST_Load1 = true;
+         ST_load1 = true;
          PlayerSpellsFrame:HookScript("OnShow", ST_SpellBookTranslateButton);
          PlayerSpellsFrame.SpecFrame:HookScript("OnShow", ST_updateSpecContentsHook);
          PlayerSpellsFrame.TalentsFrame:HookScript("OnShow", ST_TalentsTranslate);
@@ -3621,7 +3623,7 @@ function ST_ProcessTooltip(tooltip, forcePrefix)
       local lineObj = _G[tooltipName..'TextLeft'..i];
       if (lineObj) then
          ST_leftText = lineObj:GetText();
-         if (ST_leftText and (string.find(ST_leftText,'�')==nil)) then
+         if (ST_leftText and (string.find(ST_leftText,'�')==nil)) then
             -- Standard Hash Generation
             ST_hash = StringHash(ST_UsunZbedneZnaki(ST_leftText));
             
@@ -3632,7 +3634,7 @@ function ST_ProcessTooltip(tooltip, forcePrefix)
                
                _font1, _size1, _1 = lineObj:GetFont();
                lineObj:SetFont(WOWTR_Font2, _size1);
-               lineObj:SetText(QTR_ExpandUnitInfo(ST_tlumaczenie,false,lineObj,WOWTR_Font2)..'�');
+               lineObj:SetText(QTR_ExpandUnitInfo(ST_tlumaczenie,false,lineObj,WOWTR_Font2)..'�');
                lineObj.wrap = true;
             else
                ST_nh = 1;

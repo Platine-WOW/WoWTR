@@ -153,7 +153,9 @@ function processNormalChatBubbles()
 end
 
 function processDungeonChatBubbles()
-    for idx, iArray in ipairs(BB_BubblesArray) do
+    -- Iteruj od końca, bo tremove przesuwa indeksy (przy ipairs pomijaliśmy elementy)
+    for idx = #BB_BubblesArray, 1, -1 do
+        local iArray = BB_BubblesArray[idx]
         -- Use WOWBB1 if it is not visible
         if (not WOWBB1:IsVisible()) then
             setupChatBubble(WOWBB1, iArray, 0)
@@ -200,7 +202,9 @@ function setupChatBubble(bubble, iArray, offset)
 end
 
 function cleanupBubblesArray()
-    for idx, iArray in ipairs(BB_BubblesArray) do
+    -- Iteruj od końca, bo tremove przesuwa indeksy (przy ipairs pomijaliśmy elementy)
+    for idx = #BB_BubblesArray, 1, -1 do
+        local iArray = BB_BubblesArray[idx]
         -- Remove the data if the counter reaches 100
         if (iArray[3] >= 100) then
             tremove(BB_BubblesArray, idx)
@@ -229,14 +233,14 @@ function BB_ChatFilter(self, event, arg1, arg2, arg3, _, arg5, ...)     -- wywo�
 
    if (event == "CHAT_MSG_MONSTER_SAY") then          -- określ kolor tekstu do okna chat
       colorText = "|cFFFFFF9F";
-      if (GetCVar("ChatBubbles")) then
+      if (GetCVar("ChatBubbles") == "1") then
          changeBubble = true;
       end
    elseif (event == "CHAT_MSG_MONSTER_PARTY") then
       colorText = "|cFFAAAAFF";
    elseif (event == "CHAT_MSG_MONSTER_YELL") then
       colorText = "|cFFFF4040";
-      if (GetCVar("ChatBubbles")) then
+      if (GetCVar("ChatBubbles") == "1") then
          changeBubble = true;
       end
    elseif (event == "CHAT_MSG_MONSTER_WHISPER") then
@@ -247,6 +251,8 @@ function BB_ChatFilter(self, event, arg1, arg2, arg3, _, arg5, ...)     -- wywo�
 
    BB_is_translation = "0";      
    if (BB_PM["active"] == "1") then                       -- dodatek aktywny - szukaj tłumaczenia
+      local exceptionHash = nil;     -- musi być lokalny i resetowany przy każdym dymku (inaczej "zatruwa" kolejne tłumaczenia)
+      local newMessage, nr_poz;
       local Origin_Text = original_txt;
       if (arg5 and (arg5 ~= "")) then
          Origin_Text = WOWTR_DetectAndReplacePlayerName(Origin_Text, arg5);
