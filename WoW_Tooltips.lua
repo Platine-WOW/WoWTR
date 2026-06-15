@@ -1321,8 +1321,8 @@ function ST_CurrentEquipped(obj)
          -- druga linia z tytułem przedmiotu
          local textVal = WOWTR_SafeGetText(_G[obj:GetName().."TextLeft2"])
          ST_pomoc0, _ = string.find(textVal or ""," ");   -- szukamy twardej spacji
-         if (ST_TooltipID and (ST_pomoc0==nil) and (ST_TooltipsID[ST_prefix..tostring(ST_itemID)]) and (ST_PM["transtitle"]=="1")) then  -- jest tłumaczenie tytułu w bazie
-            _G[obj:GetName().."TextLeft2"]:SetText(QTR_ExpandUnitInfo(ST_TooltipsID[ST_prefix..tostring(ST_itemID)]) .. " ");
+         if ((ST_pomoc0==nil) and ST_TooltipsID and ST_TooltipsID[ST_prefix] and (ST_PM["transtitle"]=="1")) then  -- jest tłumaczenie tytułu w bazie
+            _G[obj:GetName().."TextLeft2"]:SetText(QTR_ExpandUnitInfo(ST_TooltipsID[ST_prefix]) .. " ");
             _font1, _size1, _1 = _G[obj:GetName().."TextLeft2"]:GetFont();  -- odczytaj aktualną czcionkę i rozmiar    
             _G[obj:GetName().."TextLeft2"]:SetFont(WOWTR_Font2, _size1);
          end
@@ -1450,11 +1450,11 @@ end
 function ST_UpdateFrameTitle(classTalentFrame)
    local ST_titleText;
    if (classTalentFrame:GetTab() == classTalentFrame.specTabID) then
-      titleText = _G["SPECIALIZATION"];
+      ST_titleText = _G["SPECIALIZATION"];
    else -- tabID == self.talentTabID
-      titleText = _G["TALENTS"];
+      ST_titleText = _G["TALENTS"];
    end
-   classTalentFrame:SetTitle(ST_SetText(titleText));
+   classTalentFrame:SetTitle(ST_SetText(ST_titleText));
    -- local _font, _size, _ = classTalentFrame.TalentsTab.ApplyButton.Text:GetFont();    -- odczytaj aktualną czcionkę i rozmiar
    -- classTalentFrame.TalentsTab.ApplyButton.Text:SetText((ST_SetText(WOWTR_SafeGetText(classTalentFrame.TalentsTab.ApplyButton.Text))));   -- Apply Changes
    -- classTalentFrame.TalentsTab.ApplyButton.Text:SetFont(WOWTR_Font2, _size);
@@ -1567,7 +1567,6 @@ end
 
 function ST_updateHeroTalentHook()
     if not HeroTalentsSelectionDialog or not HeroTalentsSelectionDialog.SpecContentFramePool then
-        print("HeroTalentsSelectionDialog veya SpecContentFramePool mevcut değil.")
         return
     end
 
@@ -2210,7 +2209,7 @@ end
        
        ST_CheckAndReplaceTranslationText(tempObj, true, "Dungeon&Raid:Boss:" .. ST_bossName, WOWTR_Font2, false, -120)
    end
-
+   ST_BossInfoTabText()   -- przetłumacz etykiety zakładek (Overview/Loot/Boss/Model) - wcześniej nadpisane przez drugą definicję
    ST_BossHeaderTabText()
 end
 
@@ -2222,7 +2221,7 @@ function ST_SaveOriginalText(bossName, text)
     -- Here you can save the text permanently, for example, to a file or database
 end
 
-function ST_BossHeaderTabText()
+function ST_BossInfoTabText()
     local tabs = {
         EncounterJournalEncounterFrameInfoOverviewTab,
         EncounterJournalEncounterFrameInfoLootTab,
