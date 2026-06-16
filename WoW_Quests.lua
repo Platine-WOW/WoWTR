@@ -3441,16 +3441,47 @@ end
 function QTR_ObjectiveTracker_Check()
     EnsureTrackerToggleButton()
    
-    local function QTR_HookObjectiveFontString(fs)
-        if not fs or objectiveHooks[fs] then return end
-        objectiveHooks[fs] = true
-        hooksecurefunc(fs, "SetText", function(self, text)
-            if (not QTR_Tracker_Lang_Toggle) then return end -- bypass translation if set to EN
-            if text and text ~= "" and string.find(text, " ") == nil then
-                ST_CheckAndReplaceTranslationTextUI(self, true, "Collections:QuestObjective", WOWTR_Font2)
+local function QTR_HookObjectiveFontString(fs)
+    if not fs or objectiveHooks[fs] then return end
+    objectiveHooks[fs] = true
+    
+    -- 1) METİN DEĞİŞİM KANCASI (Sadece Çeviri ve Sabitleme İşlemleri İçin)
+    hooksecurefunc(fs, "SetText", function(self, text)
+        if (not QTR_Tracker_Lang_Toggle) then return end -- EN modundaysa işlem yapma
+        
+        if text and text ~= "" then
+            -- [SABİTLEME KORUMASI]: Metinde NBSP varsa zaten Türkçedir.
+            -- Çeviri fonksiyonunu tekrar çağırıp sabitlemeyi ASLA bozma, göz kırpmasını engelle.
+            if string.find(text, " ") ~= nil then
+                return 
             end
-        end)
-    end
+            
+            -- Metin saf İngilizce ise çeviriyi yap, kaydet ve sabitle
+            ST_CheckAndReplaceTranslationTextUI(self, true, "Collections:QuestObjective", WOWTR_Font2)
+        end
+    end)
+
+	-- 2) FONT DEĞİŞİM KANCASI (Orijinal Boyut ve Flag Yapısını Aynen Korur)
+		hooksecurefunc(fs, "SetFont", function(self, fontPath, size, flags)
+			if (not QTR_Tracker_Lang_Toggle) then return end
+			
+			-- Blizzard kendi fontunu dayattığında araya gir
+			if fontPath and fontPath ~= WOWTR_Font2 then
+				-- Orijinal 'size' ve 'flags' neyse hiç dokunmadan aynen iletiyoruz
+				self:SetFont(WOWTR_Font2, size, flags)
+			end
+		end)
+		
+		-- 3) FONT OBJESİ KANCASI (Sıfırlamalarda Orijinal Değerleri Çeker)
+		hooksecurefunc(fs, "SetFontObject", function(self, fontObject)
+			if (not QTR_Tracker_Lang_Toggle) then return end
+			
+			-- FontString'in o anki mevcut orijinal boyut ve flag ayarlarını çekiyoruz
+			local _, originalSize, originalFlags = self:GetFont()
+			-- Boyuta elle müdahale etmeden aynen uyguluyoruz
+			self:SetFont(WOWTR_Font2, originalSize, originalFlags)
+		end)
+end
 
     local function ScanFrame(frame, depth)
         if (depth > 15) then return end -- Increased recursion depth for Retail
