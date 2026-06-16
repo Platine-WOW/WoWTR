@@ -286,7 +286,7 @@ local WOWTR_OptionsHeaderText = WOWTR_Options:CreateFontString(nil, "OVERLAY", "
 WOWTR_OptionsHeaderText:SetFont(WOWTR_Font2, 18);
 WOWTR_OptionsHeaderText:SetWidth(600);
 WOWTR_OptionsHeaderText:SetPoint("LEFT", WOWTR_OptionsHeaderIcon, "RIGHT", 10, 5); -- Adjusted for icon position
-WOWTR_OptionsHeaderText:SetText(" "..WoWTR_Localization.optionTitle.." |cff8080ffv"..WOWTR_version.."|r      by IceDNicco, Platine, Hknylmz © 2026");
+WOWTR_OptionsHeaderText:SetText(" "..WoWTR_Localization.optionTitle.." |cff8080ffv"..WOWTR_version.."|r      by Platine, Hknylmz © 2026");
 
 -- Sidebar Divider (Visual separator)
 local WOWTR_SidebarDivider = WOWTR_Options:CreateTexture(nil, "ARTWORK");
@@ -2472,7 +2472,7 @@ else
    WOWTR_Panel9Author2:SetJustifyH("LEFT"); 
    WOWTR_Panel9Author2:SetPoint("TOPLEFT", WOWTR_Panel9Header1, "BOTTOMLEFT", 120, -15);
 end
-WOWTR_Panel9Author2:SetText("IceDNicco");                               
+WOWTR_Panel9Author2:SetText("Platine");                               
 WOWTR_Panel9Author2:SetFont(WOWTR_Font2, 13);
 
 local WOWTR_Panel9Email1 = WOWTR_OptionPanel9:CreateFontString(nil, "ARTWORK");
@@ -2498,7 +2498,7 @@ if (WoWTR_Localization.lang == 'AR') then
 else
    WOWTR_Panel9Email2:SetPoint("TOPLEFT", WOWTR_Panel9Header1, "BOTTOMLEFT", 120, -35);
 end
-WOWTR_Panel9Email2:SetText("1991kage@gmail.com");
+WOWTR_Panel9Email2:SetText("platine.wow@gmail.com");
 WOWTR_Panel9Email2:SetFont(WOWTR_Font2, 13);
 
 if (WoWTR_Localization.lang == 'TR') then

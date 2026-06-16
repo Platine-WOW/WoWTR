@@ -58,6 +58,7 @@ function ST_UsunZbedneZnaki(txt)          -- przed obliczeniem kodu Hash
    text = string.gsub(text,"|r","");
    text = string.gsub(text,"\r","");
    text = string.gsub(text,"\n","");
+   text = string.gsub(text,"\\","\\\\");
    text = string.gsub(text,'%f[%a]'..WOWTR_player_name..'%f[%A]',"$N");
    text = string.gsub(text,"(%d),(%d)","%1%2");      -- usuń przecinek między cyframi (odstęp tysięczny)
    text = string.gsub(text,"0","");
