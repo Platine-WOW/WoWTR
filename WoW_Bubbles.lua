@@ -38,6 +38,82 @@ function BB_NormalizeGeneric(text)
 end
 
 -------------------------------------------------------------------------------------------------------
+-- Chattynator entegrasyonu
+-- ---------------------------------------------------------------------------------------------------
+-- Chattynator yüklüyken normal DEFAULT_CHAT_FRAME görünmüyor; Chattynator olayları kendi gizli
+-- frame'inden yakalayıp orijinal metni kendi paneline çiziyor. Bu yüzden DEFAULT_CHAT_FRAME:AddMessage
+-- çağrısıyla basılan çeviri kullanıcıya hiç görünmüyor. Chattynator resmi bir "live modifier" API'si
+-- sunuyor (Chattynator.API.AddModifier) ve mesaj ekrana çizilmeden hemen önce data.text alanını
+-- değiştirme imkânı veriyor. Burada, BB_ChatFilter'ın az önce çevirdiği her mesajı kısa süreliğine
+-- (normalize edilmiş orijinal metin -> çeviri) bir tabloya kaydedip, Chattynator bu mesajı işlerken
+-- eşleşen kaydı bulup metni değiştiriyoruz.
+
+local BB_ChattynatorPending = {}      -- [normalize edilmiş orijinal metin] = { text = çeviri, expires = zaman }
+local BB_ChattynatorTTL = 5            -- saniye; bu süre içinde işlenmezse kayıt çöp olarak sayılır
+local BB_ChattynatorActive = false     -- Chattynator yüklü ve modifier API'si kayıtlı mı?
+
+local function BB_ChattynatorRemember(originalText, translatedText)
+   if not BB_ChattynatorActive then
+      return  -- Chattynator yüklü değil ya da modifier kayıtlı değil
+   end
+   if (BB_PM["chat-en"] == "1") then
+      return  -- kullanıcı orijinal metni de görmek istiyor, Chattynator'daki metni değiştirme
+   end
+   local key = BB_NormalizeGeneric(originalText)
+   if key == "" then return end
+   BB_ChattynatorPending[key] = { text = translatedText, expires = GetTime() + BB_ChattynatorTTL }
+end
+
+local function BB_ChattynatorModifier(data)
+   if not data or type(data.text) ~= "string" then return end
+   if next(BB_ChattynatorPending) == nil then return end  -- hızlı çıkış, boşken her mesajı tarama
+   local now = GetTime()
+   local normalizedData = BB_NormalizeGeneric(data.text)
+   for key, entry in pairs(BB_ChattynatorPending) do
+      if now <= entry.expires then
+         -- Tam eşleşme (en güvenilir) ya da içerik eşleşmesi (Chattynator data.text'i
+         -- "PlayerLink diyor: <orijinal metin>" gibi ekstra bir kabukla sarmalayabiliyor)
+         if normalizedData == key or (key ~= "" and string.find(normalizedData, key, 1, true)) then
+            data.text = entry.text
+            BB_ChattynatorPending[key] = nil
+            return
+         end
+      else
+         BB_ChattynatorPending[key] = nil
+      end
+   end
+end
+
+local function BB_ChattynatorCleanup()
+   local now = GetTime()
+   for key, entry in pairs(BB_ChattynatorPending) do
+      if now > entry.expires then
+         BB_ChattynatorPending[key] = nil
+      end
+   end
+end
+
+-- Chattynator henüz yüklenmemiş olabilir (LoadOnDemand ya da yükleme sırası farkı),
+-- bu yüzden ADDON_LOADED ile bekleyip API hazır olduğunda modifier'ı kaydediyoruz.
+local BB_ChattynatorWatcher = CreateFrame("FRAME")
+BB_ChattynatorWatcher:RegisterEvent("ADDON_LOADED")
+BB_ChattynatorWatcher:RegisterEvent("PLAYER_LOGIN")
+BB_ChattynatorWatcher:SetScript("OnEvent", function(self, event, addonName)
+   if Chattynator and Chattynator.API and Chattynator.API.AddModifier then
+      Chattynator.API.AddModifier(BB_ChattynatorModifier)
+      BB_ChattynatorActive = true
+      self:UnregisterEvent("ADDON_LOADED")
+      self:SetScript("OnUpdate", function(_, elapsed)
+         self._BBacc = (self._BBacc or 0) + elapsed
+         if self._BBacc > 5 then
+            self._BBacc = 0
+            BB_ChattynatorCleanup()
+         end
+      end)
+   end
+end)
+
+-------------------------------------------------------------------------------------------------------
 
 function BB_FindProS(text)                 -- znajdź, czy jest tekst '%s' w podanym tłumaczeniu
    local dl_txt = string.len(text)-1;
@@ -341,12 +417,18 @@ function BB_ChatFilter(self, event, arg1, arg2, arg3, _, arg5, ...)     -- wywo�
                else
                   newMessage = strsub(newMessage,1,nr_poz-1)..name_NPC..strsub(newMessage, nr_poz+2);
                end
-               DEFAULT_CHAT_FRAME:AddMessage(colorText..QTR_ExpandUnitInfo(newMessage,false,DEFAULT_CHAT_FRAME,WOWTR_Font2,-50)..mark_AI);
+               local BB_finalMsg = colorText..QTR_ExpandUnitInfo(newMessage,false,DEFAULT_CHAT_FRAME,WOWTR_Font2,-50)..mark_AI;
+               BB_ChattynatorRemember(original_txt, BB_finalMsg);
+               DEFAULT_CHAT_FRAME:AddMessage(BB_finalMsg);
             elseif (strsub(newMessage,1,2)=="%o") then         -- jest forma '%o'
                newMessage = strsub(newMessage, 3);
-               DEFAULT_CHAT_FRAME:AddMessage(colorText..QTR_ExpandUnitInfo(newMessage:gsub("^%s*", ""),false,DEFAULT_CHAT_FRAME,WOWTR_Font2,-50)..mark_AI); -- usuń białe spacje na początku
+               local BB_finalMsg = colorText..QTR_ExpandUnitInfo(newMessage:gsub("^%s*", ""),false,DEFAULT_CHAT_FRAME,WOWTR_Font2,-50)..mark_AI; -- usuń białe spacje na początku
+               BB_ChattynatorRemember(original_txt, BB_finalMsg);
+               DEFAULT_CHAT_FRAME:AddMessage(BB_finalMsg);
             else
-               DEFAULT_CHAT_FRAME:AddMessage(colorText.."|cCCDDEEFF"..name_NPC..":|r "..QTR_ExpandUnitInfo(newMessage,false,DEFAULT_CHAT_FRAME,WOWTR_Font2,-100)..mark_AI);   -- mówi (diyor ki)
+               local BB_finalMsg = colorText.."|cCCDDEEFF"..name_NPC..":|r "..QTR_ExpandUnitInfo(newMessage,false,DEFAULT_CHAT_FRAME,WOWTR_Font2,-100)..mark_AI;   -- mówi (diyor ki)
+               BB_ChattynatorRemember(original_txt, BB_finalMsg);
+               DEFAULT_CHAT_FRAME:AddMessage(BB_finalMsg);
             end
          else   
             if (nr_poz>0) then        -- mamy formę opisową dymku np. NPC_name coś robi.
@@ -410,6 +492,11 @@ function BB_ChatFilter(self, event, arg1, arg2, arg3, _, arg5, ...)     -- wywo�
    TT_onTutorialShow();
    if ((BB_PM["chat-en"] == "1") or (BB_is_translation ~= "1")) then     -- gdy nie ma także tłumaczenia                 
       return false;     -- wyświetlaj tekst oryginalny w oknie czatu
+   elseif (BB_ChattynatorActive) then
+      -- Chattynator aktif: orijinal mesajın Chattynator'ın kendi event akışına girmesine izin ver.
+      -- DEFAULT_CHAT_FRAME:AddMessage zaten görünmeyen eski pencereye yazıldı (yukarıda), gerçek
+      -- ekrana basım Chattynator'ın AddModifier callback'i (BB_ChattynatorModifier) üzerinden olacak.
+      return false;
    else
       return true;      -- nie wyświetlaj oryginalnego tekstu
    end   
