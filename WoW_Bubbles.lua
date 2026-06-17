@@ -262,6 +262,7 @@ function BB_ChatFilter(self, event, arg1, arg2, arg3, _, arg5, ...)     -- wywo�
       local Czysty_Text = WOWTR_DeleteSpecialCodes(Origin_Text);
       if (string.sub(name_NPC,1,17) == "Bronze Timekeeper") or
          (string.sub(name_NPC,1,16) == "Grimy Timekeeper") or
+         (string.sub(name_NPC,1,5) == "Vaeli") or
          (string.sub(name_NPC,1,8) == "Om'torid") then    -- wyścigi na smokach - wyjątek z sekundami
          Czysty_Text = string.gsub(Czysty_Text, "0", "");
          Czysty_Text = string.gsub(Czysty_Text, "1", "");
