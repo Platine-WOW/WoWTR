@@ -246,8 +246,8 @@ function WOWTR_CheckVars()
       QTR_PS["scale"] = "1";
    end
 
-if not QTR_PS.firstTimeLoaded8 then   -- Automatic log cleaning (reset saved texts)
-    QTR_PS.firstTimeLoaded8 = true
+if not QTR_PS.firstTimeLoaded9 then   -- Automatic log cleaning (reset saved texts)
+    QTR_PS.firstTimeLoaded9 = true
 
     -- Diğer numaralandırılmış kayıtları sıfırlamak için bir döngü
     for i = 1, 9 do
