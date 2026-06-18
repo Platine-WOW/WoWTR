@@ -3646,7 +3646,7 @@ function QTR_QuestMap_Check()
                   if not WOWTR_questMapHooks[region] then
                      WOWTR_questMapHooks[region] = true
                      hooksecurefunc(region, "SetText", function(self, newText)
-                        if newText and newText ~= "" and string.find(newText, " ") == nil then
+                        if newText and newText ~= "" and string.find(newText, " ") == nil then
                            -- Ceviri marker'i (hard space) yok = Blizzard Ingilizce'ye dondu
                            ST_CheckAndReplaceTranslationTextUI(self, false, "Collections:QuestObjective", WOWTR_Font2)
                         end
