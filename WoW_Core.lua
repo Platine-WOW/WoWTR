@@ -250,7 +250,7 @@ if not QTR_PS.firstTimeLoaded9 then   -- Automatic log cleaning (reset saved tex
     QTR_PS.firstTimeLoaded9 = true
 
     -- Diğer numaralandırılmış kayıtları sıfırlamak için bir döngü
-    for i = 1, 9 do
+    for i = 1, 8 do
         if i ~= 8 then  -- 8 numaralı kayıt hariç
             QTR_PS["firstTimeLoaded" .. i] = nil
         end
