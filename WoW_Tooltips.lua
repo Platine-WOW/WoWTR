@@ -144,18 +144,14 @@ local ignoreSettings = {
         "Realm: ",
         "Waiting on: ",
         "Reagents: |n",
-        "  |A:raceicon128",
         "Achievement in progress by",
         "Achievement earned by",
         "You completed this on ",
-        "AllTheThings",
         "|cffb4b4ffATT|r",
         "|cff0070dd",
         "|Hachievement:",
         "  |T",
         "   |c",
-        "|A:groupfinder-icon",
-        "|TInterface\\FriendsFrame\\UI-FriendsFrame-Note:",
         "|cff00ff00+1|r",
         "Dependencies: ",
         "|TInterface\\ICONS\\Ability_Hunter_SurvivalInstincts.blp|t ",
@@ -167,28 +163,54 @@ local ignoreSettings = {
         "|cFFFFFF00%[",
         "|cFFFF8040%[",
         "|cFFFF1A1A%[",
-        --"Requires ",
         "Classes: ",
         "|cnIQ4:|",
         "Flame Leviathan pursues ",
-        " summons reinforcements!",
-        " added to the time!",
         "Talents - ",
-        "|TInterface\\FriendsFrame\\UI-FriendsFrame-Note:",
-        "|A:groupfinder-icon-role-micro-dps:13:13:0:0|a",
-        "|A:groupfinder-icon-role-micro-heal:13:13:0:0|a",
-        "|A:groupfinder-icon-role-micro-tank:13:13:0:0|a"
+    },
+    contains = {
+        -- Metin HERHANGİ BİR YERİNDE bu ifadeyi içeriyorsa engelle (büyük/küçük harf duyarlı)
+        "FriendsFrame",
+        "A:groupfinder-icon-role",
+        "ZygorGuidesViewer",
+        "ElvUI_WindTools",
+        "ItemSocketingFrame",
+        "GLUES",
+        "ClassCodex",
+        ":14:14:0:0|t |cff",
+        "|A:raceicon",
+        "AllTheThings",
+    },
+    endswith = {
+        -- Metin bu ifadelerden BİRİYLE BİTİYORSA engelle (büyük/küçük harf duyarlı)
+        "summons reinforcements!",
+        "added to the time!",
     },
     pattern = "[Я-яĄ-Źą-źŻ-żЀ-ӿΑ-Ωα-ωğĞüÜşŞıİöÖçÇ]"
 }
 
 local function shouldIgnore(text)
     if not text or string.find(text, " ") then return true end
+    -- 'words' listesi: metnin BAŞINDA eşleşme kontrolü
     for _, pattern in ipairs(ignoreSettings.words) do
-        if text:match("^" .. pattern) then  -- Başlangıç kontrolü için ^ eklendi
+        if text:match("^" .. pattern) then
             return true
         end
     end
+    -- 'contains' listesi: metnin HERHANGİ BİR YERİNDE eşleşme kontrolü (büyük/küçük harf duyarlı)
+    for _, substr in ipairs(ignoreSettings.contains) do
+        if string.find(text, substr, 1, true) then  -- plain=true → regex yok, büyük/küçük harf duyarlı
+            return true
+        end
+    end
+    -- 'endswith' listesi: metnin SONUNDA eşleşme kontrolü (büyük/küçük harf duyarlı)
+    for _, suffix in ipairs(ignoreSettings.endswith) do
+        local suffixLen = #suffix
+        if suffixLen > 0 and string.sub(text, -suffixLen) == suffix then
+            return true
+        end
+    end
+    -- 'pattern' kontrolü: Türkçe/Kiril/Yunanca karakter tespiti
     if text:match(ignoreSettings.pattern) then
         return true
     end
@@ -712,7 +734,7 @@ function ST_ElvSpellBookTooltipOnShow()
    for i = 2, numLines-1, 1 do
       local widget = _G[ElvUISpellBookTooltip:GetName().."TextLeft"..i]
       ST_leftText = WOWTR_SafeGetText(widget);
-      local leftColR, leftColG, leftColB = 1, 1, 1;   -- domyślny biały: OkreslKodKoloru wywala się na nil
+      --local leftColR, leftColG, leftColB = 1, 1, 1;   -- domyślny biały: OkreslKodKoloru wywala się na nil
       if widget then
          leftColR, leftColG, leftColB = widget:GetTextColor();
       end
@@ -859,7 +881,12 @@ function ST_GameTooltipOnShow_Original(tooltip, isUpdate)
       -- tu jeszcze obsługa buffów i debuffów - tłumaczenie w oddzielnej ramce pod oryginałem
       local ST_BFisOver = BuffFrame:IsMouseOver() or (ElvUIPlayerBuffs and ElvUIPlayerBuffs:IsMouseOver());
       local ST_DFisOver = DebuffFrame:IsMouseOver() or (ElvUIPlayerDebuffs and ElvUIPlayerDebuffs:IsMouseOver());
-      if (ST_BFisOver or ST_DFisOver) then               -- Buffy i Debuffy
+      -- [FIX] Aktif tooltip bir spell/item tooltip ise (processingInfo varsa) buff/debuff moduna girme.
+      -- Aksi halde "Rank 1/1" gibi satırlar ST_BuffOrDebuff() ile alt çerçevede gösterilir
+      -- ve ana tooltip döngüsü return ile kesildiğinden diğer satırların çevirisi yapılmaz.
+      local ST_hasTooltipData = tooltip.processingInfo and tooltip.processingInfo.tooltipData and
+                                tooltip.processingInfo.tooltipData.id;
+      if (ST_BFisOver or ST_DFisOver) and not ST_hasTooltipData then   -- Buffy i Debuffy
          ST_BuffOrDebuff();
          return;
       end
@@ -933,6 +960,7 @@ function ST_GameTooltipOnShow_Original(tooltip, isUpdate)
       local ST_odstep = true;
       local ST_orygText = {};
       local ST_nh = 0;   -- nowy Hash ?
+      local ST_isLFGTooltip = false; -- LFG / Raider.IO tooltip kontrolü
 
 
       
@@ -978,6 +1006,10 @@ function ST_GameTooltipOnShow_Original(tooltip, isUpdate)
          
          ST_leftText = WOWTR_SafeGetText(leftWidget);
          
+         if ST_leftText and (string.find(ST_leftText, "Members:") or string.find(ST_leftText, "Üyeler:")) then
+             ST_isLFGTooltip = true;
+         end
+         
          -- [FIX] Addon'un kendi ekledigi Item ID / Hash satirlarini ceviri donguSunden haric tut
          if (ST_leftText and (string.find(ST_leftText," ")==nil)
              and not string.find(ST_leftText, " ID: ")
@@ -993,7 +1025,7 @@ function ST_GameTooltipOnShow_Original(tooltip, isUpdate)
                      ST_miasto = string.sub(ST_leftText,21,ST_pomoc5-1);
                   else
                      -- [FIX] Onceden dogru sehir set edilmisse koru, yoksa fallback
-                     if (ST_miasto == nil or ST_miasto == "") then
+                     if not ST_miasto then
                         ST_miasto = WoWTR_Localization.your_home;
                      end
                   end
@@ -1190,7 +1222,7 @@ function ST_GameTooltipOnShow_Original(tooltip, isUpdate)
       end
       ST_lastNumLines = tooltip:NumLines();
 
-       if ((ST_orygText or (ST_nh == 1)) and (ST_PM["saveNW"] == "1")) then
+       if ((ST_orygText or (ST_nh == 1)) and (ST_PM["saveNW"] == "1") and not ST_isLFGTooltip) then
            for _, ST_data in ipairs(ST_orygText) do
                local ST_origin = ST_data.text
                local ST_color = ST_data.color
