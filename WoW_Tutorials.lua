@@ -242,6 +242,51 @@ function TT_onChoiceShow()
          TT_TUTORIALS[tostring(hash)] = txt;
       end
    end   
+   if (PlayerChoiceFrame.GridNoSelectionDescription) then
+      local obj = PlayerChoiceFrame.GridNoSelectionDescription;
+      txt = obj:GetText();
+      if ((txt) and (string.find(txt," ")==nil)) then
+         local hash = StringHash(txt);
+         if (Tut_Data7[hash]) then
+            local _font, _size, _flag = obj:GetFont();
+            obj:SetText(WOW_ZmienKody(Tut_Data7[hash]).." ");
+            obj:SetFont(WOWTR_Font2, _size);
+         elseif (TT_PS["save"] == "1") then
+            TT_TUTORIALS[tostring(hash)] = txt;
+         end
+      end
+   end
+   
+   if (PlayerChoiceFrame.GridNoSelectionHeader) then
+      local obj = PlayerChoiceFrame.GridNoSelectionHeader;
+      txt = obj:GetText();
+      if ((txt) and (string.find(txt," ")==nil)) then
+         local hash = StringHash(txt);
+         if (Tut_Data7[hash]) then
+            local _font, _size, _flag = obj:GetFont();
+            obj:SetText(WOW_ZmienKody(Tut_Data7[hash]).." ");
+            obj:SetFont(WOWTR_Font2, _size);
+         elseif (TT_PS["save"] == "1") then
+            TT_TUTORIALS[tostring(hash)] = txt;
+         end
+      end
+   end
+   
+   if (PlayerChoiceFrame.GridSelectionDescription) then
+      local obj = PlayerChoiceFrame.GridSelectionDescription;
+      txt = obj:GetText();
+      if ((txt) and (string.find(txt," ")==nil)) then
+         local hash = StringHash(txt);
+         if (Tut_Data7[hash]) then
+            local _font, _size, _flag = obj:GetFont();
+            obj:SetText(WOW_ZmienKody(Tut_Data7[hash]).." ");
+            obj:SetFont(WOWTR_Font2, _size);
+         elseif (TT_PS["save"] == "1") then
+            TT_TUTORIALS[tostring(hash)] = txt;
+         end
+      end
+   end
+
    if (PlayerChoiceFrame.Option1) then
       if (PlayerChoiceFrame.Option1.OptionText) then
          local obj = PlayerChoiceFrame.Option1.OptionText.HTML:GetRegions();

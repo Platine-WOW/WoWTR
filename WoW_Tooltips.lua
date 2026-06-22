@@ -61,7 +61,6 @@ function ST_UsunZbedneZnaki(txt)          -- przed obliczeniem kodu Hash
    text = string.gsub(text,"|r","");
    text = string.gsub(text,"\r","");
    text = string.gsub(text,"\n","");
-   text = string.gsub(text,"\\","\\\\");
    text = string.gsub(text,'%f[%a]'..WOWTR_player_name..'%f[%A]',"$N");
    text = string.gsub(text,"(%d),(%d)","%1%2");      -- usuń przecinek między cyframi (odstęp tysięczny)
    text = string.gsub(text,"0","");
@@ -210,6 +209,11 @@ local function shouldIgnore(text)
             return true
         end
     end
+    -- Oyuncu isimlerini ve roll kayıtlarını engelle (örn: |cfff48cbaDroh|r)
+    if text:match("^|cff%x%x%x%x%x%x[^|]+|r$") then
+        return true
+    end
+
     -- 'pattern' kontrolü: Türkçe/Kiril/Yunanca karakter tespiti
     if text:match(ignoreSettings.pattern) then
         return true
@@ -3471,8 +3475,6 @@ function ST_EventToastManagerFrame()
 end
 
 -------------------------------------------------------------------------------------------------------
-RaidBossEmoteFrame.timings.RAID_NOTICE_SCALE_UP_TIME = 0.05
-RaidBossEmoteFrame.timings.RAID_NOTICE_SCALE_DOWN_TIME = 0.05
 
 -- RAID BOSS EMOTE FRAME
 function ST_RaidBossEmoteFrame()
