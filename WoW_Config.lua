@@ -242,9 +242,18 @@ WOWTR_Options:SetScript("OnHide", WOWTR_HideOptionsFrame);
 WOWTR_Options.name = WoWTR_Localization.optionName;
 WOWTR_Options:SetScript("OnShow", function (self) 
     WOWTR_SetCheckButtonState();
-    if QTR_PS and QTR_PS["scale"] then
-        self:SetScale(tonumber(QTR_PS["scale"]) or 1);
-    end
+    local savedScale = tonumber(QTR_PS and QTR_PS["scale"]) or 1;
+
+    -- Force a redraw when the options window opens. Moving the resize grip
+    -- fixes occasionally invisible controls, so reproduce that tiny scale
+    -- change automatically without altering the saved user setting.
+    local redrawScale = savedScale + 0.01;
+    self:SetScale(redrawScale);
+    self:SetScript("OnUpdate", function(frame)
+        frame:SetScale(savedScale); -- equivalent to undoing the +0.01 change
+        frame:SetScript("OnUpdate", nil);
+    end);
+
     if WOWTR_SetOptionsOpacity then
         WOWTR_SetOptionsOpacity(self, (tonumber(QTR_PS and QTR_PS["configOpacity"]) or 50) / 100);
     end
