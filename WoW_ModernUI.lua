@@ -159,6 +159,29 @@ function WOWTR_SetOptionsOpacity(frame, opacity)
     end
 end
 
+-- Forces a real redraw across separate rendered frames. This is needed after
+-- showing a tab because Retail can otherwise leave some child regions hidden
+-- until the user moves the resize grip manually.
+function WOWTR_ForceOptionsRedraw(frame)
+    if not frame then return end
+
+    local savedScale = tonumber(QTR_PS and QTR_PS["scale"]) or frame:GetScale() or 1
+    frame:SetScale(savedScale)
+    frame.WOWTRRedrawToken = (frame.WOWTRRedrawToken or 0) + 1
+    local redrawToken = frame.WOWTRRedrawToken
+
+    C_Timer.After(0.02, function()
+        if frame:IsShown() and frame.WOWTRRedrawToken == redrawToken then
+            frame:SetScale(savedScale + 0.001)
+        end
+    end)
+    C_Timer.After(0.04, function()
+        if frame:IsShown() and frame.WOWTRRedrawToken == redrawToken then
+            frame:SetScale(savedScale)
+        end
+    end)
+end
+
 local function WOWTR_GetFontSize(fontString, fallback)
     local _, size = fontString:GetFont()
     size = tonumber(size)
@@ -354,6 +377,7 @@ function WOWTR_SelectTab(id)
     if selectedPanel then
         selectedPanel:SetAlpha(1);
         selectedPanel:Show();
+        WOWTR_ForceOptionsRedraw(selectedPanel:GetParent());
     end
 end
 
