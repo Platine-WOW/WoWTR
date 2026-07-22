@@ -1,8 +1,3 @@
--- Description: The AddOn displays the translated text information in chosen language
--- Author: Platine [platine.wow@gmail.com]
--- Co-Author: Hakan YILMAZ [hknylmz@gmail.com]
--------------------------------------------------------------------------------------------------------
-
 -- Local Variables
 local _G = _G;
 local ST_miasto = "";      -- miejsce powrotu przedmiotu Heartstone
@@ -738,7 +733,7 @@ function ST_ElvSpellBookTooltipOnShow()
    for i = 2, numLines-1, 1 do
       local widget = _G[ElvUISpellBookTooltip:GetName().."TextLeft"..i]
       ST_leftText = WOWTR_SafeGetText(widget);
-      --local leftColR, leftColG, leftColB = 1, 1, 1;   -- domyślny biały: OkreslKodKoloru wywala się na nil
+      local leftColR, leftColG, leftColB = 1, 1, 1;   -- domyślny biały: OkreslKodKoloru wywala się na nil
       if widget then
          leftColR, leftColG, leftColB = widget:GetTextColor();
       end
@@ -1029,7 +1024,7 @@ function ST_GameTooltipOnShow_Original(tooltip, isUpdate)
                      ST_miasto = string.sub(ST_leftText,21,ST_pomoc5-1);
                   else
                      -- [FIX] Onceden dogru sehir set edilmisse koru, yoksa fallback
-                     if not ST_miasto then
+                     if (ST_miasto == nil or ST_miasto == "") then
                         ST_miasto = WoWTR_Localization.your_home;
                      end
                   end
@@ -1790,8 +1785,11 @@ end
          
       elseif (addonName == 'Blizzard_Professions') then
          ST_load3 = true;
-         ProfessionsFrame:HookScript("OnShow", function() StartTicker(ProfessionsFrame, ST_showProfessionDescription, 0) end)
-         ProfessionsFrame:HookScript("OnShow", ST_ProfDescbutton)
+         if ProfessionsFrame and not ProfessionsFrame.hooked then
+            ProfessionsFrame:HookScript("OnShow", function() StartTicker(ProfessionsFrame, ST_showProfessionDescription, 0) end)
+            ProfessionsFrame:HookScript("OnShow", ST_ProfDescbutton)
+            ProfessionsFrame.hooked = true
+         end
          
       elseif (addonName == 'Blizzard_Collections') then
          ST_load4 = true;
@@ -1837,25 +1835,25 @@ end
          HousingDashboardFrame:HookScript("OnShow", function() StartTicker(HousingDashboardFrame, ST_HousingDashboard, 0.02) end)
 
       elseif (addonName == 'Blizzard_ChromieTimeUI') then
-      local _, _, _, uiVersion = GetBuildInfo()
-      -- Sadece WoW 12.0.0 ve üzeri sürümlerde çalışsın
-      if uiVersion and uiVersion >= 120000 and ChromieTimeFrame then
-         ChromieTimeFrame:HookScript("OnShow", function() StartTicker(ChromieTimeFrame, ST_ChromieTimeFrame, 0.02) end)
-      end
+		local _, _, _, uiVersion = GetBuildInfo()
+		-- Sadece WoW 12.0.0 ve üzeri sürümlerde çalışsın
+		if uiVersion and uiVersion >= 120000 and ChromieTimeFrame then
+			ChromieTimeFrame:HookScript("OnShow", function() StartTicker(ChromieTimeFrame, ST_ChromieTimeFrame, 0.02) end)
+		end
 
       elseif (addonName == 'Blizzard_AlliedRacesUI') then
-      local _, _, _, uiVersion = GetBuildInfo()
-      -- Sadece WoW 12.0.0 ve üzeri sürümlerde çalışsın
-      if uiVersion and uiVersion >= 120000 and AlliedRacesFrame then
-         AlliedRacesFrame:HookScript("OnShow", function() StartTicker(AlliedRacesFrame, ST_AlliedRacesFrame, 0.02) end)
-      end
+		local _, _, _, uiVersion = GetBuildInfo()
+		-- Sadece WoW 12.0.0 ve üzeri sürümlerde çalışsın
+		if uiVersion and uiVersion >= 120000 and AlliedRacesFrame then
+			AlliedRacesFrame:HookScript("OnShow", function() StartTicker(AlliedRacesFrame, ST_AlliedRacesFrame, 0.02) end)
+		end
 
       elseif (addonName == 'Blizzard_ArchaeologyUI') then
        ArchaeologyFrame:HookScript("OnShow", function() StartTicker(ArchaeologyFrame, ST_ArchaeologyFrame, 0.02) end)
        if ArchaeologyFrame and ArchaeologyFrame:IsVisible() then
          StartTicker(ArchaeologyFrame, ST_ArchaeologyFrame, 0.02)
        end
-      end
+     end
    
       if (ST_load1 and ST_load2 and ST_load3 and ST_load4 and ST_load5 and ST_load6 and ST_load7 and ST_load8 and ST_load9 and ST_load10 and ST_load11) then    -- otworzono wszystkie dodatki Blizzarda
          WOWSTR:UnregisterEvent("ADDON_LOADED");      -- wyłącz  nasłuchiwanie
@@ -1896,7 +1894,7 @@ function ST_SuggestTabClick()
    if (TT_PS["ui5"] == "1") then
 
       local function processRegion(frame)
-         ST_CheckAndReplaceTranslationTextUI(frame, true, "ui")
+      	ST_CheckAndReplaceTranslationTextUI(frame, true, "ui")
       end
 
       processRegion(select(10, EncounterJournalJourneysFrame.JourneyProgress.OverviewBtn:GetRegions()));
@@ -1905,7 +1903,7 @@ function ST_SuggestTabClick()
       local JourneyName = WOWTR_SafeGetText(EncounterJournalJourneysFrame.JourneyOverview.JourneyName); -- Get the Faction Name
       local objJourneyDescription = EncounterJournalJourneysFrame.JourneyOverview.JourneyDescription;
       ST_CheckAndReplaceTranslationText(objJourneyDescription, true, "Factions:" .. ST_RenkKoduSil(JourneyName));
-     
+	  
       local obj0 = EncounterJournalInstanceSelect.Title;
       ST_CheckAndReplaceTranslationText(obj0, true, "Dungeon&Raid:Suggest:SuggestTittle",false,false);
       
@@ -1966,13 +1964,13 @@ function ST_SuggestTabClick()
       local obj18 = EncounterJournalLootJournalTab.Text;        -- Tab: Item Sets
       ST_CheckAndReplaceTranslationText(obj18, true, "ui");
 
-      local _, _, _, uiVersion = GetBuildInfo()
-      local obj19 = EncounterJournal and EncounterJournal.TutorialsTab and EncounterJournal.TutorialsTab.Text
+		local _, _, _, uiVersion = GetBuildInfo()
+		local obj19 = EncounterJournal and EncounterJournal.TutorialsTab and EncounterJournal.TutorialsTab.Text
 
-      -- Sadece WoW 11.2.7 ve üzeri sürümlerde çalışsın
-      if uiVersion and uiVersion >= 110207 and obj19 then
-         ST_CheckAndReplaceTranslationText(obj19, true, "ui")
-      end
+		-- Sadece WoW 11.2.7 ve üzeri sürümlerde çalışsın
+		if uiVersion and uiVersion >= 110207 and obj19 then
+			ST_CheckAndReplaceTranslationText(obj19, true, "ui")
+		end
 
    end
 end
@@ -2246,6 +2244,7 @@ end
        
        ST_CheckAndReplaceTranslationText(tempObj, true, "Dungeon&Raid:Boss:" .. ST_bossName, WOWTR_Font2, false, -120)
    end
+
    ST_BossInfoTabText()   -- przetłumacz etykiety zakładek (Overview/Loot/Boss/Model) - wcześniej nadpisane przez drugą definicję
    ST_BossHeaderTabText()
 end
@@ -2860,14 +2859,14 @@ function ST_MerchantFrame()
 
       local MercPText = MerchantPageText;
       ST_CheckAndReplaceTranslationTextUI(MercPText, true, "ui");
-    
+	 
         local function processRegion(frame)
             ST_CheckAndReplaceTranslationTextUI(frame, true, "ui")
         end 
 
         processRegion(select(1, MerchantPrevPageButton:GetRegions()))
-      processRegion(select(1, MerchantNextPageButton:GetRegions()))
-      
+		processRegion(select(1, MerchantNextPageButton:GetRegions()))
+		
 
    end
 end
@@ -4060,21 +4059,21 @@ function ST_Achievement()
     local scrollBoxStats = AchievementFrameStats and AchievementFrameStats.ScrollBox
     local scrollTargetStats = scrollBoxStats and scrollBoxStats.ScrollTarget
     
-   -- İstatistikler (Stats) ScrollBox içindeki metinleri işle
-   if scrollTargetStats then
-      local children = { scrollTargetStats:GetChildren() }
-      for _, child in ipairs(children) do
-         -- Text değeri varsa al
-         if child.Text and WOWTR_SafeGetText(child.Text) then
-            ST_CheckAndReplaceTranslationTextUI(child.Text, true, "Collections:Achievements-Stats")
-         end
-         
-         -- Title değeri varsa al
-         if child.Title and WOWTR_SafeGetText(child.Title) then
-            ST_CheckAndReplaceTranslationTextUI(child.Title, true, "Collections:Achievements-Stats")
-         end
-      end
-   end
+	-- İstatistikler (Stats) ScrollBox içindeki metinleri işle
+	if scrollTargetStats then
+		local children = { scrollTargetStats:GetChildren() }
+		for _, child in ipairs(children) do
+			-- Text değeri varsa al
+			if child.Text and WOWTR_SafeGetText(child.Text) then
+				ST_CheckAndReplaceTranslationTextUI(child.Text, true, "Collections:Achievements-Stats")
+			end
+			
+			-- Title değeri varsa al
+			if child.Title and WOWTR_SafeGetText(child.Title) then
+				ST_CheckAndReplaceTranslationTextUI(child.Title, true, "Collections:Achievements-Stats")
+			end
+		end
+	end
   end
 end
 
@@ -4084,8 +4083,8 @@ f:RegisterEvent("ADDON_LOADED")
 f:SetScript("OnEvent", function(_, _, addonName)
     if addonName == "Blizzard_AchievementUI" then
         AchievementFrame:HookScript("OnShow", function() StartTicker(AchievementFrame, ST_Achievement, 0.01) end)
-      AchievementFrame:HookScript("OnShow", ST_Achievementbutton)
-      
+		AchievementFrame:HookScript("OnShow", ST_Achievementbutton)
+		
     end
 end)
 
@@ -4134,7 +4133,7 @@ function ST_HousingDashboard()
     processRegion(HousingDashboardFrame.HouseInfoContent.DashboardNoHousesFrame.NoHouseButton.Text)
     processRegion(HousingDashboardFrameTitleText)
 
-   
+	
   end
 end
 
@@ -4189,7 +4188,7 @@ function ST_ChromieTimeFrame()
     processRegion(ChromieTimeFrame.CurrentlySelectedExpansionInfoFrame.Description)
     processRegion(ChromieTimeFrame.SelectButton.Text)
 
-   
+	
   end
 end
 
@@ -4208,7 +4207,7 @@ function ST_AlliedRacesFrame()
     processRegion(AlliedRacesFrame.RaceInfoFrame.ScrollFrame.Child.RaceDescriptionText)
     processRegion(AlliedRacesFrame.RaceInfoFrame.ScrollFrame.Child.RacialTraitsLabel)
 
-   
+	
   end
 end
 
@@ -4227,7 +4226,7 @@ function ST_CheckRoleDungeon()
     processRegion(LFDRoleCheckPopupAcceptButtonText)
     processRegion(LFDRoleCheckPopupDeclineButtonText)
 
-   
+	
   end
 end
 
@@ -4270,7 +4269,7 @@ function ST_ArchaeologyFrame()
     processRegion(ArchaeologyFrameCompletedPageTitleMid)
     processRegion(ArchaeologyFrameCompletedPagePageText)
 
-  end
+ end
 end
 
 -------------------------------------------------------------------------------------------------------

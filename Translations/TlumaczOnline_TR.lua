@@ -1,4 +1,4 @@
-﻿-- Çevrilmiş metinlerin Türkçe veri tabanı (ÇEVRİMİÇİ)
+-- Çevrilmiş metinlerin Türkçe veri tabanı (ÇEVRİMİÇİ)
 -- WoWTR_Quests eklentisi
 
 TO_lang = "TR";

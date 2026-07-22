@@ -3115,13 +3115,11 @@ function ST_AddonListFrame()
         local AddonListFrame05 = AddonList.TitleContainer.TitleText
         ST_CheckAndReplaceTranslationTextUI(AddonListFrame05, true, "ui")
 
-		if (AddonListForceLoad) then
-			for _, region in ipairs({ AddonListForceLoad:GetRegions() }) do
-				if region:GetObjectType() == "FontString" and region:GetText() == "Load out of date AddOns" then
-					local AddonListFrame14 = region
-					ST_CheckAndReplaceTranslationTextUI(AddonListFrame14, true, "ui")
-					break -- İstediğimiz metni bulduk ve değiştirdik, döngüden çıkabiliriz
-				end
+        for _, region in ipairs({ AddonList.ForceLoad:GetRegions() }) do
+            if region:GetObjectType() == "FontString" and region:GetText() == "Load out of date AddOns" then
+                local AddonListFrame14 = region
+                ST_CheckAndReplaceTranslationTextUI(AddonListFrame14, true, "ui")
+                break -- İstediğimiz metni bulduk ve değiştirdik, döngüden çıkabiliriz
             end
         end
 

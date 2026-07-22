@@ -1,8 +1,3 @@
--- Description: The AddOn displays the translated text information in chosen language
--- Author: Platine [platine.wow@gmail.com]
--- Co-Author: Hakan YILMAZ [hknylmz@gmail.com]
--------------------------------------------------------------------------------------------------------
-
 -- Local Variables
 local BT_act_tr = "0";
 local BT_bookID = "0";
@@ -85,30 +80,38 @@ function BookTranslator_ShowTranslation()
             local nr_poz = string.find(BT_tekst_tr, "$O");
 
             while nr_poz and nr_poz > 0 do
+               local _before = BT_tekst_tr;
+               local len = string.len(BT_tekst_tr);
                local nr_1 = nr_poz + 1;
-               while string.sub(BT_tekst_tr, nr_1, nr_1) ~= "(" do
+               while nr_1 <= len and string.sub(BT_tekst_tr, nr_1, nr_1) ~= "(" do
                   nr_1 = nr_1 + 1;
                end
                local nr_2 = nr_1 + 1;
-               while string.sub(BT_tekst_tr, nr_2, nr_2) ~= ";" do
+               while nr_2 <= len and string.sub(BT_tekst_tr, nr_2, nr_2) ~= ";" do
                   nr_2 = nr_2 + 1;
                end
                local nr_3 = nr_2 + 1;
-               while string.sub(BT_tekst_tr, nr_3, nr_3) ~= ")" do
+               while nr_3 <= len and string.sub(BT_tekst_tr, nr_3, nr_3) ~= ")" do
                   nr_3 = nr_3 + 1;
                end
 
-               local QTR_forma = "";
-               if QTR_PS["ownnames"] == "1" then
-                  QTR_forma = string.sub(BT_tekst_tr, nr_2 + 1, nr_3 - 1);
-               else
-                  QTR_forma = string.sub(BT_tekst_tr, nr_1 + 1, nr_2 - 1);
+               if nr_1 <= len and nr_2 <= len and nr_3 <= len
+                  and string.sub(BT_tekst_tr, nr_1, nr_1) == "("
+                  and string.sub(BT_tekst_tr, nr_2, nr_2) == ";"
+                  and string.sub(BT_tekst_tr, nr_3, nr_3) == ")" then
+                  local QTR_forma = "";
+                  if QTR_PS["ownnames"] == "1" then
+                     QTR_forma = string.sub(BT_tekst_tr, nr_2 + 1, nr_3 - 1);
+                  else
+                     QTR_forma = string.sub(BT_tekst_tr, nr_1 + 1, nr_2 - 1);
+                  end
+
+                  BT_tekst_tr = string.sub(BT_tekst_tr, 1, nr_poz - 1) ..
+                                QTR_forma ..
+                                string.sub(BT_tekst_tr, nr_3 + 1);
                end
 
-               BT_tekst_tr = string.sub(BT_tekst_tr, 1, nr_poz - 1) ..
-                             QTR_forma ..
-                             string.sub(BT_tekst_tr, nr_3 + 1);
-
+               if BT_tekst_tr == _before then break; end
                nr_poz = string.find(BT_tekst_tr, "$O", nr_poz + 1);
             end
 

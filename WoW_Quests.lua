@@ -61,6 +61,35 @@ Original_Font2 = "Fonts\\FRIZQT__.ttf";
 
 -------------------------------------------------------------------------------------------------------------------
 
+local function WOWTR_HasVisibleText(text)
+   if (text == nil) then return false; end
+   local cleaned = tostring(text);
+   cleaned = string.gsub(cleaned, "|[cC]%x%x%x%x%x%x%x%x", "");
+   cleaned = string.gsub(cleaned, "|[rR]", "");
+   cleaned = string.gsub(cleaned, " ", " ");
+   cleaned = WOWTR_DeleteSpecialCodes(cleaned);
+   cleaned = strtrim(cleaned);
+   return cleaned ~= "";
+end
+
+local function QTR_SaveMissingGossip(npcName, hash, mapId, originalText)
+   local numericHash = tonumber(hash) or 0;
+   if (numericHash <= 0) then return false; end
+   if (not WOWTR_HasVisibleText(originalText)) then return false; end
+
+   local safeNpcName = tostring(npcName or "");
+   if (strtrim(safeNpcName) == "") then
+      safeNpcName = "Unknown NPC";
+   end
+
+   local safeMapId = tostring(mapId or 0);
+   local safeText = string.gsub(tostring(originalText), '"', '\"');
+   QTR_GOSSIP[safeNpcName.."@"..tostring(numericHash).."@"..safeMapId] = safeText.."@"..WOWTR_player_name..":"..WOWTR_player_race..":"..WOWTR_player_class;
+   return true;
+end
+
+-------------------------------------------------------------------------------------------------------------------
+
 function GS_ON_OFF()
    if (QTR_curr_goss=="1") then         -- wyłącz tłumaczenie - pokaż oryginalny tekst
       QTR_curr_goss="0";
@@ -468,15 +497,10 @@ function QTR_Gossip_Show()
                DUIQuestFrame.optionButtonPool:ProcessActiveObjects(ProcessOPT);
             end
          end
-         -- zapis do pliku
-         if (QTR_PS["saveGS"]=="1") then
-            Origin_Text = string.gsub(Origin_Text, '"', '\"');                
-            if (C_Map.GetBestMapForUnit("player")) then
-               QTR_GOSSIP[Local_Nazwa_NPC.."@"..tostring(Hash).."@"..C_Map.GetBestMapForUnit("player")] = Origin_Text.."@"..WOWTR_player_name..":"..WOWTR_player_race..":"..WOWTR_player_class;
-            else
-               QTR_GOSSIP[Local_Nazwa_NPC.."@"..tostring(Hash).."@0"] = Origin_Text.."@"..WOWTR_player_name..":"..WOWTR_player_race..":"..WOWTR_player_class;
-            end
-         end
+          -- zapis do pliku
+          if (QTR_PS["saveGS"]=="1") then
+             QTR_SaveMissingGossip(Local_Nazwa_NPC, Hash, C_Map.GetBestMapForUnit("player") or 0, Origin_Text);
+          end
       end
    end
 
@@ -540,11 +564,7 @@ function QTR_Gossip_Show()
                   GTxtframe:SetText(transTR);
                else
                   -- zapis do pliku
-                  if (C_Map.GetBestMapForUnit("player")) then
-                     QTR_GOSSIP[Local_Nazwa_NPC.."@"..tostring(OptHash).."@"..C_Map.GetBestMapForUnit("player")] = GOptionText.."@"..WOWTR_player_name..":"..WOWTR_player_race..":"..WOWTR_player_class;
-                  else
-                     QTR_GOSSIP[Local_Nazwa_NPC.."@"..tostring(OptHash).."@0"] = GOptionText.."@"..WOWTR_player_name..":"..WOWTR_player_race..":"..WOWTR_player_class;
-                  end
+                  QTR_SaveMissingGossip(Local_Nazwa_NPC, OptHash, C_Map.GetBestMapForUnit("player") or 0, GOptionText);
                end
             end
             local regions = { GTxtframe:GetRegions() };     -- poszukiwanie obiektu FontString do ustawienia własnej czcionki
@@ -622,8 +642,7 @@ function GossipOnQuestFrame()       -- frame: QuestFrame
             QTR_ToggleButton0:SetText("Gossip-Hash="..tostring(Hash).." (EN)");
             if (QTR_PS["saveGS"]=="1") then
                local Nazwa_NPC = QuestFrameTitleText:GetText();
-               Origin_Text = string.gsub(Origin_Text, '"', '\"');                
-               QTR_GOSSIP[(Nazwa_NPC or "")..'@'..tostring(Hash)..'@'..tostring(C_Map.GetBestMapForUnit("player") or 0)] = Origin_Text..'@'..WOWTR_player_name..':'..WOWTR_player_race..':'..WOWTR_player_class;
+                QTR_SaveMissingGossip(Nazwa_NPC, Hash, C_Map.GetBestMapForUnit("player") or 0, Origin_Text);
             end
          end
          if (CurrentQuestsText and CurrentQuestsText:IsVisible()) then
@@ -670,12 +689,7 @@ function GossipOnQuestFrame()       -- frame: QuestFrame
                   if (QTR_PS["saveGS"]=="1") then
                      local Nazwa_NPC = QuestFrameTitleText:GetText();
                      GossText = WOWTR_DetectAndReplacePlayerName(GossText);
-                     GossText = string.gsub(GossText, '"', '\"');
-                     if (C_Map.GetBestMapForUnit("player")) then
-                        QTR_GOSSIP[Nazwa_NPC..'@'..tostring(TitleHash).."@"..C_Map.GetBestMapForUnit("player")] = GOptionText.."@"..WOWTR_player_name..":"..WOWTR_player_race..":"..WOWTR_player_class;
-                     else
-                        QTR_GOSSIP[Nazwa_NPC..'@'..tostring(TitleHash).."@0"] = GOptionText.."@"..WOWTR_player_name..":"..WOWTR_player_race..":"..WOWTR_player_class;
-                     end
+                      QTR_SaveMissingGossip(Nazwa_NPC, TitleHash, C_Map.GetBestMapForUnit("player") or 0, GOptionText);
                   end
 
                local regions = { GText:GetRegions() };     -- poszukiwanie obiektu FontString do ustawienia własnej czcionki
@@ -1390,7 +1404,7 @@ function QTR_QuestPrepare(zdarzenie)
                if (QuestNPCModelNameText and QuestNPCModelNameText:GetText()) then
                   QTR_QuestNPCModelName = QuestNPCModelNameText:GetText();
                end
-               QTR_GOSSIP[QTR_QuestNPCModelName.."@"..tostring(QTR_ModelTextHash).."@"..tostring(mapka)] = QTR_ModelText.."@"..WOWTR_player_name..":"..WOWTR_player_race..":"..WOWTR_player_class;  -- zapisz do tłumaczenia
+                QTR_SaveMissingGossip(QTR_QuestNPCModelName, QTR_ModelTextHash, mapka, QTR_ModelText);  -- zapisz do tłumaczenia
                QTR_ModelTextHash = 0;
             end
          end
@@ -3300,7 +3314,7 @@ function ST_AdvantureMapFrm()			-- https://imgur.com/a/uQElPgm
 				if (QuestNPCModelNameText and QuestNPCModelNameText:GetText()) then
 					npcName = QuestNPCModelNameText:GetText();
 				end
-				QTR_GOSSIP[npcName.."@"..tostring(hash).."@"..tostring(mapka)] = modelText.."@"..WOWTR_player_name..":"..WOWTR_player_race..":"..WOWTR_player_class;
+				QTR_SaveMissingGossip(npcName, hash, mapka, modelText);
 			end
 		end
 	end

@@ -5,6 +5,19 @@
 
 -- Zmienne Globalne
 local _G = _G;
+local TT_BaseStringHash = StringHash;
+
+-- Tutorials may arrive from the WoW UI with Windows CRLF line endings.
+-- Keep LF paragraph breaks, but remove CR consistently before hashing or saving.
+local function TT_NormalizeText(txt)
+   if (type(txt) ~= "string") then return txt; end
+   return string.gsub(txt, "\r", "");
+end
+
+local function StringHash(txt)
+   return _G.StringHash(TT_NormalizeText(txt))
+end
+
 local tutMainFrameShow = 0;           -- znacznik przypisania skryptu od wyświetlenia okienka tutoriału
 local tutWalkShow = 0;                -- znacznik przypisania skryptu od wyświetlenia okienka tutoriału
 local tutKeyboardMouseFrameShow = 0;  -- znacznik przypisania skryptu od wyświetlenia okienka tutoriału
@@ -71,7 +84,7 @@ function TT_onTutorialShow()                      -- main function called when t
                      _G[obj].Text:SetText(WOW_ZmienKody(Tut_Data7[id]).." ");  -- podmieniamy tekst na nasze tłumaczenie
                      _G[obj].Text:SetFont(WOWTR_Font2, _size5);      -- na końcu dodajemy twardą spację, jako znacznik tekstu tureckiego
                  elseif (TT_PS["save"] == "1") then
-                   TT_TUTORIALS[tostring(id)] = txt;
+                   TT_TUTORIALS[tostring(id)] = TT_NormalizeText(txt);
                  end
                end
             end
@@ -93,7 +106,7 @@ function TT_onTutorialShow()                      -- main function called when t
                      _G[obj].Text:SetText(WOW_ZmienKody(Tut_Data7[id]).." ");  -- podmieniamy tekst na nasze tłumaczenie
                      _G[obj].Text:SetFont(WOWTR_Font2, _size5);      -- na końcu dodajemy twardą spację, jako znacznik tekstu tureckiego
                  elseif (TT_PS["save"] == "1") then
-                   TT_TUTORIALS[tostring(id)] = txt;
+                   TT_TUTORIALS[tostring(id)] = TT_NormalizeText(txt);
                  end
                end
             end
@@ -127,7 +140,7 @@ function TT_SprawdzFrames()
             _G[obj].ContainerFrame.Text:SetFont(WOWTR_Font2, _size5);
             _G[obj].ContainerFrame.Text:SetHeight(150);
          elseif (TT_PS["save"] == "1") then
-            TT_TUTORIALS[tostring(id)] = txt;
+            TT_TUTORIALS[tostring(id)] = TT_NormalizeText(txt);
          end
       end
    end
@@ -142,7 +155,7 @@ function TT_SprawdzFrames()
             _G[obj].ContainerFrame.Text:SetFont(WOWTR_Font2, _size5);
             _G[obj].ContainerFrame.Text:SetHeight(150);
          elseif (TT_PS["save"] == "1") then
-            TT_TUTORIALS[tostring(id)] = txt;
+            TT_TUTORIALS[tostring(id)] = TT_NormalizeText(txt);
          end
       end
    end
@@ -157,7 +170,7 @@ function TT_SprawdzFrames()
             _G[obj].Text:SetFont(WOWTR_Font2, _size5);
 --            _G[obj].Text:SetHeight(150);
          elseif (TT_PS["save"] == "1") then
-            TT_TUTORIALS[tostring(id)] = txt;
+            TT_TUTORIALS[tostring(id)] = TT_NormalizeText(txt);
          end
       end
    end
@@ -172,7 +185,7 @@ function TT_SprawdzFrames()
             _G[obj].ContainerFrame.Text:SetFont(WOWTR_Font2, _size5);
             _G[obj].ContainerFrame.Text:SetHeight(150);
          elseif (TT_PS["save"] == "1") then
-            TT_TUTORIALS[tostring(id)] = txt;
+            TT_TUTORIALS[tostring(id)] = TT_NormalizeText(txt);
          end
       end
    end
@@ -239,7 +252,7 @@ function TT_onChoiceShow()
          PlayerChoiceFrame.Title.Text:SetText(WOW_ZmienKody(Tut_Data7[hash]).." ");  -- podmieniamy tekst na nasze tłumaczenie
          PlayerChoiceFrame.Title.Text:SetFont(WOWTR_Font2, _size6);     -- na końcu dodajemu twardą spację jako znacznik tekstu tureckiego
       elseif (TT_PS["save"] == "1") then
-         TT_TUTORIALS[tostring(hash)] = txt;
+         TT_TUTORIALS[tostring(hash)] = TT_NormalizeText(txt);
       end
    end   
    if (PlayerChoiceFrame.GridNoSelectionDescription) then
@@ -252,7 +265,7 @@ function TT_onChoiceShow()
             obj:SetText(WOW_ZmienKody(Tut_Data7[hash]).." ");
             obj:SetFont(WOWTR_Font2, _size);
          elseif (TT_PS["save"] == "1") then
-            TT_TUTORIALS[tostring(hash)] = txt;
+            TT_TUTORIALS[tostring(hash)] = TT_NormalizeText(txt);
          end
       end
    end
@@ -267,7 +280,7 @@ function TT_onChoiceShow()
             obj:SetText(WOW_ZmienKody(Tut_Data7[hash]).." ");
             obj:SetFont(WOWTR_Font2, _size);
          elseif (TT_PS["save"] == "1") then
-            TT_TUTORIALS[tostring(hash)] = txt;
+            TT_TUTORIALS[tostring(hash)] = TT_NormalizeText(txt);
          end
       end
    end
@@ -282,7 +295,7 @@ function TT_onChoiceShow()
             obj:SetText(WOW_ZmienKody(Tut_Data7[hash]).." ");
             obj:SetFont(WOWTR_Font2, _size);
          elseif (TT_PS["save"] == "1") then
-            TT_TUTORIALS[tostring(hash)] = txt;
+            TT_TUTORIALS[tostring(hash)] = TT_NormalizeText(txt);
          end
       end
    end
@@ -299,7 +312,7 @@ function TT_onChoiceShow()
                obj:SetText(QTR_ExpandUnitInfo(WOW_ZmienKody(Tut_Data7[hash]),false,obj,WOWTR_Font2).." ");
                obj:SetFont(WOWTR_Font2, _size7);
             elseif (TT_PS["save"] == "1") then
-               TT_TUTORIALS[tostring(hash)] = txt;
+               TT_TUTORIALS[tostring(hash)] = TT_NormalizeText(txt);
             end
          end
       end
@@ -313,7 +326,7 @@ function TT_onChoiceShow()
                obj:SetText(QTR_ExpandUnitInfo(WOW_ZmienKody(Tut_Data7[hash]),false,obj,WOWTR_Font2).." ");  -- podmieniamy tekst na nasze tłumaczenie + twarda spacja
                obj.Text:SetFont(WOWTR_Font2, _size7);
             elseif (TT_PS["save"] == "1") then
-               TT_TUTORIALS[tostring(hash)] = txt;
+               TT_TUTORIALS[tostring(hash)] = TT_NormalizeText(txt);
             end
          end
       end
@@ -331,7 +344,7 @@ function TT_onChoiceShow()
                obj:SetText(QTR_ExpandUnitInfo(WOW_ZmienKody(Tut_Data7[hash]),false,obj,WOWTR_Font2).." ");  -- podmieniamy tekst na nasze tłumaczenie + twarda spacja
                obj:SetFont(WOWTR_Font2, _size7);
             elseif (TT_PS["save"] == "1") then
-               TT_TUTORIALS[tostring(hash)] = txt;
+               TT_TUTORIALS[tostring(hash)] = TT_NormalizeText(txt);
             end
          end
       end
@@ -345,7 +358,7 @@ function TT_onChoiceShow()
                obj:SetText(QTR_ExpandUnitInfo(WOW_ZmienKody(Tut_Data7[hash]),false,obj,WOWTR_Font2).." ");  -- podmieniamy tekst na nasze tłumaczenie + twarda spacja
                obj.Text:SetFont(WOWTR_Font2, _size7);
             elseif (TT_PS["save"] == "1") then
-               TT_TUTORIALS[tostring(hash)] = txt;
+               TT_TUTORIALS[tostring(hash)] = TT_NormalizeText(txt);
             end
          end
       end
@@ -363,7 +376,7 @@ function TT_onChoiceShow()
                obj:SetText(QTR_ExpandUnitInfo(WOW_ZmienKody(Tut_Data7[hash]),false,obj,WOWTR_Font2).." ");  -- podmieniamy tekst na nasze tłumaczenie + twarda spacja
                obj:SetFont(WOWTR_Font2, _size7);
             elseif (TT_PS["save"] == "1") then
-               TT_TUTORIALS[tostring(hash)] = txt;
+               TT_TUTORIALS[tostring(hash)] = TT_NormalizeText(txt);
             end
          end
       end
@@ -377,7 +390,7 @@ function TT_onChoiceShow()
                obj:SetText(QTR_ExpandUnitInfo(WOW_ZmienKody(Tut_Data7[hash]),false,obj,WOWTR_Font2).." ");  -- podmieniamy tekst na nasze tłumaczenie + twarda spacja
                obj.Text:SetFont(WOWTR_Font2, _size7);
             elseif (TT_PS["save"] == "1") then
-               TT_TUTORIALS[tostring(hash)] = txt;
+               TT_TUTORIALS[tostring(hash)] = TT_NormalizeText(txt);
             end
          end
       end  
@@ -406,7 +419,7 @@ function TT_onChoiceShow()
                      obj:SetText(QTR_ExpandUnitInfo(WOW_ZmienKody(Tut_Data7[hash]),false,obj,WOWTR_Font2).." ");  -- podmieniamy tekst na nasze tłumaczenie + twarda spacja
                      obj:SetFont(WOWTR_Font2, _size7);
                   elseif (TT_PS["save"] == "1") then
-                     TT_TUTORIALS[tostring(hash)] = txt;
+                     TT_TUTORIALS[tostring(hash)] = TT_NormalizeText(txt);
                   end
                end
             end
@@ -450,7 +463,7 @@ function TT_CampaignOverview()
             frame:SetFont(WOWTR_Font2, 12);
          end
       elseif (TT_PS["save"] == "1") then
-         TT_TUTORIALS[tostring(HashCode)] = txt;
+         TT_TUTORIALS[tostring(HashCode)] = TT_NormalizeText(txt);
       end
       frames_tab[yOfs] = frame;
       height_tab[yOfs] = frame:GetHeight();
@@ -491,7 +504,7 @@ if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
                      frame.Text:SetText(WOW_ZmienKody(Tut_Data7[hash]).." ");  -- podmieniamy tekst na nasze tłumaczenie
                      frame.Text:SetFont(WOWTR_Font2, _size8);        -- na końcu dodajemy twardą spację, jako znacznik tekstu tureckiego
                   elseif (TT_PS["save"] == "1") then
-                     TT_TUTORIALS[tostring(hash)] = txt;
+                     TT_TUTORIALS[tostring(hash)] = TT_NormalizeText(txt);
                   end
                end
             end
@@ -531,7 +544,7 @@ if ((GetLocale()=="enUS") or (GetLocale()=="enGB")) then
                         if (ST_PrzedZapisem) then saveTxt = ST_PrzedZapisem(btnTxt); end
                         ST_PH[btnHash] = "ui@"..saveTxt;
                      else
-                        TT_TUTORIALS[tostring(btnHash)] = btnTxt;
+                        TT_TUTORIALS[tostring(btnHash)] = TT_NormalizeText(btnTxt);
                      end
                   end
                end
@@ -568,7 +581,7 @@ function TT_TutorialFrame()
                         obj:SetText(ST_TooltipsHS[id].." "); -- Note: WOW_ZmienKody might not be needed for TooltipsHS if plain text, but usually harmless
                         obj:SetFont(WOWTR_Font2, _size5);
                      elseif (TT_PS["save"] == "1") then
-                        TT_TUTORIALS[tostring(id)] = txt;
+                        TT_TUTORIALS[tostring(id)] = TT_NormalizeText(txt);
                      end
                 end
             end

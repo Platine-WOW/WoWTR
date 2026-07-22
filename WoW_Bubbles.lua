@@ -38,6 +38,34 @@ function BB_NormalizeGeneric(text)
 end
 
 -------------------------------------------------------------------------------------------------------
+
+local function BB_HasVisibleText(text)
+   if (text == nil) then return false; end
+   local clean = tostring(text);
+   clean = string.gsub(clean, "|[cC]%x%x%x%x%x%x%x%x", "");
+   clean = string.gsub(clean, "|[rR]", "");
+   clean = string.gsub(clean, " ", " ");
+   if (WOWTR_DeleteSpecialCodes) then
+      clean = WOWTR_DeleteSpecialCodes(clean);
+   end
+   clean = strtrim(clean);
+   return clean ~= "";
+end
+
+local function BB_CanSaveMissingBubble(npcName, hashCode, originalText)
+   if (tonumber(hashCode) or 0) <= 0 then return false; end
+   if (strtrim(tostring(npcName or "")) == "") then return false; end
+   if (not BB_HasVisibleText(originalText)) then return false; end
+   return true;
+end
+
+local function BB_SaveMissingBubble(npcName, hashCode, originalText, target)
+   if (not BB_CanSaveMissingBubble(npcName, hashCode, originalText)) then return false; end
+   BB_PS[npcName..":"..tostring(hashCode)] = originalText.."@"..tostring(target or "")..":"..WOWTR_player_name..":"..WOWTR_player_race..":"..WOWTR_player_class;
+   return true;
+end
+
+-------------------------------------------------------------------------------------------------------
 -- Chattynator entegrasyonu
 -- ---------------------------------------------------------------------------------------------------
 -- Chattynator yüklüyken normal DEFAULT_CHAT_FRAME görünmüyor; Chattynator olayları kendi gizli
@@ -365,6 +393,7 @@ function BB_ChatFilter(self, event, arg1, arg2, arg3, _, arg5, ...)     -- wywo�
             newMessage = WOW_ZmienKody(foundTranslation, arg5);
          if (string.sub(name_NPC,1,17) == "Bronze Timekeeper") or
             (string.sub(name_NPC,1,16) == "Grimy Timekeeper") or
+            (string.sub(name_NPC,1,5) == "Vaeli") or
             (string.sub(name_NPC,1,8) == "Om'torid") then       -- wyścigi na smokach - wyjątej z sekundami: $1.$2 oraz $3.$4
             local wartab = {0,0,0,0,0,0};                                 -- max. 6 liczb całkowitych w tekście
             local arg0 = 0;
@@ -446,17 +475,18 @@ function BB_ChatFilter(self, event, arg1, arg2, arg3, _, arg5, ...)     -- wywo�
             BB_ctrFrame:SetScript("OnUpdate", BB_bubblizeText);
          end
       else                                               -- nie mamy tłumaczenia
-         if (BB_PM["saveNB"] == "1") then                -- zapisz oryginalny tekst - jest pozwolenie
-            local Origin_Text = strtrim(arg1);                   -- jeszcze raz wczytaj pełny tekst angielski
-            if (arg5 and (arg5 ~= "")) then
-               Origin_Text = WOWTR_DetectAndReplacePlayerName(Origin_Text, arg5);
-            else
-               Origin_Text = WOWTR_DetectAndReplacePlayerName(Origin_Text);
-            end
-            BB_PS[name_NPC..":"..tostring(HashCode)] = Origin_Text.."@"..target..":"..WOWTR_player_name..":"..WOWTR_player_race..":"..WOWTR_player_class;
+         local Origin_Text = strtrim(tostring(arg1 or ""));                   -- jeszcze raz wczytaj pełny tekst angielski
+         if (arg5 and (arg5 ~= "")) then
+            Origin_Text = WOWTR_DetectAndReplacePlayerName(Origin_Text, arg5);
+         else
+            Origin_Text = WOWTR_DetectAndReplacePlayerName(Origin_Text);
          end
-         if (BB_PM["TRonline"] == "1") then              -- tłumaczenie online
-            local pomoc = name_NPC.."@"..tostring(HashCode).."@"..original_txt;
+         local canSaveMissingBubble = BB_CanSaveMissingBubble(name_NPC, HashCode, Origin_Text);
+         if (canSaveMissingBubble and BB_PM["saveNB"] == "1") then                -- zapisz oryginalny tekst - jest pozwolenie
+             BB_SaveMissingBubble(name_NPC, HashCode, Origin_Text, target);
+          end
+          if (canSaveMissingBubble and BB_PM["TRonline"] == "1") then              -- tłumaczenie online
+             local pomoc = name_NPC.."@"..tostring(HashCode).."@"..original_txt;
             local jest = 0;
             for ind=1,BB_ile_got,1 do             -- sprawdź czy taki dymek jest już w gotowych
                if (BB_gotowe[ind] == pomoc) then

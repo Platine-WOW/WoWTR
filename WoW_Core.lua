@@ -246,6 +246,11 @@ function WOWTR_CheckVars()
       QTR_PS["scale"] = "1";
    end
 
+   -- settings window background opacity (percent)
+   if (not QTR_PS["configOpacity"]) then
+      QTR_PS["configOpacity"] = "50";
+   end
+
 if not QTR_PS.firstTimeLoaded9 then   -- Automatic log cleaning (reset saved texts)
     QTR_PS.firstTimeLoaded9 = true
 

@@ -3081,51 +3081,67 @@ end
 -- ADDON LIST
 
 function ST_AddonListFrame()
-   if (TT_PS["ui1"] == "1") then
-    local AddonListFrame01 = AddonListEnableAllButtonText
-    ST_CheckAndReplaceTranslationTextUI(AddonListFrame01, true, "ui")
-    local AddonListFrame02 = AddonListDisableAllButtonText
-    ST_CheckAndReplaceTranslationTextUI(AddonListFrame02, true, "ui")
-    local AddonListFrame03 = AddonListCancelButtonText
-    ST_CheckAndReplaceTranslationTextUI(AddonListFrame03, true, "ui")
-    local AddonListFrame04 = AddonListOkayButtonText
-    ST_CheckAndReplaceTranslationTextUI(AddonListFrame04, true, "ui")
+    if (TT_PS["ui1"] == "1") then
+        -- shouldIgnore fonksiyonunu geçici olarak devre dışı bırak
+        local oldShouldIgnore = shouldIgnore
+        shouldIgnore = function() return false end
+        local buttonInfoList = {
+            { button = AddonList.EnableAllButton, name = "EnableAllButton" },
+            { button = AddonList.DisableAllButton, name = "DisableAllButton" },
+            { button = AddonList.CancelButton, name = "CancelButton" },
+            { button = AddonList.OkayButton, name = "OkayButton" },
+        }
 
-    for _, region in ipairs({AddonListForceLoad:GetRegions()}) do
-        if region:GetObjectType() == "FontString" and region:GetText() == "Load out of date AddOns" then
-            local AddonListFrame14 = region
-            ST_CheckAndReplaceTranslationTextUI(AddonListFrame14, true, "ui")
-            break -- İstediğimiz metni bulduk ve değiştirdik, döngüden çıkabiliriz
-        end
-    end
+        for _, buttonInfo in ipairs(buttonInfoList) do
+            local fontString = buttonInfo.button:GetFontString()
 
-    for _, region in ipairs({AddonList:GetRegions()}) do
-        if region:GetObjectType() == "FontString" and region:GetText() == "AddOn List" then
-            local AddonListFrame15 = region
-            ST_CheckAndReplaceTranslationTextUI(AddonListFrame15, true, "ui")
-            break -- İstediğimiz metni bulduk ve değiştirdik, döngüden çıkabiliriz
-        end
-    end
-
-    local function processAddonListEntryStatusAndReload()
-        local i = 1
-        while true do
-            local entryStatus = _G["AddonListEntry" .. i .. "Status"]
-            local entryReload = _G["AddonListEntry" .. i .. "Reload"]
-
-            if not entryStatus or not entryReload then
-                break -- Artık daha fazla AddonListEntry yok
+            if fontString then
+                ST_CheckAndReplaceTranslationTextUI(fontString, true, "ui")
+            else
+                --print("Uyarı: " .. buttonInfo.name .. " butonu için FontString bulunamadı.")
             end
-
-            ST_CheckAndReplaceTranslationTextUI(entryStatus, true, "ui")
-            ST_CheckAndReplaceTranslationTextUI(entryReload, true, "ui")
-            i = i + 1
         end
+
+        -- local AddonListFrame04 = AddonList.Performance.Header
+        -- ST_CheckAndReplaceTranslationTextUI(AddonListFrame04, true, "ui")
+        local AddonListFrame05 = AddonList.TitleContainer.TitleText
+        ST_CheckAndReplaceTranslationTextUI(AddonListFrame05, true, "ui")
+
+        for _, region in ipairs({ AddonList.ForceLoad:GetRegions() }) do
+            if region:GetObjectType() == "FontString" and region:GetText() == "Load out of date AddOns" then
+                local AddonListFrame14 = region
+                ST_CheckAndReplaceTranslationTextUI(AddonListFrame14, true, "ui")
+                break -- İstediğimiz metni bulduk ve değiştirdik, döngüden çıkabiliriz
+            end
+        end
+
+        for _, region in ipairs({ AddonList:GetRegions() }) do
+            if region:GetObjectType() == "FontString" and region:GetText() == "AddOn List" then
+                local AddonListFrame15 = region
+                ST_CheckAndReplaceTranslationTextUI(AddonListFrame15, true, "ui")
+                break -- İstediğimiz metni bulduk ve değiştirdik, döngüden çıkabiliriz
+            end
+        end
+
+
+        local i = 1
+        local reloadEntry = _G["AddonListEntry" .. i .. "Reload"]
+        local statusEntry = _G["AddonListEntry" .. i .. "Status"]
+
+        while reloadEntry and statusEntry do
+            local reloadText = (reloadEntry and reloadEntry:GetText()) or ""
+            local statusText = (statusEntry and statusEntry:GetText()) or ""
+
+            ST_CheckAndReplaceTranslationTextUI(reloadEntry, true, "ui")
+            ST_CheckAndReplaceTranslationTextUI(statusEntry, true, "ui")
+
+            i = i + 1
+            reloadEntry = _G["AddonListEntry" .. i .. "Reload"]
+            statusEntry = _G["AddonListEntry" .. i .. "Status"]
+        end
+
+        shouldIgnore = oldShouldIgnore
     end
-
-processAddonListEntryStatusAndReload()
-
-   end
 end
 
 -------------------------------------------------------------------------------------------------------

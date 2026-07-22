@@ -7,6 +7,7 @@
 MF_race = UnitRace("player");
 MF_class = UnitClass("player");
 local MF_movieID, MF_SubTitle, MF_lp, MF_ID, MF_playing, MF_showing, MF_timer, MF_time1, MF_last_ST, MF_pytanie1, MF_pytanie2, MF_Mode;
+local MF_movieHooked, MF_cinematicIntroHooked, MF_cinematicSubsHooked;
 if (MF_class == "Death Knight") then
    MF_race = MF_class;
 end
@@ -15,17 +16,7 @@ end
 MF_Size = 16;
 
 -------------------------------------------------------------------------------------------------------------------
-
-function BB_FindProS(text)                 -- znajdź, czy jest tekst '%s' w podanym tłumaczeniu
-   local dl_txt = string.len(text)-1;
-   for i_j=1,dl_txt,1 do
-      if (strsub(text,i_j,i_j+1)=="%s") then       
-         return i_j;
-      end
-   end
-   return 0;
-end
-
+-- BB_FindProS is defined in WoW_Bubbles.lua (loaded earlier)
 -------------------------------------------------------------------------------------------------------------------
 
 function WOWTR_FixNewLines(text)
@@ -48,9 +39,9 @@ function MF_ShowMovieSubtitles()       -- wyświetlanie napisów w MOVIES (TR: F
          MF_lpSTR = "0"..MF_lpSTR;
       end
       MF_last_ST = MF_readed_ST;             -- zapisz jako ostatni napis (TR: son yazı olarak kaydet)
-      MF_hash2 = StringHash(MF_readed_HS);
-      if (MF_Hash[MF_hash2] or BB_Bubbles[MF_hash2]) then   -- jest w bazie tłumaczenie napisu (TR: veritabanında yazının çevirisi var)
-         local trText = MF_Hash[MF_hash2] or BB_Bubbles[MF_hash2];
+      local MF_hash2 = StringHash(MF_readed_HS);
+      if (MF_Subtitles[MF_hash2] or BB_Bubbles[MF_hash2]) then   -- jest w bazie tłumaczenie napisu (TR: veritabanında yazının çevirisi var)
+         local trText = MF_Subtitles[MF_hash2] or BB_Bubbles[MF_hash2];
          trText = WOWTR_FixNewLines(trText);
          SubtitlesFrame.Subtitle1:SetText((trText) .. " ");  -- twarda spacja na końcu (TR: sonunda sert boşluk)
          SubtitlesFrame.Subtitle1:SetFont(WOWTR_Font2, MF_Size);
@@ -85,7 +76,7 @@ function MF_ShowCinematicSubtitles()            -- wyświetlanie napisów w CINE
                local MF_napis2 = WOWTR_DetectAndReplacePlayerName(string.sub(MF_napis, p1+1):gsub("^%s*", ""));
                local MF_napis2_HS = WOWTR_DeleteSpecialCodes(MF_napis2);
                local MF_hash2 = StringHash(MF_napis2_HS);
-               local MF_translation = MF_Hash[MF_hash2] or BB_Bubbles[MF_hash2];
+               local MF_translation = MF_Subtitles[MF_hash2] or BB_Bubbles[MF_hash2];
                if (MF_translation) then                           -- istnieje tłumaczenie w dymkach (TR: konuşma balonlarında çeviri mevcut)
 
                   local MF_output = "|cFFFF9900"..MF_speaker.." :|r "..WOW_ZmienKody(MF_translation);
@@ -93,9 +84,9 @@ function MF_ShowCinematicSubtitles()            -- wyświetlanie napisów w CINE
                   SubtitlesFrame.Subtitle1:SetText(MF_output.." ");         -- podmień wyświetlany tekst dodając twardą spację (TR: görüntülenen metni sert boşluk ekleyerek değiştir)
                   MF_zapisz_EN = false;
 
-               elseif (MF_Hash[MF_hash] or BB_Bubbles[MF_hash]) then
+               elseif (MF_Subtitles[MF_hash] or BB_Bubbles[MF_hash]) then
                   -- çevirisi yoksa High Speaker Eirich: The High Speaker... has SPOKEN. çevirisine baksın
-                  local MF_tekst = WOW_ZmienKody(MF_Hash[MF_hash] or BB_Bubbles[MF_hash]);
+                  local MF_tekst = WOW_ZmienKody(MF_Subtitles[MF_hash] or BB_Bubbles[MF_hash]);
                   local nr_poz = BB_FindProS(MF_tekst,1);
                   if (strsub(MF_tekst,1,2)=="%o") then 
                      MF_tekst = strsub(MF_tekst, 3):gsub("^%s*", "");
@@ -116,13 +107,13 @@ function MF_ShowCinematicSubtitles()            -- wyświetlanie napisów w CINE
                   end
                end
             else
-               if (MF_Hash[MF_hash] or BB_Bubbles[MF_hash]) then            -- istnieje tłumaczenie w dymkach (TR: konuşma balonlarında çeviri mevcut)
-                  local MF_tekst = WOW_ZmienKody(MF_Hash[MF_hash] or BB_Bubbles[MF_hash]);
+               if (MF_Subtitles[MF_hash] or BB_Bubbles[MF_hash]) then            -- istnieje tłumaczenie w dymkach (TR: konuşma balonlarında çeviri mevcut)
+                  local MF_tekst = WOW_ZmienKody(MF_Subtitles[MF_hash] or BB_Bubbles[MF_hash]);
                   local nr_poz = BB_FindProS(MF_tekst,1);   -- znajdź tekst '%s' (TR: '%s' metnini bul)
                   if (strsub(MF_tekst,1,2)=="%o") then 
                      MF_tekst = strsub(MF_tekst, 3):gsub("^%s*", "");
                   elseif (nr_poz>0) then           -- mamy formę opisową dymku %s np. NPC_name wpada w szał! (TR: %s şeklinde tasvirli konuşma balonumuz var, örn. NPC_adı öfkeye kapılıyor!)
-                     -- Düzeltme: name_NPC tanımlı değilse boşluk ata
+                     -- Düzeltme: name_NPC tanımlı nie jestse boşluk ata
                      local safe_NPC_Name = "" 
                      if (nr_poz==1) then
                         MF_tekst = safe_NPC_Name..strsub(MF_tekst, 3);
@@ -222,7 +213,10 @@ function MF_PlayMovie(movieID)      -- fired by PLAY_MOVIE event (TR: PLAY_MOVIE
    local _font, _size, _3 = SubtitlesFrame.Subtitle1:GetFont();
    SubtitlesFrame.Subtitle1:SetFont(WOWTR_Font2, _size);           -- przetłumaczona czcionka do napisów (TR: altyazılar için çevrilmiş yazı tipi)
    MF_Mode = "MOVIE";
-   SubtitlesFrame:HookScript("OnEvent", MF_ShowMovieSubtitles);
+   if (not MF_movieHooked) then
+      SubtitlesFrame:HookScript("OnEvent", MF_ShowMovieSubtitles);
+      MF_movieHooked = true;
+   end
    MF_Size = _size;
 end
 
@@ -282,11 +276,17 @@ function MF_CinematicStart()             -- fired by CINEMATIC_START event (TR: 
          MF_sub2 = MF_Data[MF_race..":01"]["STOP"];
          MF_sub3 = MF_Data[MF_race..":01"]["NAPIS"];
          SubtitlesFrame.showSubtitles = false;     -- hide english subtitles
-         CinematicFrame:HookScript("OnUpdate", MF_ShowCinematicIntro);
+         if (not MF_cinematicIntroHooked) then
+            CinematicFrame:HookScript("OnUpdate", MF_ShowCinematicIntro);
+            MF_cinematicIntroHooked = true;
+         end
       end
    else                                      -- mamy cinematic on game (TR: oyun içi sinematik var)
       if  ((MF_PM["active"] == "1") and (MF_PM["cinematic"] == "1")) then      -- jest zezwolenie na wyświetlanie napisów w Cinematic (TR: Sinematikte altyazı gösterimine izin var)
-         SubtitlesFrame:HookScript("OnUpdate", MF_ShowCinematicSubtitles);
+         if (not MF_cinematicSubsHooked) then
+            SubtitlesFrame:HookScript("OnUpdate", MF_ShowCinematicSubtitles);
+            MF_cinematicSubsHooked = true;
+         end
          MF_time1 = GetTime();
       end
    end      
