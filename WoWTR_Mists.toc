@@ -1,6 +1,6 @@
 ## Interface: 50500, 50501, 50502, 50503, 50504
-## Title: WoWTR|cFF00FF00 v26.0720|r by hknylmz
-## Version: 26.0720
+## Title: WoWTR|cFF00FF00 v26.0723|r by hknylmz
+## Version: 26.0723
 ## Notes: Görev, Diyalog, Sinematik ve Arayüz metinleri Türkçe olarak görüntülenir.
 ## Notes_en: Translates the texts in the play into Turkish.
 ## Author: Platine & Hakan YILMAZ
